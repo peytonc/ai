@@ -1,4 +1,4 @@
-package delete;
+package minijava;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

@@ -1,4 +1,4 @@
-package delete;
+package minijava;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class GPCallable implements Callable<ArrayList<Long>>{
 		Class<?> cls = Class.forName("package" + ID + ".GeneticProgram", false, classLoader);
 		Method method = cls.getMethod("compute", ArrayList.class);
         Object object = method.invoke(null, vector);
-        if(object instanceof ArrayList) {
+        if(object instanceof ArrayList<Long>) {
         	vectorReturn = (ArrayList<Long>) object;
         } else {
         	throw new Exception("String not returned");
