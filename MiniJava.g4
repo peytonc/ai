@@ -1,7 +1,7 @@
 /** Mini java language inspired by http://www.cambridge.org/us/features/052182060X/grammar.html
- *  $ java -jar antlr-4.5.3-complete.jar MiniJava.g4
- *  $ javac -cp antlr-4.5.3-complete.jar MiniJava*.java
- *  $ java -cp .:antlr-4.5.3-complete.jar org.antlr.v4.gui.TestRig MiniJava program -gui package0/GeneticProgram.java
+ *  $ java -jar antlr-4.6-complete.jar MiniJava.g4
+ *  $ javac -cp antlr-4.6-complete.jar MiniJava*.java
+ *  $ java -cp .:antlr-4.6-complete.jar org.antlr.v4.gui.TestRig MiniJava program -gui package0/GeneticProgram.java
  */
 
 grammar MiniJava;
