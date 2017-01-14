@@ -4,12 +4,12 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-public class GPCallable implements Callable<ArrayList<Long>>{
+public class CallableMiniJava implements Callable<ArrayList<Long>>{
 	private ClassLoader classLoader;
 	private int ID;
 	private ArrayList<Long> vector;
 	
-	public GPCallable(ClassLoader classLoader, int ID, ArrayList<Long> vector) {
+	public CallableMiniJava(ClassLoader classLoader, int ID, ArrayList<Long> vector) {
 		this.classLoader = classLoader;
 		this.ID = ID;
 		this.vector = vector;

@@ -31,11 +31,11 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-public class GPDriver {
+public class Main {
 
 	public final int maxPackage = 2; 
 	
-	public GPDriver() {  
+	public Main() {  
 	}
 	
 	public void initalize() {
@@ -76,10 +76,10 @@ public class GPDriver {
 		ArrayList<Long> arrayListExpected = new ArrayList<Long>(arrayListTest);
 		Collections.sort(arrayListExpected);
 		List<File> listFile = new ArrayList<File>(maxPackage);
-		List<GPFitness> listGPFitness = new ArrayList<GPFitness>(maxPackage);
+		List<Fitness> listGPFitness = new ArrayList<Fitness>(maxPackage);
 		for(int index=0; index<maxPackage; index++) {
 			listFile.add(new File("C:\\Users\\peyton\\workspace\\delete\\src\\package" + index + "\\GeneticProgram.java"));
-			listGPFitness.add(new GPFitness(index, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE));
+			listGPFitness.add(new Fitness(index, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE));
 		}
 		// This will require JAVA_HOME be set to JDK. JRE home will cause a NullPointerException
 		System.setProperty("java.home", "C:\\Program Files\\Java\\jdk1.7.0_25");
@@ -110,7 +110,7 @@ public class GPDriver {
 			
 			List<Callable<ArrayList<Long>>> listCallable = new ArrayList<Callable<ArrayList<Long>>>(maxPackage);
 			for(int i=0; i<maxPackage; i++) {
-				Callable<ArrayList<Long>> gPCallable = new GPCallable(classLoader, i, arrayListTest);
+				Callable<ArrayList<Long>> gPCallable = new CallableMiniJava(classLoader, i, arrayListTest);
 				listCallable.add(gPCallable);
 			}
 			ExecutorService executorService = Executors.newFixedThreadPool(maxPackage);
@@ -129,7 +129,7 @@ public class GPDriver {
 				index++;
 			}
 			Collections.sort(listGPFitness);
-			for(GPFitness gPFitness : listGPFitness) {
+			for(Fitness gPFitness : listGPFitness) {
 				System.out.println(gPFitness.toString());
 				System.out.println(gPFitness.vectorActual.toString());
 			}
@@ -167,7 +167,7 @@ public class GPDriver {
 	}
 	
 	public static void main(String[] args) {
-		GPDriver gPDriver = new GPDriver();
+		Main gPDriver = new Main();
 		gPDriver.initalize();
 		gPDriver.evolution();
 	}
