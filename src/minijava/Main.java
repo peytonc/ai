@@ -129,7 +129,7 @@ public class Main {
 				e.printStackTrace();
 			}
 		}
-		listProgramParent = listProgramPopulation.subList(0, maxParent);
+		listProgramParent = new ArrayList<Program>(listProgramPopulation.subList(0, maxParent));
 		for(Program program : listProgramPopulation) {
 			System.out.println(program.fitness.toString());
 			System.out.println(program.vectorActual.toString());
@@ -165,8 +165,10 @@ public class Main {
 	
 	public static void main(String[] args) {
 		Main main = new Main();
-		main.createPopulation();
-		main.execute();
-		main.selection();
+		for(int maxIteration=0; maxIteration<2; maxIteration++) {
+			main.createPopulation();
+			main.execute();
+			main.selection();
+		}
 	}
 }
