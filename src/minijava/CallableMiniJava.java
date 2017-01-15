@@ -3,8 +3,9 @@ package minijava;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
-public class CallableMiniJava implements Callable<ArrayList<Long>>{
+public class CallableMiniJava implements Callable<CallableResult>{
 	private ClassLoader classLoader;
 	private int ID;
 	private ArrayList<Long> vector;
@@ -16,17 +17,19 @@ public class CallableMiniJava implements Callable<ArrayList<Long>>{
 	}
 	
 	@Override
-	public ArrayList<Long> call() throws Exception {
-		ArrayList<Long> vectorReturn = null;
+	public CallableResult call() throws Exception {
+		CallableResult callableResult = new CallableResult();
 		Class<?> cls = Class.forName("package" + ID + ".GeneticProgram", false, classLoader);
 		Method method = cls.getMethod("compute", ArrayList.class);
+		long timeStart = System.nanoTime();
         Object object = method.invoke(null, vector);
-        if(object instanceof ArrayList<Long>) {
-        	vectorReturn = (ArrayList<Long>) object;
+        callableResult.milliseconds = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart);
+        if(object instanceof ArrayList<?>) {
+        	callableResult.vector = (ArrayList<Long>) object;
         } else {
-        	throw new Exception("String not returned");
+        	throw new Exception("Method.invoke not instanceof");
         }
-		return vectorReturn;
+		return callableResult;
 	}
 
 }

@@ -1,34 +1,26 @@
 package minijava;
 
-import java.util.ArrayList;
-
 public class Fitness implements Comparable<Fitness> {
-	public int ID;
-	public int fitness;
-	public int speed;
+	public int difference;
+	public long speed;
 	public int size;
-	ArrayList<Long> vectorActual;
 	
-	public Fitness(int ID, int fitness, int speed, int size) {
-		this.ID = ID;
-		this.fitness = fitness;
-		this.speed = speed;
-		this.size = size;
+	public Fitness() {
+		difference = Integer.MAX_VALUE;
+	}
+	public String toString() {
+		return "Fitness{difference=" + difference + ",speed=" + speed + ",size=" + size + "}";
 	}
 	
 	@Override
-	public int compareTo(Fitness gPFitness) {
-		int compare = Integer.compare(fitness, gPFitness.fitness);
+	public int compareTo(Fitness fitness) {
+		int compare = Integer.compare(difference, fitness.difference);
 		if(compare == 0) {
-			compare = Integer.compare(speed, gPFitness.speed);
+			compare = Long.compare(speed, fitness.speed);
 			if(compare == 0) {
-				compare = Integer.compare(size, gPFitness.size);
+				compare = Integer.compare(size, fitness.size);
 			}
 		}
 		return compare;
-	}
-	
-	public String toString() {
-		return "GPFitness{ID=" + ID + ",fitness=" + fitness + ",speed=" + speed + ",size=" + size + "}";
 	}
 }
