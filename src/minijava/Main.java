@@ -129,6 +129,7 @@ public class Main {
 				e.printStackTrace();
 			}
 		}
+		listProgramParent = listProgramPopulation.subList(0, maxParent);
 		for(Program program : listProgramPopulation) {
 			System.out.println(program.fitness.toString());
 			System.out.println(program.vectorActual.toString());
