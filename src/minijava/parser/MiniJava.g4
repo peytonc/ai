@@ -19,7 +19,7 @@ block
     ;
 
 block
-    :   declaration* statement*
+    :   '{' declaration* statement* '}'
     ;
 
 declaration
@@ -30,8 +30,8 @@ declaration
     ;
 
 statement
-    :   'if(' expressionBoolean ') {' statement '} else {' statement '}'
-    |   'while(' expressionBoolean ') {' statement '}'
+    :   'if(' expressionBoolean ')' block 'else' block
+    |   'while(' expressionBoolean ')' block
     |	LONGARRAYNAME '.set(' expressionNumeric ', new Long(' expressionNumeric '));'
     |   LONGNAME '=' expressionNumeric ';'
     |	BOOLEANARRAYNAME '.set(' expressionNumeric ', new Boolean(' expressionBoolean '));'
@@ -40,9 +40,13 @@ statement
 
 expressionNumeric
     :   '(' expressionNumeric ')'
-    |   expressionNumeric ('^'|'%') expressionNumeric
-    |   expressionNumeric ('*'|'/') expressionNumeric
-    |   expressionNumeric ('+'|'-') expressionNumeric
+    |   '(' '-' expressionNumeric ')'
+    |   expressionNumeric '^' expressionNumeric
+    |   expressionNumeric '%' expressionNumeric
+    |   expressionNumeric '*' expressionNumeric
+    |   expressionNumeric '/' expressionNumeric
+    |   expressionNumeric '+' expressionNumeric
+    |   expressionNumeric '-' expressionNumeric
     |   LONGARRAYNAME '.' 'size()'
     |   longArrayValue
     |   LONGNAME
@@ -51,9 +55,13 @@ expressionNumeric
 
 expressionBoolean
     :   '(' expressionBoolean ')'
-    |   expressionNumeric ('<' | '<=') expressionNumeric
-    |   expressionNumeric ('==' | '!=') expressionNumeric
-    |   expressionBoolean ('==' | '!=') expressionBoolean
+    |   '(' '!' expressionBoolean ')'
+    |   expressionNumeric '<' expressionNumeric
+    |   expressionNumeric '<=' expressionNumeric
+    |   expressionNumeric '==' expressionNumeric
+    |   expressionNumeric '!=' expressionNumeric
+    |   expressionBoolean '==' expressionBoolean
+    |   expressionBoolean '!=' expressionBoolean
     |   expressionBoolean '&&' expressionBoolean
     |   expressionBoolean '||' expressionBoolean
     |   booleanArrayValue
@@ -114,7 +122,6 @@ BOOLEAN
 NUMBER
     :   '0'
     |   DIGITNOZERO DIGIT*
-    |   '-' DIGITNOZERO DIGIT*
     ;
 
 fragment DIGIT

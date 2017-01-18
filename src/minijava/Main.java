@@ -34,7 +34,8 @@ import minijava.parser.MiniJavaParser;
 import minijava.parser.MiniJavaParser.*;
 
 public class Main {
-	public final static String JAVA_HOME = new String("/usr/local/jdk1.8.0_112/");	// This will require JAVA_HOME be set to JDK. JRE home will cause a NullPointerException
+	// This will require JAVA_HOME be set to JDK. JRE home will cause a NullPointerException
+	public final static String JAVA_HOME = new String("/usr/local/jdk1.8.0_121/");
 	public final static String PROGRAM_CLASS_NAME = new String("GeneticProgram");
 	public final static String PROGRAM_FILENAME = new String("GeneticProgram.java");
 	public final int maxParent = 2;	// Size of parent pool
