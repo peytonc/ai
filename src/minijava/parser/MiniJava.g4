@@ -1,7 +1,7 @@
 /** Mini java language inspired by http://www.cambridge.org/us/features/052182060X/grammar.html
- *  $ java -jar antlr-4.6-complete.jar MiniJava.g4
- *  $ javac -cp antlr-4.6-complete.jar MiniJava*.java
- *  $ java -cp .:antlr-4.6-complete.jar org.antlr.v4.gui.TestRig MiniJava program -gui package0/GeneticProgram.java
+ *  $ java -jar ../../../lib/antlr-4.6-complete.jar -package minijava.parser MiniJava.g4
+ *  $ javac -cp ../../../lib/antlr-4.6-complete.jar MiniJava*.java
+ *  $ java -cp .:../../../lib/antlr-4.6-complete.jar org.antlr.v4.gui.TestRig MiniJava program -gui ../../../GeneticProgram.java
  */
 
 grammar MiniJava;
@@ -11,13 +11,22 @@ program
 'import java.util.ArrayList;'
 'import java.util.Collections;'
 'public class GeneticProgram {'
-'public static ArrayList<Long> compute(ArrayList<Long> values00)'
+'public static ArrayList<Long> compute(ArrayList<Long> values00) {'
 block
+'return values00;'
+'}'
 '}' EOF
     ;
 
 block
-    :   '{' longArrayDeclaration* longDeclaration* booleanArrayDeclaration* booleanDeclaration* statement* 'return values00;' '}'
+    :   declaration* statement*
+    ;
+
+declaration
+    :   longArrayDeclaration
+    |   longDeclaration
+    |   booleanArrayDeclaration
+    |   booleanDeclaration
     ;
 
 statement
@@ -34,7 +43,7 @@ expressionNumeric
     |   expressionNumeric ('^'|'%') expressionNumeric
     |   expressionNumeric ('*'|'/') expressionNumeric
     |   expressionNumeric ('+'|'-') expressionNumeric
-    |   longArrayName '.' 'length'
+    |   longArrayName '.' 'size()'
     |   longArrayValue
     |   longName
     |	numberValue
@@ -53,7 +62,7 @@ expressionBoolean
     ;
 
 longArrayDeclaration
-    :   'ArrayList<Long>' longArrayName '= new ArrayList<Long>(Collections.nCopies(values00.length,' expressionNumeric '));'
+    :   'ArrayList<Long>' longArrayName '= new ArrayList<Long>(Collections.nCopies(values00.size(), new Long(' expressionNumeric ')));'
     ;
 
 longArrayValue
@@ -73,7 +82,7 @@ longName
     ;
 
 booleanArrayDeclaration
-	:   'ArrayList<Boolean>' booleanArrayName '= new ArrayList<Boolean>(Collections.nCopies(values00.length,' expressionBoolean '));'
+	:   'ArrayList<Boolean>' booleanArrayName '= new ArrayList<Boolean>(Collections.nCopies(values00.size(),' expressionBoolean '));'
     ;
 
 booleanArrayValue

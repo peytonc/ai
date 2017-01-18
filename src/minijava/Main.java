@@ -24,6 +24,14 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import minijava.parser.MiniJavaLexer;
+import minijava.parser.MiniJavaParser;
+import minijava.parser.MiniJavaParser.*;
+
 public class Main {
 	public final static String JAVA_HOME = new String("/usr/local/jdk1.8.0_112/");	// This will require JAVA_HOME be set to JDK. JRE home will cause a NullPointerException
 	public final static String PROGRAM_CLASS_NAME = new String("GeneticProgram");
@@ -60,11 +68,29 @@ public class Main {
 		for(Program program : listProgramParent) {
 			listProgramPopulation.add(new Program(PROGRAM_CLASS_NAME, replacePackage(program.source, indexPackage++)));	// add parent to population
 			for(int indexChild=0; indexChild<maxChildren; indexChild++) {
-				String source = program.source;
-				//mutate source
+				String source = mutate(program.source);
 				listProgramPopulation.add(new Program(PROGRAM_CLASS_NAME, replacePackage(source, indexPackage++)));	// add child to population
 			}
 		}
+	}
+	
+	public String mutate(String source) {
+		MiniJavaLexer miniJavaLexer = new MiniJavaLexer(new ANTLRInputStream(source));
+		MiniJavaParser miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));
+		BlockContext blockContext = miniJavaParser.program().block();
+		System.out.println(getChildCount(blockContext));
+        System.out.println(blockContext.getText());
+		return source;
+	}
+	
+	private int getChildCount(ParseTree parseTree) {
+		System.out.println(parseTree.getText());
+		int count = 1;
+		for(int index=0; index<parseTree.getChildCount(); index++) {
+			ParseTree parseTreeChild = parseTree.getChild(index);
+			count += getChildCount(parseTreeChild);
+		}
+		return count;
 	}
 	
 	public void execute() {
@@ -75,7 +101,7 @@ public class Main {
 		final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
 		final ExecutorService executorService = Executors.newFixedThreadPool(maxPopulation);
 		final List<Callable<CallableResult>> listCallable = new ArrayList<Callable<CallableResult>>(maxPopulation);
-				
+		
 		CompilationTask compilerTask = compiler.getTask(null, standardJavaFileManager, diagnostics, compilationOptions, null, listProgramPopulation);
 		if (!compilerTask.call()) {	//Compile and check for program errors
 		    for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()){   
@@ -96,7 +122,7 @@ public class Main {
 					if(!future.isCancelled()) {
 						CallableResult callableResult = future.get();
 						listProgramPopulation.get(index).vectorActual = callableResult.vector;
-						listProgramPopulation.get(index).fitness.difference = getFitness(arrayListExpected, callableResult.vector);
+						listProgramPopulation.get(index).fitness.difference = getDifference(arrayListExpected, callableResult.vector);
 						listProgramPopulation.get(index).fitness.speed = callableResult.milliseconds;
 					}
 					else {
@@ -132,16 +158,20 @@ public class Main {
 		listProgramParent = new ArrayList<Program>(listProgramPopulation.subList(0, maxParent));
 		for(Program program : listProgramPopulation) {
 			System.out.println(program.fitness.toString());
-			System.out.println(program.vectorActual.toString());
+			if(program.vectorActual != null) {
+				System.out.println(program.vectorActual.toString());
+			} else {
+				
+			}
 		}
 	}
 	
-	int getFitness(ArrayList<Long> vectorExpected, ArrayList<Long> vectorActual) {
-		int fitness = 0;
-		for(int index=0; index<vectorExpected.size(); index++) {
-			fitness += Math.abs(vectorExpected.get(index) - vectorActual.get(index));
+	int getDifference(ArrayList<Long> arrayListExpected, ArrayList<Long> arrayListActual) {
+		int difference = 0;
+		for(int index=0; index<arrayListExpected.size(); index++) {
+			difference += Math.abs(arrayListExpected.get(index) - arrayListActual.get(index));
 		}
-		return fitness;
+		return difference;
 	}
 	
 	String replacePackage(String source, int packageNumber) {
@@ -165,7 +195,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 		Main main = new Main();
-		for(int maxIteration=0; maxIteration<2; maxIteration++) {
+		for(int iteration=0; iteration<1; iteration++) {
 			main.createPopulation();
 			main.execute();
 			main.selection();
