@@ -26,6 +26,7 @@ import javax.tools.ToolProvider;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Vocabulary;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import minijava.parser.MiniJavaLexer;
@@ -46,6 +47,9 @@ public class Main {
 	private ArrayList<Long> arrayListTest;
 	private ArrayList<Long> arrayListExpected;
 	private Fitness fitnessBest;
+	
+	private List<ParseTree> listParseTree = new ArrayList<ParseTree>();
+	private Vocabulary vocabulary;
 	
 	public Main() {
 		System.setProperty("java.home", JAVA_HOME);
@@ -77,20 +81,38 @@ public class Main {
 	public String mutate(String source) {
 		MiniJavaLexer miniJavaLexer = new MiniJavaLexer(new ANTLRInputStream(source));
 		MiniJavaParser miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));
+		vocabulary = miniJavaParser.getVocabulary();
 		BlockContext blockContext = miniJavaParser.program().block();
-		System.out.println(getChildCount(blockContext));
+		listParseTree.clear();
+		//miniJavaParser.getTokenStream().getText(parseTree.getSourceInterval()));
+		getChildren(blockContext);
+		for(ParseTree parseTree : listParseTree) {
+			System.out.println("parseTree.getSourceInterval().toString()" + parseTree.getSourceInterval().toString());
+			System.out.println("parseTree.getText()" + parseTree.getText());
+		}
         System.out.println(blockContext.getText());
 		return source;
 	}
 	
-	private int getChildCount(ParseTree parseTree) {
-		System.out.println(parseTree.getText());
-		int count = 1;
-		for(int index=0; index<parseTree.getChildCount(); index++) {
-			ParseTree parseTreeChild = parseTree.getChild(index);
-			count += getChildCount(parseTreeChild);
+	private void getChildren(ParseTree parseTree) {
+		if(parseTree==null || parseTree.getText()==null) {
+			return;
 		}
-		return count;
+		String text = "'" + parseTree.getText() + "'";
+		boolean isLiteral = false;
+		for(int index=0; index<vocabulary.getMaxTokenType(); index++) {
+			if(text.equals(vocabulary.getLiteralName(index))) {
+				isLiteral = true;
+				break;
+			}
+		}
+		if(!isLiteral) {
+			listParseTree.add(parseTree);
+			for(int index=0; index<parseTree.getChildCount(); index++) {
+				ParseTree parseTreeChild = parseTree.getChild(index);
+				getChildren(parseTreeChild);
+			}
+		}
 	}
 	
 	public void execute() {

@@ -7,7 +7,7 @@
 grammar MiniJava;
 
 program
-    :   'package' packageName ';'
+    :   'package' PACKAGENAME ';'
 'import java.util.ArrayList;'
 'import java.util.Collections;'
 'public class GeneticProgram {'
@@ -32,10 +32,10 @@ declaration
 statement
     :   'if(' expressionBoolean ') {' statement '} else {' statement '}'
     |   'while(' expressionBoolean ') {' statement '}'
-    |	longArrayName '.set(' expressionNumeric ', new Long(' expressionNumeric '));'
-    |   longName '=' expressionNumeric ';'
-    |	booleanArrayName '.set(' expressionNumeric ', new Boolean(' expressionBoolean '));'
-    |   booleanName '=' expressionBoolean ';'
+    |	LONGARRAYNAME '.set(' expressionNumeric ', new Long(' expressionNumeric '));'
+    |   LONGNAME '=' expressionNumeric ';'
+    |	BOOLEANARRAYNAME '.set(' expressionNumeric ', new Boolean(' expressionBoolean '));'
+    |   BOOLEANNAME '=' expressionBoolean ';'
     ;
 
 expressionNumeric
@@ -43,10 +43,10 @@ expressionNumeric
     |   expressionNumeric ('^'|'%') expressionNumeric
     |   expressionNumeric ('*'|'/') expressionNumeric
     |   expressionNumeric ('+'|'-') expressionNumeric
-    |   longArrayName '.' 'size()'
+    |   LONGARRAYNAME '.' 'size()'
     |   longArrayValue
-    |   longName
-    |	numberValue
+    |   LONGNAME
+    |	NUMBER
     ;
 
 expressionBoolean
@@ -57,60 +57,32 @@ expressionBoolean
     |   expressionBoolean '&&' expressionBoolean
     |   expressionBoolean '||' expressionBoolean
     |   booleanArrayValue
-    |   booleanName
-    |	booleanValue
+    |   BOOLEANNAME
+    |	BOOLEAN
     ;
 
 longArrayDeclaration
-    :   'ArrayList<Long>' longArrayName '= new ArrayList<Long>(Collections.nCopies(values00.size(), new Long(' expressionNumeric ')));'
+    :   'ArrayList<Long>' LONGARRAYNAME '= new ArrayList<Long>(Collections.nCopies(values00.size(), new Long(' expressionNumeric ')));'
     ;
 
 longArrayValue
-    :   longArrayName '.get(' expressionNumeric ')'
-    ;
-
-longArrayName
-    :   LONGARRAYNAME
+    :   LONGARRAYNAME '.get(' expressionNumeric ')'
     ;
 
 longDeclaration
-    :   'Long' longName ';'
-    ;
-
-longName
-    :   LONGNAME
+    :   'Long' LONGNAME ';'
     ;
 
 booleanArrayDeclaration
-	:   'ArrayList<Boolean>' booleanArrayName '= new ArrayList<Boolean>(Collections.nCopies(values00.size(),' expressionBoolean '));'
+	:   'ArrayList<Boolean>' BOOLEANARRAYNAME '= new ArrayList<Boolean>(Collections.nCopies(values00.size(),' expressionBoolean '));'
     ;
 
 booleanArrayValue
-	:   booleanArrayName '.get(' expressionNumeric ')'
-    ;
-
-booleanArrayName
-    :   BOOLEANARRAYNAME
+	:   BOOLEANARRAYNAME '.get(' expressionNumeric ')'
     ;
 
 booleanDeclaration
-    :   'Boolean' booleanName ';'
-    ;
-
-booleanName
-    :   BOOLEANNAME
-    ;
-
-numberValue
-    :   NUMBER
-    ;
-
-booleanValue
-    :   BOOLEAN
-    ;
-
-packageName
-    :   PACKAGENAME
+    :   'Boolean' BOOLEANNAME ';'
     ;
     
 PACKAGENAME
