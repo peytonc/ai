@@ -28,6 +28,7 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Vocabulary;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import minijava.parser.MiniJavaLexer;
 import minijava.parser.MiniJavaParser;
@@ -88,8 +89,13 @@ public class Main {
 		//miniJavaParser.getTokenStream().getText(parseTree.getSourceInterval()));
 		getChildren(blockContext);
 		for(ParseTree parseTree : listParseTree) {
-			System.out.println("parseTree.getSourceInterval().toString()" + parseTree.getSourceInterval().toString());
-			System.out.println("parseTree.getText()" + parseTree.getText());
+			if(parseTree instanceof TerminalNode) {
+				TerminalNode terminalNode = (TerminalNode)parseTree;
+				System.out.println(vocabulary.getSymbolicName(terminalNode.getSymbol().getType()));
+			}
+			System.out.println(parseTree.getClass().getName());
+			System.out.println(parseTree.getSourceInterval().toString());
+			System.out.println(parseTree.getText());
 		}
         System.out.println(blockContext.getText());
 		return source;
