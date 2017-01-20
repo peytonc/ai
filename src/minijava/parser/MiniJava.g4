@@ -11,9 +11,9 @@ program
 'import java.util.ArrayList;'
 'import java.util.Collections;'
 'public class GeneticProgram {'
-'public static ArrayList<Long> compute(ArrayList<Long> values00) {'
-block
-'return values00;'
+'public static ArrayList<Long> compute(ArrayList<Long> values00) {' 
+block 
+'return values00;' 
 '}'
 '}' EOF
     ;
@@ -33,7 +33,7 @@ statement
     :   'if(' expressionBoolean ')' block 'else' block
     |   'while(' expressionBoolean ')' block
     |	LONGARRAYNAME '.set(' expressionNumeric ', new Long(' expressionNumeric '));'
-    |   LONGNAME '=' expressionNumeric ';'
+    |   LONGNAME '=' 'new Long(' expressionNumeric ');'
     |	BOOLEANARRAYNAME '.set(' expressionNumeric ', new Boolean(' expressionBoolean '));'
     |   BOOLEANNAME '=' expressionBoolean ';'
     ;

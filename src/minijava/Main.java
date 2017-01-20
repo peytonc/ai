@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,6 +53,7 @@ public class Main {
 	
 	private List<ParseTree> listParseTree = new ArrayList<ParseTree>();
 	private Vocabulary vocabulary;
+	private Random random = new Random(0);
 	
 	public Main() {
 		System.setProperty("java.home", JAVA_HOME);
@@ -87,7 +89,7 @@ public class Main {
 		BlockContext blockContext = miniJavaParser.program().block();
 		listParseTree.clear();
 		//miniJavaParser.getTokenStream().getText(parseTree.getSourceInterval()));
-		getChildren(blockContext);
+		getParseTreeNonLiteral(blockContext);
 		for(ParseTree parseTree : listParseTree) {
 			if(parseTree instanceof TerminalNode) {
 				TerminalNode terminalNode = (TerminalNode)parseTree;
@@ -97,11 +99,27 @@ public class Main {
 			System.out.println(parseTree.getSourceInterval().toString());
 			System.out.println(parseTree.getText());
 		}
-        System.out.println(blockContext.getText());
+		ParseTree parseTree = listParseTree.get(random.nextInt(listParseTree.size()));
+		System.out.println(parseTree.getSourceInterval());
+		System.out.println(miniJavaParser.getTokenStream().getText(parseTree.getSourceInterval()));
+		int indexRandom = random.nextInt(listParseTree.size());
+		System.out.println("indexRandom"+indexRandom);
+		StringBuilder stringBuilder = new StringBuilder(source.length());
+		for(int index=0; index<indexRandom; index++) {
+			stringBuilder.append(listParseTree.get(index).getText());
+			stringBuilder.append(" ");
+		}
+		stringBuilder.append("X"+listParseTree.get(indexRandom).getText()+"X");
+		stringBuilder.append(" ");
+		for(int index=indexRandom+1; index<listParseTree.size(); index++) {
+			stringBuilder.append(listParseTree.get(index).getText());
+			stringBuilder.append(" ");
+		}
+		System.out.println(stringBuilder.toString());
 		return source;
 	}
 	
-	private void getChildren(ParseTree parseTree) {
+	private void getParseTreeNonLiteral(ParseTree parseTree) {
 		if(parseTree==null || parseTree.getText()==null) {
 			return;
 		}
@@ -117,7 +135,7 @@ public class Main {
 			listParseTree.add(parseTree);
 			for(int index=0; index<parseTree.getChildCount(); index++) {
 				ParseTree parseTreeChild = parseTree.getChild(index);
-				getChildren(parseTreeChild);
+				getParseTreeNonLiteral(parseTreeChild);
 			}
 		}
 	}
