@@ -12,6 +12,7 @@ program
 'import java.util.Collections;'
 'public class GeneticProgram {'
 'public static ArrayList<Long> compute(ArrayList<Long> values00) {' 
+declaration*
 block 
 'return values00;' 
 '}'
@@ -19,7 +20,7 @@ block
     ;
 
 block
-    :   '{' declaration* statement* '}'
+    :   '{' statement* '}'
     ;
 
 declaration
@@ -32,41 +33,39 @@ declaration
 statement
     :   'if(' expressionBoolean ')' block 'else' block
     |   'while(' expressionBoolean ')' block
-    |	LONGARRAYNAME '.set(' expressionNumeric ', new Long(' expressionNumeric '));'
+    |	LONGARRAYNAME '.set(new Long(' expressionNumeric ').intValue(), new Long(' expressionNumeric '));'
     |   LONGNAME '=' 'new Long(' expressionNumeric ');'
-    |	BOOLEANARRAYNAME '.set(' expressionNumeric ', new Boolean(' expressionBoolean '));'
-    |   BOOLEANNAME '=' expressionBoolean ';'
+    |	BOOLEANARRAYNAME '.set(new Long(' expressionNumeric ').intValue(), new Boolean(' expressionBoolean '));'
+    |   BOOLEANNAME '=' 'new Boolean(' expressionBoolean ');'
     ;
 
 expressionNumeric
-    :   '(' expressionNumeric ')'
-    |   '(' '-' expressionNumeric ')'
-    |   expressionNumeric '^' expressionNumeric
-    |   expressionNumeric '%' expressionNumeric
-    |   expressionNumeric '*' expressionNumeric
-    |   expressionNumeric '/' expressionNumeric
-    |   expressionNumeric '+' expressionNumeric
-    |   expressionNumeric '-' expressionNumeric
-    |   LONGARRAYNAME '.' 'size()'
-    |   longArrayValue
+    :   NUMBER
     |   LONGNAME
-    |	NUMBER
+    |   longArrayValue
+    |	LONGARRAYNAME '.' 'size()'
+    |   '(' '-' expressionNumeric ')'
+    |   '(' expressionNumeric '^' expressionNumeric ')'
+    |   '(' expressionNumeric '%' expressionNumeric ')'
+    |   '(' expressionNumeric '*' expressionNumeric ')'
+    |   '(' expressionNumeric '/' expressionNumeric ')'
+    |   '(' expressionNumeric '+' expressionNumeric ')'
+    |   '(' expressionNumeric '-' expressionNumeric ')'
     ;
 
 expressionBoolean
-    :   '(' expressionBoolean ')'
-    |   '(' '!' expressionBoolean ')'
-    |   expressionNumeric '<' expressionNumeric
-    |   expressionNumeric '<=' expressionNumeric
-    |   expressionNumeric '==' expressionNumeric
-    |   expressionNumeric '!=' expressionNumeric
-    |   expressionBoolean '==' expressionBoolean
-    |   expressionBoolean '!=' expressionBoolean
-    |   expressionBoolean '&&' expressionBoolean
-    |   expressionBoolean '||' expressionBoolean
-    |   booleanArrayValue
+    :   BOOLEAN
     |   BOOLEANNAME
-    |	BOOLEAN
+    |   booleanArrayValue
+    |   '(' '!' expressionBoolean ')'
+    |   '(' expressionNumeric '<' expressionNumeric ')'
+    |   '(' expressionNumeric '<=' expressionNumeric ')'
+    |   '(' expressionNumeric '==' expressionNumeric ')'
+    |   '(' expressionNumeric '!=' expressionNumeric ')'
+    |   '(' expressionBoolean '==' expressionBoolean ')'
+    |   '(' expressionBoolean '!=' expressionBoolean ')'
+    |   '(' expressionBoolean '&&' expressionBoolean ')'
+    |   '(' expressionBoolean '||' expressionBoolean ')'
     ;
 
 longArrayDeclaration
@@ -74,11 +73,11 @@ longArrayDeclaration
     ;
 
 longArrayValue
-    :   LONGARRAYNAME '.get(' expressionNumeric ')'
+    :   LONGARRAYNAME '.get(new Long(' expressionNumeric ').intValue())'
     ;
 
 longDeclaration
-    :   'Long' LONGNAME ';'
+    :   'Long' LONGNAME '= new Long(0);'
     ;
 
 booleanArrayDeclaration
@@ -86,11 +85,11 @@ booleanArrayDeclaration
     ;
 
 booleanArrayValue
-	:   BOOLEANARRAYNAME '.get(' expressionNumeric ')'
+	:   BOOLEANARRAYNAME '.get(new Long(' expressionNumeric ').intValue())'
     ;
 
 booleanDeclaration
-    :   'Boolean' BOOLEANNAME ';'
+    :   'Boolean' BOOLEANNAME '= new Boolean(false);'
     ;
     
 PACKAGENAME

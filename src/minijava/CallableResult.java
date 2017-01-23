@@ -5,4 +5,5 @@ import java.util.ArrayList;
 public class CallableResult {
 	public ArrayList<Long> vector;
 	public long milliseconds; 
+	public int ID;
 }

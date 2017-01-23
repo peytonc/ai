@@ -13,6 +13,7 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	public String source;
 	Fitness fitness = new Fitness();
 	ArrayList<Long> vectorActual;
+	public int ID;
 	
 	/**
 	 * Constructs a new JavaSourceFromString.
@@ -22,10 +23,12 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	 * @param source
 	 *            the source code for the compilation unit represented by this file object
 	 */
-	Program(String className, String source) {
+	Program(String className, String source, int ID) {
 		super(URI.create("string:///" + className.replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE);
-		this.source = source;
+		this.source = new String(source);
 		fitness.size = source.length();
+		this.ID = ID;
+		vectorActual = null;
 	}
 
 	@Override
