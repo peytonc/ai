@@ -2,6 +2,7 @@ package minijava;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -23,6 +25,7 @@ import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaCompiler.CompilationTask;
+import javax.tools.JavaFileObject.Kind;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
@@ -40,7 +43,6 @@ import minijava.parser.MiniJavaParser.*;
 public class Main {
 	// This will require JAVA_HOME be set to JDK. JRE home will cause a NullPointerException
 	public final static String JAVA_HOME = new String("/usr/local/jdk1.8.0_121/");
-	public final static String PROGRAM_CLASS_NAME = new String("GeneticProgram");
 	public final static String PROGRAM_FILENAME = new String("GeneticProgram.java");
 	public final int maxParent = 4;	// Size of parent pool
 	public final int maxChildren = 4;	// Number of children each parent produces
@@ -64,7 +66,7 @@ public class Main {
 		System.setProperty("java.home", JAVA_HOME);
 		try {
 			String source = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
-			listProgramParent.add(new Program(PROGRAM_CLASS_NAME, replacePackage(source, 0), 0));
+			listProgramParent.add(new Program(replacePackage(source, 0), 0));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -79,12 +81,12 @@ public class Main {
 		listProgramPopulation.clear();
 		for(Program program : listProgramParent) {
 			source = replacePackage(program.source, indexPackage);
-			listProgramPopulation.add(new Program(PROGRAM_CLASS_NAME, source, indexPackage));	// add parent to population
+			listProgramPopulation.add(new Program(source, indexPackage));	// add parent to population
 			indexPackage++;
 			for(int indexChild=0; indexChild<maxChildren; indexChild++) {
 				source = replacePackage(program.source, indexPackage);
 				source = mutate(source);
-				listProgramPopulation.add(new Program(PROGRAM_CLASS_NAME, source, indexPackage));	// add child to population
+				listProgramPopulation.add(new Program(source, indexPackage));	// add child to population
 				indexPackage++;
 			}
 		}
@@ -593,18 +595,15 @@ public class Main {
 		final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler(); 
 		final Iterable<String> compilationOptions = Arrays.asList(compileOptions); 
 		final ExecutorService executorService = Executors.newFixedThreadPool(maxPopulation);
-		//final Pattern pattern = Pattern.compile("package([0-9]+)\\.GeneticProgram");
-		List<Callable<CallableResult>> listCallable = new ArrayList<Callable<CallableResult>>(maxPopulation);
-		DiagnosticCollector<JavaFileObject> diagnostics;
+		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
 		
 		if(generation == 4) {
 			generation = 4;
 		}
-		try (StandardJavaFileManager standardJavaFileManager = compiler.getStandardFileManager(null, null, null)) {
+		try (StandardJavaFileManager standardJavaFileManager = compiler.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
 			List<Integer> listInvalid = new ArrayList<Integer>(maxPopulation);
 			for(Program program : listProgramPopulation) {
 				Iterable<? extends JavaFileObject> javaFileObject = Arrays.asList(program);
-				diagnostics = new DiagnosticCollector<JavaFileObject>();
 				CompilationTask compilerTask = compiler.getTask(null, standardJavaFileManager, diagnostics, compilationOptions, null, javaFileObject);
 				if (!compilerTask.call()) {	//Compile and check for program errors, random code may have compile errors
 				    for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
@@ -625,34 +624,44 @@ public class Main {
 		}
 		
 		try {	// Load the class and use it
-			URL[] url = new URL[] { new URL("file:///") };
-			ClassLoader classLoader = URLClassLoader.newInstance(url, getClass().getClassLoader());
+			List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(maxPopulation);
 			for(Program program : listProgramPopulation) {
-				Callable<CallableResult> callable = new CallableMiniJava(classLoader, program.ID, arrayListTest);
-				listCallable.add(callable);
+				listCallable.add(new CallableMiniJava(program.ID, arrayListTest));
 			}
 			
 			if(generation == 4) {
 				generation = 4;
 			}
-			
-			List<Future<CallableResult>> listFuture = executorService.invokeAll(listCallable, maxExecuteMilliseconds, TimeUnit.MILLISECONDS);
-			for(Future<CallableResult> future : listFuture) {
-				if(!future.isCancelled()) {
-					try {
-						CallableResult callableResult = future.get(maxExecuteMilliseconds, TimeUnit.MILLISECONDS);
-						for(Program program : listProgramPopulation) {
-							if(program.ID == callableResult.ID) {
-								program.vectorActual = new ArrayList<Long>(callableResult.vector);
-								program.fitness.difference = getDifference(arrayListExpected, callableResult.vector);
-								program.fitness.speed = callableResult.milliseconds;
-//System.out.println(program.vectorActual.toString());
-//System.out.println(program.fitness.toString());
-								break;
+			List<Future<CallableResult>> listFuture = executorService.invokeAll(listCallable);	//, maxExecuteMilliseconds, TimeUnit.MILLISECONDS
+				for(Future<CallableResult> future : listFuture) {
+					if(!future.isCancelled()) {
+						try {
+							CallableResult callableResult = future.get(maxExecuteMilliseconds, TimeUnit.MILLISECONDS);
+							for(Program program : listProgramPopulation) {
+								if(program.ID == callableResult.ID) {
+									if(callableResult.vector == null) {
+										program.vectorActual = null;
+										program.fitness.difference = Integer.MAX_VALUE;
+										program.fitness.speed = Integer.MAX_VALUE;
+									} else {
+										program.vectorActual = callableResult.vector;
+										program.fitness.difference = getDifference(arrayListExpected, program.vectorActual);
+										program.fitness.speed = callableResult.milliseconds;
+									}
+if(generation == 4) {
+	if(program.vectorActual == null) {
+		System.out.println(program.ID + "NULL hERE");
+	} else {
+	System.out.println(program.ID + program.vectorActual.toString());
+	System.out.println(program.ID + program.fitness.toString());
+	}
+}
+									break;
+								}
 							}
-						}
-					} catch (InterruptedException | ExecutionException | TimeoutException e) {
-						// runtime error
+						} catch (InterruptedException | ExecutionException | TimeoutException e) {
+							e.printStackTrace();
+							// runtime error
 					}
 				}
 				else {
@@ -660,8 +669,6 @@ public class Main {
 				}
 			}
 			executorService.shutdown();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
 		} catch (SecurityException | IllegalArgumentException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
@@ -677,17 +684,17 @@ public class Main {
 			System.out.println("Starting best " + fitnessBest.toString());
 		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
-			try {
+			//try {
 				String source = listProgramPopulation.get(0).source;
 				System.out.println("GEN " + generation);
 				System.out.println(listProgramPopulation.get(0).vectorActual.toString());
 				System.out.println("New best " + fitnessBest.toString());
 				System.out.println(source);
 				source = replacePackage(source, 0);
-				Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+				//Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
+			//} catch (IOException e) {
+			//	e.printStackTrace();
+			//}
 		}
 		listProgramParent.clear();
 		int indexPackage = 0;
@@ -695,7 +702,7 @@ public class Main {
 			if(program.fitness.difference == Integer.MAX_VALUE || indexPackage>=maxParent) {
 				break;
 			}
-			listProgramParent.add(new Program(PROGRAM_CLASS_NAME, replacePackage(program.source, indexPackage), indexPackage));
+			listProgramParent.add(new Program(replacePackage(program.source, indexPackage), indexPackage));
 			indexPackage++;
 		}
 	}
@@ -729,7 +736,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 		Main main = new Main();
-		for(main.generation=0; main.generation<10; main.generation++) {
+		for(main.generation=0; main.generation<6; main.generation++) {
 			main.createPopulation();
 			main.execute();
 			main.selection();
