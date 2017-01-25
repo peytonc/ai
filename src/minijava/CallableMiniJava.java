@@ -41,8 +41,8 @@ public class CallableMiniJava implements Callable<Void> {
 			    	System.out.println(diagnostic.getMessage(null));
 			    }
 			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		
 		if(program.vectorActual != null) {
