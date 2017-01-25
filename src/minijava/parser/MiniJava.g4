@@ -11,10 +11,9 @@ program
 'import java.util.ArrayList;'
 'import java.util.Collections;'
 'public class GeneticProgram {'
-'public static ArrayList<Long> compute(ArrayList<Long> values00) {' 
+'public static void compute(ArrayList<Long> values00) {' 
 declaration*
 block 
-'return values00;' 
 '}'
 '}' EOF
     ;
@@ -42,8 +41,8 @@ statement
 expressionNumeric
     :   NUMBER
     |   LONGNAME
-    |   longArrayValue
     |	LONGARRAYNAME '.' 'size()'
+    |   longArrayValue
     |   '(' '-' expressionNumeric ')'
     |   '(' expressionNumeric '^' expressionNumeric ')'
     |   '(' expressionNumeric '%' expressionNumeric ')'

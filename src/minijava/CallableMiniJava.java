@@ -29,6 +29,7 @@ public class CallableMiniJava implements Callable<Void> {
 	
 	@Override
 	public Void call() throws Exception {
+System.out.println("IN " + program.ID + program.vectorActual.toString() + program.source);
 		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
 		try (StandardJavaFileManager standardJavaFileManager = compiler.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
 			Iterable<? extends JavaFileObject> javaFileObject = Arrays.asList(program);
@@ -49,19 +50,18 @@ public class CallableMiniJava implements Callable<Void> {
 			Class<?> cls = Class.forName("package" + program.ID + ".GeneticProgram");
 			Method method = cls.getMethod("compute", ArrayList.class);
 			long timeStart = System.nanoTime();
-if(program.ID ==2) {
-	System.out.println("IN " + program.ID + program.vectorActual.toString());
-}
 			try {
 				method.invoke(null, program.vectorActual);
 			} catch(IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				program.vectorActual = null;
 			}
-if(program.ID ==2) {
-	System.out.println("OUT " + program.ID + program.vectorActual.toString());
-}
 			program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart);
 		}
+if(program.vectorActual == null) {
+System.out.println("OUT " + program.ID + "NULL                          " + program.source);
+} else {
+System.out.println("OUT " + program.ID + program.vectorActual.toString() + program.source);
+}
 		return null;
 	}
 

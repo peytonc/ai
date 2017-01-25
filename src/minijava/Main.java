@@ -28,8 +28,8 @@ public class Main {
 	// This will require JAVA_HOME be set to JDK. JRE home will cause a NullPointerException
 	public final static String JAVA_HOME = new String("/usr/local/jdk1.8.0_121/");
 	public final static String PROGRAM_FILENAME = new String("GeneticProgram.java");
-	public final int maxParent = 4;	// Size of parent pool
-	public final int maxChildren = 4;	// Number of children each parent produces
+	public final int maxParent = 2;	// Size of parent pool
+	public final int maxChildren = 2;	// Number of children each parent produces
 	public final int maxPopulation = maxParent*maxChildren + maxParent;	// Total population size
 	public final int maxExecuteMilliseconds = 300000;
 	public int generation = 0;
@@ -302,8 +302,8 @@ public class Main {
 	
 	/*     :   NUMBER
     |   LONGNAME
-    |   longArrayValue
     |	LONGARRAYNAME '.' 'size()'
+    |   longArrayValue
     |   '(' '-' expressionNumeric ')'
     |   expressionNumeric '^' expressionNumeric
     |   expressionNumeric '%' expressionNumeric
@@ -317,10 +317,10 @@ public class Main {
 		final int maxExpression = 11;	// 11 types
 		int expression = random.nextInt(maxExpression);
 		if(depth>maxDepthCondition) {
-			expression = random.nextInt(4);	// limit to first 4 types
+			expression = random.nextInt(3);	// limit to first 3 types
 		}
 		if(size>maxSizeBeforeRestrict) {
-			expression = random.nextInt(4);	// limit to first 4 types
+			expression = random.nextInt(3);	// limit to first 3 types
 		}
 		switch(expression) {
 			case 0:
@@ -330,11 +330,11 @@ public class Main {
 				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGNAME"));
 				return stringBuilder.toString();
 			case 2:
-				stringBuilder.append(generateLongArrayValueContext(size));
-				return stringBuilder.toString();
-			case 3:
 				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
 				stringBuilder.append(".size()");
+				return stringBuilder.toString();
+			case 3:
+				stringBuilder.append(generateLongArrayValueContext(size));
 				return stringBuilder.toString();
 			case 4:
 				stringBuilder.append("(-");
@@ -612,15 +612,15 @@ public class Main {
 		if(fitnessBest == null) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			System.out.println(listProgramPopulation.get(0).vectorActual.toString());
-			System.out.println("Starting best " + fitnessBest.toString());
+			System.out.println("GEN" + generation + " ID" + listProgramPopulation.get(0).ID + fitnessBest.toString());
+			System.out.println(listProgramPopulation.get(0).source);
 		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			//try {
-				String source = listProgramPopulation.get(0).source;
-				System.out.println("GEN " + generation);
 				System.out.println(listProgramPopulation.get(0).vectorActual.toString());
-				System.out.println("New best " + fitnessBest.toString());
-				System.out.println(source);
+				System.out.println("GEN" + generation + " ID" + listProgramPopulation.get(0).ID + fitnessBest.toString());
+				System.out.println(listProgramPopulation.get(0).source);
+				String source = listProgramPopulation.get(0).source;
 				source = replacePackage(source, 0);
 				//Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
 			//} catch (IOException e) {
@@ -675,9 +675,9 @@ public class Main {
 			main.createPopulation();
 			main.execute();
 			main.selection();
-			if(main.generation%100 == 0) {
-				System.out.print(main.generation + ",");
-			}
+			//if(main.generation%100 == 0) {
+			//	System.out.print(main.generation + ",");
+			//}
 		}
 		System.out.println("");
 		System.out.println("Ending best " + main.fitnessBest.toString());
