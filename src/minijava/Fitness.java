@@ -7,6 +7,8 @@ public class Fitness implements Comparable<Fitness> {
 	
 	public Fitness() {
 		difference = Integer.MAX_VALUE;
+		speed = Integer.MAX_VALUE;
+		size = Integer.MAX_VALUE;
 	}
 	public String toString() {
 		return "Fitness{difference=" + difference + ",speed=" + speed + ",size=" + size + "}";

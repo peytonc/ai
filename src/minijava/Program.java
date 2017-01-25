@@ -15,7 +15,6 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	Fitness fitness = new Fitness();
 	ArrayList<Long> vectorActual;
 	public int ID;
-	public URI uri = null;
 	
 	/**
 	 * Constructs a new JavaSourceFromString.
@@ -27,7 +26,6 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	 */
 	Program(String source, int ID) {
 		super(URI.create("string:///" + PACKAGE_NAME + ID + '/' + PROGRAM_CLASS_NAME + Kind.SOURCE.extension), Kind.SOURCE);
-		uri = URI.create("string:///" + PACKAGE_NAME + ID + '/' + PROGRAM_CLASS_NAME + Kind.SOURCE.extension);
 		this.source = new String(source);
 		fitness.size = source.length();
 		this.ID = ID;

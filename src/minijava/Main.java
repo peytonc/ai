@@ -47,7 +47,7 @@ public class Main {
 	public final int maxParent = 4;	// Size of parent pool
 	public final int maxChildren = 4;	// Number of children each parent produces
 	public final int maxPopulation = maxParent*maxChildren + maxParent;	// Total population size
-	public final int maxExecuteMilliseconds = 3000;
+	public final int maxExecuteMilliseconds = 300000;
 	public int generation = 0;
 	
 	private List<Program> listProgramParent = new ArrayList<Program>(maxParent);
@@ -591,48 +591,18 @@ public class Main {
 	}
 	
 	public void execute() {
-		final String[] compileOptions = new String[]{"-d", "bin", "-classpath", System.getProperty("java.class.path")};
-		final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler(); 
-		final Iterable<String> compilationOptions = Arrays.asList(compileOptions); 
 		final ExecutorService executorService = Executors.newFixedThreadPool(maxPopulation);
-		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-		
-		if(generation == 4) {
-			generation = 4;
-		}
-		try (StandardJavaFileManager standardJavaFileManager = compiler.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
-			List<Integer> listInvalid = new ArrayList<Integer>(maxPopulation);
-			for(Program program : listProgramPopulation) {
-				Iterable<? extends JavaFileObject> javaFileObject = Arrays.asList(program);
-				CompilationTask compilerTask = compiler.getTask(null, standardJavaFileManager, diagnostics, compilationOptions, null, javaFileObject);
-				if (!compilerTask.call()) {	//Compile and check for program errors, random code may have compile errors
-				    for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-				    	System.out.println(diagnostic.getMessage(null));	
-				    }
-					if(diagnostics.getDiagnostics().size() != 0) {
-						listInvalid.add(program.ID);
-					}
-				}
-			}
-		    Collections.sort(listInvalid);
-		    Collections.reverse(listInvalid);
-		    for(Integer integer : listInvalid) {
-		    	listProgramPopulation.remove(integer.intValue());	//compile time error
-		    }
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
 		
 		try {	// Load the class and use it
 			List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(maxPopulation);
 			for(Program program : listProgramPopulation) {
-				listCallable.add(new CallableMiniJava(program.ID, arrayListTest));
+				listCallable.add(new CallableMiniJava(program, arrayListTest));
 			}
 			
 			if(generation == 4) {
 				generation = 4;
 			}
-			List<Future<CallableResult>> listFuture = executorService.invokeAll(listCallable);	//, maxExecuteMilliseconds, TimeUnit.MILLISECONDS
+			List<Future<CallableResult>> listFuture = executorService.invokeAll(listCallable, maxExecuteMilliseconds, TimeUnit.MILLISECONDS);
 				for(Future<CallableResult> future : listFuture) {
 					if(!future.isCancelled()) {
 						try {
