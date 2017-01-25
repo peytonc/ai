@@ -64,15 +64,15 @@ public class Main {
 	
 	public Main() {
 		System.setProperty("java.home", JAVA_HOME);
-		try {
-			String source = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
-			listProgramParent.add(new Program(replacePackage(source, 0), 0));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		arrayListTest = getTestVector();
 		arrayListExpected = new ArrayList<Long>(arrayListTest);
 		Collections.sort(arrayListExpected);
+		try {
+			String source = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
+			listProgramParent.add(new Program(replacePackage(source, 0), 0, arrayListTest));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void createPopulation() {
@@ -81,12 +81,12 @@ public class Main {
 		listProgramPopulation.clear();
 		for(Program program : listProgramParent) {
 			source = replacePackage(program.source, indexPackage);
-			listProgramPopulation.add(new Program(source, indexPackage));	// add parent to population
+			listProgramPopulation.add(new Program(source, indexPackage, arrayListTest));	// add parent to population
 			indexPackage++;
 			for(int indexChild=0; indexChild<maxChildren; indexChild++) {
 				source = replacePackage(program.source, indexPackage);
 				source = mutate(source);
-				listProgramPopulation.add(new Program(source, indexPackage));	// add child to population
+				listProgramPopulation.add(new Program(source, indexPackage, arrayListTest));	// add child to population
 				indexPackage++;
 			}
 		}
@@ -596,45 +596,19 @@ public class Main {
 		try {	// Load the class and use it
 			List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(maxPopulation);
 			for(Program program : listProgramPopulation) {
-				listCallable.add(new CallableMiniJava(program, arrayListTest));
+				listCallable.add(new CallableMiniJava(program));
 			}
-			
-			if(generation == 4) {
-				generation = 4;
-			}
-			List<Future<CallableResult>> listFuture = executorService.invokeAll(listCallable, maxExecuteMilliseconds, TimeUnit.MILLISECONDS);
-				for(Future<CallableResult> future : listFuture) {
-					if(!future.isCancelled()) {
-						try {
-							CallableResult callableResult = future.get(maxExecuteMilliseconds, TimeUnit.MILLISECONDS);
-							for(Program program : listProgramPopulation) {
-								if(program.ID == callableResult.ID) {
-									if(callableResult.vector == null) {
-										program.vectorActual = null;
-										program.fitness.difference = Integer.MAX_VALUE;
-										program.fitness.speed = Integer.MAX_VALUE;
-									} else {
-										program.vectorActual = callableResult.vector;
-										program.fitness.difference = getDifference(arrayListExpected, program.vectorActual);
-										program.fitness.speed = callableResult.milliseconds;
-									}
-if(generation == 4) {
-	if(program.vectorActual == null) {
-		System.out.println(program.ID + "NULL hERE");
-	} else {
-	System.out.println(program.ID + program.vectorActual.toString());
-	System.out.println(program.ID + program.fitness.toString());
-	}
-}
-									break;
-								}
-							}
-						} catch (InterruptedException | ExecutionException | TimeoutException e) {
-							e.printStackTrace();
-							// runtime error
+
+			List<Future<Void>> listFuture = executorService.invokeAll(listCallable, maxExecuteMilliseconds, TimeUnit.MILLISECONDS);
+			for(Future<Void> future : listFuture) {
+				if(!future.isCancelled()) {
+					try {
+						future.get(maxExecuteMilliseconds, TimeUnit.MILLISECONDS);
+					} catch (InterruptedException | ExecutionException | TimeoutException e) {
+						e.printStackTrace();
+						// runtime error
 					}
-				}
-				else {
+				} else {
 					System.out.println("Time exceeded for execution, halted");
 				}
 			}
@@ -647,6 +621,9 @@ if(generation == 4) {
 	}
 	
 	public void selection() {
+		for(Program program : listProgramPopulation) {
+			program.fitness.difference = getDifference(arrayListExpected, program.vectorActual);
+		}
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
@@ -672,15 +649,19 @@ if(generation == 4) {
 			if(program.fitness.difference == Integer.MAX_VALUE || indexPackage>=maxParent) {
 				break;
 			}
-			listProgramParent.add(new Program(replacePackage(program.source, indexPackage), indexPackage));
+			listProgramParent.add(new Program(replacePackage(program.source, indexPackage), indexPackage, arrayListTest));
 			indexPackage++;
 		}
 	}
 	
 	int getDifference(ArrayList<Long> arrayListExpected, ArrayList<Long> arrayListActual) {
 		int difference = 0;
-		for(int index=0; index<arrayListExpected.size(); index++) {
-			difference += Math.abs(arrayListExpected.get(index) - arrayListActual.get(index));
+		if(arrayListActual == null) {
+			difference = Integer.MAX_VALUE;
+		} else {
+			for(int index=0; index<arrayListExpected.size(); index++) {
+				difference += Math.abs(arrayListExpected.get(index) - arrayListActual.get(index));
+			}
 		}
 		return difference;
 	}

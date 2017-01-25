@@ -17,22 +17,18 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import javax.tools.JavaCompiler.CompilationTask;
 
-public class CallableMiniJava implements Callable<CallableResult>{
-	private CallableResult callableResult  = new CallableResult();
+public class CallableMiniJava implements Callable<Void> {
 	private static final String[] compileOptions = new String[]{"-d", "bin", "-classpath", System.getProperty("java.class.path")};
 	private static final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler(); 
 	private static final Iterable<String> compilationOptions = Arrays.asList(compileOptions);
 	private Program program = null;
 	
-	public CallableMiniJava(Program program, ArrayList<Long> vector) {
+	public CallableMiniJava(Program program) {
 		this.program = program;
-		callableResult.ID = program.ID;
-		callableResult.vector = new ArrayList<Long>(vector);
-		callableResult.milliseconds = Integer.MAX_VALUE;
 	}
 	
 	@Override
-	public CallableResult call() throws Exception {
+	public Void call() throws Exception {
 		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
 		try (StandardJavaFileManager standardJavaFileManager = compiler.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
 			Iterable<? extends JavaFileObject> javaFileObject = Arrays.asList(program);
@@ -40,38 +36,33 @@ public class CallableMiniJava implements Callable<CallableResult>{
 			if (!compilerTask.call()) {	//Compile and check for program errors, random code may have compile errors
 				if(diagnostics.getDiagnostics().size() != 0) {
 					program.vectorActual = null;
-					callableResult.vector = null;
 				}
 			    for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-			    	System.out.println(diagnostic.getMessage(null));	
+			    	System.out.println(diagnostic.getMessage(null));
 			    }
 			}
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 		
-		if(callableResult.vector != null) {
-			Class<?> cls = Class.forName("package" + callableResult.ID + ".GeneticProgram");
+		if(program.vectorActual != null) {
+			Class<?> cls = Class.forName("package" + program.ID + ".GeneticProgram");
 			Method method = cls.getMethod("compute", ArrayList.class);
 			long timeStart = System.nanoTime();
-if(callableResult.ID ==2) {
-	System.out.println("IN " + callableResult.ID + callableResult.vector.toString());
+if(program.ID ==2) {
+	System.out.println("IN " + program.ID + program.vectorActual.toString());
 }
 			try {
-				method.invoke(null, callableResult.vector);
+				method.invoke(null, program.vectorActual);
 			} catch(IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				callableResult.vector = null;
-				return callableResult;
+				program.vectorActual = null;
 			}
-if(callableResult.ID ==2) {
-	System.out.println("OUT " + callableResult.ID + callableResult.vector.toString());
+if(program.ID ==2) {
+	System.out.println("OUT " + program.ID + program.vectorActual.toString());
 }
-        	callableResult.milliseconds = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart);
-		} else {
-			program.vectorActual = null;
-			callableResult.vector = null;
+			program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart);
 		}
-		return callableResult;
+		return null;
 	}
 
 }

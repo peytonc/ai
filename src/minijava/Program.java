@@ -24,12 +24,12 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	 * @param source
 	 *            the source code for the compilation unit represented by this file object
 	 */
-	Program(String source, int ID) {
+	Program(String source, int ID, ArrayList<Long> vector) {
 		super(URI.create("string:///" + PACKAGE_NAME + ID + '/' + PROGRAM_CLASS_NAME + Kind.SOURCE.extension), Kind.SOURCE);
 		this.source = new String(source);
 		fitness.size = source.length();
 		this.ID = ID;
-		vectorActual = null;
+		vectorActual = new ArrayList<Long>(vector);
 	}
 
 	@Override
