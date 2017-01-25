@@ -606,18 +606,18 @@ public class Main {
 	
 	public void selection() {
 		for(Program program : listProgramPopulation) {
-			program.fitness.difference = getDifference(arrayListExpected, program.vectorActual);
+			program.fitness.difference = getDifference(arrayListExpected, program.vector);
 		}
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
-			System.out.println(listProgramPopulation.get(0).vectorActual.toString());
+			System.out.println(listProgramPopulation.get(0).vector.toString());
 			System.out.println("GEN" + generation + " ID" + listProgramPopulation.get(0).ID + fitnessBest.toString());
 			System.out.println(listProgramPopulation.get(0).source);
 		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			//try {
-				System.out.println(listProgramPopulation.get(0).vectorActual.toString());
+				System.out.println(listProgramPopulation.get(0).vector.toString());
 				System.out.println("GEN" + generation + " ID" + listProgramPopulation.get(0).ID + fitnessBest.toString());
 				System.out.println(listProgramPopulation.get(0).source);
 				String source = listProgramPopulation.get(0).source;

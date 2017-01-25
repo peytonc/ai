@@ -13,7 +13,7 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	public final static String PACKAGE_NAME = new String("package");
 	public String source;
 	Fitness fitness = new Fitness();
-	ArrayList<Long> vectorActual;
+	ArrayList<Long> vector;
 	public int ID;
 	
 	/**
@@ -29,7 +29,7 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 		this.source = new String(source);
 		fitness.size = source.length();
 		this.ID = ID;
-		vectorActual = new ArrayList<Long>(vector);
+		this.vector = new ArrayList<Long>(vector);
 	}
 
 	@Override
