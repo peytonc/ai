@@ -644,7 +644,7 @@ public class Main {
 		listProgramParent.clear();
 		int indexPackage = 0;
 		for(Program program : listProgramPopulation) {
-			if(indexPackage>=maxParent || program.fitness.difference == Integer.MAX_VALUE || program.fitness.speed == Integer.MAX_VALUE || program.fitness.size == Integer.MAX_VALUE) {
+			if(indexPackage>=maxParent || program.fitness.difference == Long.MAX_VALUE || program.fitness.speed >= Integer.MAX_VALUE || program.fitness.size == Integer.MAX_VALUE) {
 				break;
 			}
 			boolean exists = false;
@@ -666,18 +666,15 @@ public class Main {
 		}
 	}
 	
-	int getDifference(ArrayList<Long> arrayListExpected, ArrayList<Long> arrayListActual) {
-		Long difference = new Long(Integer.MAX_VALUE);
+	long getDifference(ArrayList<Long> arrayListExpected, ArrayList<Long> arrayListActual) {
+		Long difference = new Long(Long.MAX_VALUE);
 		if(arrayListActual != null && arrayListExpected.size()==arrayListActual.size()) {
 			difference = 0L;
 			for(int index=0; index<arrayListExpected.size(); index++) {
 				difference += Math.abs(arrayListExpected.get(index) - arrayListActual.get(index));
 			}
 		}
-		if(difference > Integer.MAX_VALUE) {
-			difference = new Long(Integer.MAX_VALUE-1);
-		}
-		return difference.intValue();
+		return difference;
 	}
 	
 	String replacePackage(String source, int packageNumber) {
@@ -702,7 +699,7 @@ public class Main {
     
 	public static void main(String[] args) {
 		Main main = new Main();
-		for(main.generation=0; main.generation<1000; main.generation++) {
+		for(main.generation=0; main.generation<1000000; main.generation++) {
 			main.initalizeTestVector();
 			main.createPopulation();
 			main.execute();
