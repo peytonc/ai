@@ -8,12 +8,15 @@ grammar MiniJava;
 
 program
     :   'package' PACKAGENAME ';'
-'import java.util.ArrayList;'
-'import java.util.Collections;'
-'public class GeneticProgram {'
-'public static void compute(ArrayList<Long> values00) {' 
+'import' 'java' '.' 'lang' '.' 'Exception' ';'
+'import' 'java' '.' 'util' '.' 'ArrayList' ';'
+'public' 'class' 'GeneticProgram' '{'
+'public' 'static' 'void' 'compute' '(' 'ArrayList' '<' 'Long' '>' LONGARRAYNAME ')' '{'
+'int' 'size' '=' LONGARRAYNAME '.' 'size' '(' ')' ';'
 declaration*
-block 
+'try'
+block
+'catch' '(' 'Exception' 'e' ')' '{' LONGARRAYNAME '.' 'clear' '(' ')' ';' '}'
 '}'
 '}' EOF
     ;
@@ -30,20 +33,22 @@ declaration
     ;
 
 statement
-    :   'if(' expressionBoolean ')' block 'else' block
-    |   'while(' expressionBoolean ')' block
-    |	LONGARRAYNAME '.set(new Long(' expressionNumeric ').intValue(), new Long(' expressionNumeric '));'
-    |   LONGNAME '=' 'new Long(' expressionNumeric ');'
-    |	BOOLEANARRAYNAME '.set(new Long(' expressionNumeric ').intValue(), new Boolean(' expressionBoolean '));'
-    |   BOOLEANNAME '=' 'new Boolean(' expressionBoolean ');'
+    :   'if' '(' expressionBoolean ')' block 'else' block
+    |   'while' '(' '!' 'Thread' '.' 'currentThread' '(' ')' '.' 'isInterrupted' '(' ')' '&&' expressionBoolean ')' block
+	|	LONGARRAYNAME '.' 'set' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ',' 'new' 'Long' '(' expressionNumeric ')' ')' ';'
+    |   LONGNAME '=' 'new' 'Long' '(' expressionNumeric ')' ';'
+    |	BOOLEANARRAYNAME '.' 'set' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ',' 'new' 'Boolean' '(' expressionBoolean ')' ')' ';'
+    |   BOOLEANNAME '=' 'new' 'Boolean' '(' expressionBoolean ')' ';'
     ;
 
 expressionNumeric
     :   NUMBER
     |   LONGNAME
-    |	LONGARRAYNAME '.' 'size()'
+	|	LONGARRAYNAME '.' 'size' '(' ')'
     |   longArrayValue
     |   '(' '-' expressionNumeric ')'
+    |   '(' expressionNumeric '&' expressionNumeric ')'
+    |   '(' expressionNumeric '|' expressionNumeric ')'
     |   '(' expressionNumeric '^' expressionNumeric ')'
     |   '(' expressionNumeric '%' expressionNumeric ')'
     |   '(' expressionNumeric '*' expressionNumeric ')'
@@ -68,27 +73,27 @@ expressionBoolean
     ;
 
 longArrayDeclaration
-    :   'ArrayList<Long>' LONGARRAYNAME '= new ArrayList<Long>(Collections.nCopies(values00.size(), new Long(' expressionNumeric ')));'
-    ;
+	:   'ArrayList' '<' 'Long' '>' LONGARRAYNAME '=' 'new' 'ArrayList' '<' 'Long' '>' '(' LONGARRAYNAME ')' ';'
+	;
 
 longArrayValue
-    :   LONGARRAYNAME '.get(new Long(' expressionNumeric ').intValue())'
-    ;
+	:   LONGARRAYNAME '.' 'get' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ')'
+	;
 
 longDeclaration
-    :   'Long' LONGNAME '= new Long(0);'
+    :   'Long' LONGNAME '=' 'new' 'Long' '(' NUMBER ')' ';'
     ;
 
 booleanArrayDeclaration
-	:   'ArrayList<Boolean>' BOOLEANARRAYNAME '= new ArrayList<Boolean>(Collections.nCopies(values00.size(),' expressionBoolean '));'
+	:   'ArrayList' '<' 'Boolean' '>' BOOLEANARRAYNAME '=' 'new' 'ArrayList' '<' 'Boolean' '>' '(' 'size' ')' ';'
     ;
 
 booleanArrayValue
-	:   BOOLEANARRAYNAME '.get(new Long(' expressionNumeric ').intValue())'
+	:   BOOLEANARRAYNAME '.' 'get' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ')'
     ;
 
 booleanDeclaration
-    :   'Boolean' BOOLEANNAME '= new Boolean(false);'
+    :   'Boolean' BOOLEANNAME '=' 'new' 'Boolean' '(' 'false' ')' ';'
     ;
     
 PACKAGENAME
