@@ -31,6 +31,7 @@ public class Main {
 	public final int maxChildren = 3;	// Number of children each parent produces
 	public final int maxPopulation = maxParent*maxChildren + maxParent;	// Total population size
 	public final int maxExecuteMilliseconds = 3000;
+	public final int maxGenerationsReload = 20;	// Force reload, because best fit program is usually just best due to random vector 
 	public int generation = 0;
 	
 	private List<Program> listProgramParent = new ArrayList<Program>(maxParent);
@@ -54,6 +55,7 @@ public class Main {
 		try {
 			String source = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
 			listProgramParent.add(new Program(replacePackage(source, 0), 0, arrayListTest));
+			fitnessBest = null;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -65,13 +67,13 @@ public class Main {
 		listProgramPopulation.clear();
 		for(Program program : listProgramParent) {
 			source = replacePackage(program.source, indexPackage);
-System.out.println(source);
+//System.out.println(source);
 			listProgramPopulation.add(new Program(source, indexPackage, arrayListTest));	// add parent to population
 			indexPackage++;
 			for(int indexChild=0; indexChild<maxChildren; indexChild++) {
 				source = replacePackage(program.source, indexPackage);
 				source = mutate(source);
-System.out.println(source);
+//System.out.println(source);
 				listProgramPopulation.add(new Program(source, indexPackage, arrayListTest));	// add child to population
 				indexPackage++;
 			}
@@ -259,7 +261,7 @@ System.out.println(source);
 				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
 				stringBuilder.append(")");
 				stringBuilder.append(generateBlockContext(size+stringBuilder.length()));
-				stringBuilder.append("else ");
+				stringBuilder.append("else");
 				stringBuilder.append(generateBlockContext(size+stringBuilder.length()));
 				return stringBuilder.toString();
 			case 1:
@@ -701,7 +703,10 @@ System.out.println(source);
 			main.createPopulation();
 			main.execute();
 			main.selection();
-			if(main.generation%1 == 0) {
+			if(main.generation%main.maxGenerationsReload == 0) {
+				main.loadProgram();
+			}
+			if(main.generation%100 == 0) {
 				System.out.println("OUT" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).vector.toString() + main.listProgramPopulation.get(0).source);
 			}
 		}
