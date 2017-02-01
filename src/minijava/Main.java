@@ -65,11 +65,13 @@ public class Main {
 		listProgramPopulation.clear();
 		for(Program program : listProgramParent) {
 			source = replacePackage(program.source, indexPackage);
+System.out.println(source);
 			listProgramPopulation.add(new Program(source, indexPackage, arrayListTest));	// add parent to population
 			indexPackage++;
 			for(int indexChild=0; indexChild<maxChildren; indexChild++) {
 				source = replacePackage(program.source, indexPackage);
 				source = mutate(source);
+System.out.println(source);
 				listProgramPopulation.add(new Program(source, indexPackage, arrayListTest));	// add child to population
 				indexPackage++;
 			}
@@ -142,19 +144,14 @@ public class Main {
 	public String generateBlockContext(int size) {
 		StringBuilder stringBuilder = new StringBuilder();
 		String source;
-		final int maxStatement = 1;
-		int sizeStatement = 0;
-		if(size<maxSizeBeforeRestrict) {
-			sizeStatement = random.nextInt(maxStatement);
-		}
 		size += 2;
 		stringBuilder.append("{");
-		for(int count=0; count<sizeStatement; count++) {
+		if(size<maxSizeBeforeRestrict) {
 			source = generateStatementContext(size, null, null);
 			size += source.length();
 			stringBuilder.append(source);
 		}
-		stringBuilder.append("} ");
+		stringBuilder.append("}");
 		return stringBuilder.toString();
 	}
 	
@@ -704,7 +701,7 @@ public class Main {
 			main.createPopulation();
 			main.execute();
 			main.selection();
-			if(main.generation%100 == 0) {
+			if(main.generation%1 == 0) {
 				System.out.println("OUT" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).vector.toString() + main.listProgramPopulation.get(0).source);
 			}
 		}

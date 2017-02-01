@@ -93,7 +93,7 @@ booleanArrayValue
     ;
 
 booleanDeclaration
-    :   'Boolean' BOOLEANNAME '=' 'new' 'Boolean' '(' 'false' ')' ';'
+    :   'Boolean' BOOLEANNAME '=' 'new' 'Boolean' '(' BOOLEAN ')' ';'
     ;
     
 PACKAGENAME
