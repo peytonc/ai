@@ -2,17 +2,15 @@ package minijava;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -28,15 +26,16 @@ public class Main {
 	// This will require JAVA_HOME be set to JDK. JRE home will cause a NullPointerException
 	public final static String JAVA_HOME = new String("/usr/local/jdk1.8.0_121/");
 	public final static String PROGRAM_FILENAME = new String("GeneticProgram.java");
-	public final int maxParent = 2;	// Size of parent pool
-	public final int maxChildren = 2;	// Number of children each parent produces
+	public final Path pathBase = Paths.get("");
+	public final int maxParent = 5;	// Size of parent pool
+	public final int maxChildren = 3;	// Number of children each parent produces
 	public final int maxPopulation = maxParent*maxChildren + maxParent;	// Total population size
-	public final int maxExecuteMilliseconds = 300000;
+	public final int maxExecuteMilliseconds = 3000;
 	public int generation = 0;
 	
 	private List<Program> listProgramParent = new ArrayList<Program>(maxParent);
-	private List<Program> listProgramPopulation = new ArrayList<Program>(maxPopulation);
-	private ArrayList<Long> arrayListTest;
+	public List<Program> listProgramPopulation = new ArrayList<Program>(maxPopulation);
+	private ArrayList<Long> arrayListTest = new ArrayList<Long>();
 	private ArrayList<Long> arrayListExpected;
 	private Fitness fitnessBest;
 	
@@ -48,9 +47,10 @@ public class Main {
 	
 	public Main() {
 		System.setProperty("java.home", JAVA_HOME);
-		arrayListTest = getTestVector();
-		arrayListExpected = new ArrayList<Long>(arrayListTest);
-		Collections.sort(arrayListExpected);
+		loadProgram();
+	}
+
+	public void loadProgram() {
 		try {
 			String source = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
 			listProgramParent.add(new Program(replacePackage(source, 0), 0, arrayListTest));
@@ -98,14 +98,15 @@ public class Main {
 			stringBuilderAppend.append(miniJavaParser.getTokenStream().get(index).getText());
 			stringBuilderAppend.append(" ");
 		}
+
 		int length = stringBuilder.length() + stringBuilderAppend.length();
-		stringBuilder.append(generator(parseTree, length));	// replace interval [a,b] with random segment of code of same type
+		stringBuilder.append(generator(miniJavaParser, parseTree, length));	// replace interval [a,b] with random segment of code of same type
 		stringBuilder.append(" ");
 		stringBuilder.append(stringBuilderAppend);
 		return stringBuilder.toString();
 	}
 	
-	public String generator(ParseTree parseTree, int size) {
+	public String generator(MiniJavaParser miniJavaParser, ParseTree parseTree, int size) {
 		switch(parseTree.getClass().getName()) {
 			case "minijava.parser.MiniJavaParser$BlockContext":
 				return generateBlockContext(size);
@@ -120,7 +121,7 @@ public class Main {
 			case "minijava.parser.MiniJavaParser$BooleanDeclarationContext":
 				return generateBooleanDeclarationContext(size);
 			case "minijava.parser.MiniJavaParser$StatementContext":
-				return generateStatementContext(size);
+				return generateStatementContext(size, miniJavaParser, parseTree);
 			case "minijava.parser.MiniJavaParser$ExpressionNumericContext":
 				return generateExpressionNumericContext(size, 0);
 			case "minijava.parser.MiniJavaParser$ExpressionBooleanContext":
@@ -149,7 +150,7 @@ public class Main {
 		size += 2;
 		stringBuilder.append("{");
 		for(int count=0; count<sizeStatement; count++) {
-			source = generateStatementContext(size);
+			source = generateStatementContext(size, null, null);
 			size += source.length();
 			stringBuilder.append(source);
 		}
@@ -190,111 +191,124 @@ public class Main {
 		}
 	}
 	
-	//'ArrayList<Long>' LONGARRAYNAME '= new ArrayList<Long>(Collections.nCopies(values00.size(), new Long(' expressionNumeric ')));'
+	//'ArrayList<Long>' LONGARRAYNAME '= new ArrayList<Long>(size);'
 	public String generateLongArrayDeclarationContext(int size) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("ArrayList<Long> ");
 		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
-		stringBuilder.append(" = new ArrayList<Long>(Collections.nCopies(values00.size(), new Long(");
-		stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-		stringBuilder.append("))); ");
+		stringBuilder.append("= new ArrayList<Long>(size); ");
 		return stringBuilder.toString();
 	}
 	
-	//'Long' LONGNAME ' = new Long(0);'
+	//'Long' LONGNAME '= new Long(0);'
 	public String generateLongDeclarationContext(int size) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("Long ");
 		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGNAME"));
-		stringBuilder.append(" = new Long(0); ");
+		stringBuilder.append("= new Long(0); ");
 		return stringBuilder.toString();
 	}
 	
-	//'ArrayList<Boolean>' BOOLEANARRAYNAME '= new ArrayList<Boolean>(Collections.nCopies(values00.size(),' expressionBoolean '));'
+	//'ArrayList<Boolean>' BOOLEANARRAYNAME '= new ArrayList<Boolean>(size);'
 	public String generateBooleanArrayDeclarationContext(int size) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("ArrayList<Boolean> ");
 		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANARRAYNAME"));
-		stringBuilder.append(" = new ArrayList<Boolean>(Collections.nCopies(values00.size(),");
-		stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-		stringBuilder.append(")); ");
+		stringBuilder.append("= new ArrayList<Boolean>(size); ");
 		return stringBuilder.toString();
 	}
 	
-	//'Boolean' BOOLEANNAME ' = new Boolean(false);'
+	//'Boolean' BOOLEANNAME '= new Boolean(false);'
 	public String generateBooleanDeclarationContext(int size) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("Boolean ");
 		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANNAME"));
-		stringBuilder.append(" = new Boolean(false); ");
+		stringBuilder.append("= new Boolean(false); ");
 		return stringBuilder.toString();
 	}
 	
 	/*    :   'if(' expressionBoolean ')' block 'else' block
-    |   'while(' expressionBoolean ')' block
-    |	LONGARRAYNAME '.set(new Long(' expressionNumeric ').intValue(), new Long(' expressionNumeric '));'
+    |   'while(!Thread.currentThread().isInterrupted()&&' expressionBoolean ')' block
+    |	LONGARRAYNAME '.set(new Long(' expressionNumeric ').intValue()%size, new Long(' expressionNumeric '));'
     |   LONGNAME '=' 'new Long(' expressionNumeric ');'
-    |	BOOLEANARRAYNAME '.set(new Long(' expressionNumeric ').intValue(), new Boolean(' expressionBoolean '));'
+    |	BOOLEANARRAYNAME '.set(new Long(' expressionNumeric ').intValue()%size, new Boolean(' expressionBoolean '));'
     |   BOOLEANNAME '=' 'new Boolean(' expressionBoolean ');'
     */
-	public String generateStatementContext(int size) {
+	public String generateStatementContext(int size, MiniJavaParser miniJavaParser, ParseTree parseTree) {
 		StringBuilder stringBuilder = new StringBuilder();
-		final int maxStatement = 8;	// 6 types + 1 double declaration + 1 empty declaration
+		int maxStatement;
+		StringBuilder stringBuilderSourceStatement = null;
+		String sourceStatement = null;
+		if(parseTree == null) {
+			maxStatement = 7;	// 6 types + 1 empty declaration
+		} else {
+			maxStatement = 10;	// 6 types + 1 empty declaration + 1 prepend statement + 1 append statement + 1 statement duplication
+		}
 		int statement = random.nextInt(maxStatement);
 		if(size>maxSizeBeforeRestrict) {
-			statement = 7;	// remove declaration
+			statement = 6;	// remove declaration
+		}
+		if (statement==7 || statement==8 || statement ==9) {
+			stringBuilderSourceStatement = new StringBuilder();
+			for(int index=parseTree.getSourceInterval().a; index<=parseTree.getSourceInterval().b; index++) {
+				stringBuilderSourceStatement.append(miniJavaParser.getTokenStream().get(index).getText());
+				stringBuilderSourceStatement.append(" ");
+			}
+			sourceStatement = stringBuilderSourceStatement.toString();
 		}
 		switch(statement) {
 			case 0:
 				stringBuilder.append("if(");
 				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(") ");
+				stringBuilder.append(")");
 				stringBuilder.append(generateBlockContext(size+stringBuilder.length()));
 				stringBuilder.append("else ");
 				stringBuilder.append(generateBlockContext(size+stringBuilder.length()));
 				return stringBuilder.toString();
 			case 1:
-				stringBuilder.append("while(");
+				stringBuilder.append("while(!Thread.currentThread().isInterrupted()&&");
 				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(") ");
+				stringBuilder.append(")");
 				stringBuilder.append(generateBlockContext(size+stringBuilder.length()));
 				return stringBuilder.toString();
 			case 2:
 				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
 				stringBuilder.append(".set(new Long(");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(").intValue(), new Long(");
+				stringBuilder.append(").intValue()%size, new Long(");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(")); ");
+				stringBuilder.append("));");
 				return stringBuilder.toString();
 			case 3:
 				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGNAME"));
-				stringBuilder.append(" = new Long(");
+				stringBuilder.append("= new Long(");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-				stringBuilder.append("); ");
+				stringBuilder.append(");");
 				return stringBuilder.toString();
 			case 4:
 				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANARRAYNAME"));
 				stringBuilder.append(".set(new Long(");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(").intValue(), new Boolean(");
+				stringBuilder.append(").intValue()%size, new Boolean(");
 				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(")); ");
+				stringBuilder.append("));");
 				return stringBuilder.toString();
 			case 5:
 				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANNAME"));
-				stringBuilder.append(" = new Boolean(");
+				stringBuilder.append("= new Boolean(");
 				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-				stringBuilder.append("); ");
+				stringBuilder.append(");");
 				return stringBuilder.toString();
 			case 6:
-				String source;
-				size++;	// whitespace per-added to avoid possible infinite loop
-				source = generateStatementContext(size);
-				size += source.length();
-				return source + " " + generateStatementContext(size);
-			case 7:
 				return " ";
+			case 7:
+				size += sourceStatement.length();
+				return sourceStatement + " " + generateStatementContext(size, null, null);
+			case 8:
+				size += sourceStatement.length();
+				return generateStatementContext(size, null, null) + " " +  sourceStatement;
+			case 9:
+				return sourceStatement + " " +  sourceStatement;
 			default:
 				return null;
 		}
@@ -314,7 +328,7 @@ public class Main {
     */
 	public String generateExpressionNumericContext(int size, int depth) {
 		StringBuilder stringBuilder = new StringBuilder();
-		final int maxExpression = 11;	// 11 types
+		final int maxExpression = 13;	// 13 types
 		int expression = random.nextInt(maxExpression);
 		if(depth>maxDepthCondition) {
 			expression = random.nextInt(3);	// limit to first 3 types
@@ -344,39 +358,53 @@ public class Main {
 			case 5:
 				stringBuilder.append("(");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("^");
+				stringBuilder.append("&");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
 			case 6:
 				stringBuilder.append("(");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("%");
+				stringBuilder.append("|");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
 			case 7:
 				stringBuilder.append("(");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("*");
+				stringBuilder.append("^");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
 			case 8:
 				stringBuilder.append("(");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("/");
+				stringBuilder.append("%");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
 			case 9:
 				stringBuilder.append("(");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("+");
+				stringBuilder.append("*");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
 			case 10:
+				stringBuilder.append("(");
+				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
+				stringBuilder.append("/");
+				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
+				stringBuilder.append(")");
+				return stringBuilder.toString();
+			case 11:
+				stringBuilder.append("(");
+				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
+				stringBuilder.append("+");
+				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
+				stringBuilder.append(")");
+				return stringBuilder.toString();
+			case 12:
 				stringBuilder.append("(");
 				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
 				stringBuilder.append("-");
@@ -487,23 +515,23 @@ public class Main {
 		}
 	}
 	
-	//LONGARRAYNAME '.get(new Long(' expressionNumeric ').intValue())'
+	//LONGARRAYNAME '.get(new Long(' expressionNumeric ').intValue()%size)'
 	public String generateLongArrayValueContext(int size) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
 		stringBuilder.append(".get(new Long(");
 		stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-		stringBuilder.append(").intValue())");
+		stringBuilder.append(").intValue()%size)");
 		return stringBuilder.toString();
 	}
 	
-	//BOOLEANARRAYNAME '.get(new Long(' expressionNumeric ').intValue())'
+	//BOOLEANARRAYNAME '.get(new Long(' expressionNumeric ').intValue()%size)'
 	public String generateBooleanArrayValueContext(int size) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANARRAYNAME"));
 		stringBuilder.append(".get(new Long(");
 		stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-		stringBuilder.append(").intValue())");
+		stringBuilder.append(").intValue()%size)");
 		return stringBuilder.toString();
 	}
 	
@@ -576,31 +604,21 @@ public class Main {
 	
 	public void execute() {
 		final ExecutorService executorService = Executors.newFixedThreadPool(maxPopulation);
-		
 		try {	// Load the class and use it
 			List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(maxPopulation);
 			for(Program program : listProgramPopulation) {
 				listCallable.add(new CallableMiniJava(program));
 			}
-
-			List<Future<Void>> listFuture = executorService.invokeAll(listCallable, maxExecuteMilliseconds, TimeUnit.MILLISECONDS);
-			for(Future<Void> future : listFuture) {
-				if(!future.isCancelled()) {
-					try {
-						future.get(maxExecuteMilliseconds, TimeUnit.MILLISECONDS);
-					} catch (InterruptedException | ExecutionException | TimeoutException e) {
-						e.printStackTrace();
-						// runtime error
-					}
-				} else {
-					System.out.println("Time exceeded for execution, halted");
-				}
+			for(CallableMiniJava callableMiniJava : listCallable) {
+				executorService.execute(callableMiniJava);
 			}
 			executorService.shutdown();
-		} catch (SecurityException | IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+			if(!executorService.awaitTermination(maxExecuteMilliseconds, TimeUnit.MILLISECONDS)) {
+				//System.out.println("Forcing shutdownNow");
+				executorService.shutdownNow();
+			}
+		} catch (Exception e) {
+			System.out.println("Exception on terminate");
 		}
 	}
 	
@@ -611,73 +629,87 @@ public class Main {
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
-			System.out.println(listProgramPopulation.get(0).vector.toString());
-			System.out.println("GEN" + generation + " ID" + listProgramPopulation.get(0).ID + fitnessBest.toString());
-			System.out.println(listProgramPopulation.get(0).source);
+			System.out.println("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).vector.toString() + listProgramPopulation.get(0).source);
 		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
-			//try {
-				System.out.println(listProgramPopulation.get(0).vector.toString());
-				System.out.println("GEN" + generation + " ID" + listProgramPopulation.get(0).ID + fitnessBest.toString());
-				System.out.println(listProgramPopulation.get(0).source);
+			try {
+				System.out.println("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).vector.toString() + listProgramPopulation.get(0).source);
 				String source = listProgramPopulation.get(0).source;
 				source = replacePackage(source, 0);
-				//Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
-			//} catch (IOException e) {
-			//	e.printStackTrace();
-			//}
+				Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		listProgramParent.clear();
 		int indexPackage = 0;
 		for(Program program : listProgramPopulation) {
-			if(program.fitness.difference == Integer.MAX_VALUE || indexPackage>=maxParent) {
+			if(indexPackage>=maxParent || program.fitness.difference == Integer.MAX_VALUE || program.fitness.speed == Integer.MAX_VALUE || program.fitness.size == Integer.MAX_VALUE) {
 				break;
 			}
-			listProgramParent.add(new Program(replacePackage(program.source, indexPackage), indexPackage, arrayListTest));
-			indexPackage++;
+			boolean exists = false;
+			String stringSource = program.source.replaceAll("\\s+","");
+			for(Program programParent : listProgramParent) {
+				if(programParent.source.replaceAll("\\s+","").equalsIgnoreCase(stringSource)) {
+					exists = true;
+					break;
+				}
+			}
+			if(!exists) {
+				listProgramParent.add(new Program(replacePackage(program.source, indexPackage), indexPackage, arrayListTest));
+				indexPackage++;
+			}
+		}
+		if(listProgramParent.size() == 0) {
+			System.out.println("Restarting");
+			loadProgram();
 		}
 	}
 	
 	int getDifference(ArrayList<Long> arrayListExpected, ArrayList<Long> arrayListActual) {
-		int difference = 0;
-		if(arrayListActual == null) {
-			difference = Integer.MAX_VALUE;
-		} else {
+		Long difference = new Long(Integer.MAX_VALUE);
+		if(arrayListActual != null && arrayListExpected.size()==arrayListActual.size()) {
+			difference = 0L;
 			for(int index=0; index<arrayListExpected.size(); index++) {
 				difference += Math.abs(arrayListExpected.get(index) - arrayListActual.get(index));
 			}
 		}
-		return difference;
+		if(difference > Integer.MAX_VALUE) {
+			difference = new Long(Integer.MAX_VALUE-1);
+		}
+		return difference.intValue();
 	}
 	
 	String replacePackage(String source, int packageNumber) {
 		return source.replaceFirst("package package[0-9]*\\s*;", "package package" + packageNumber + ";");
 	}
 	
-	ArrayList<Long> getTestVector() {
-		ArrayList<Long> arrayList = new ArrayList<Long>();
-        arrayList.add(new Long(9));
-        arrayList.add(new Long(8));
-        arrayList.add(new Long(7));
-        arrayList.add(new Long(6));
-        arrayList.add(new Long(5));
-        arrayList.add(new Long(4));
-        arrayList.add(new Long(3));
-        arrayList.add(new Long(2));
-        arrayList.add(new Long(1));
-        arrayList.add(new Long(0));
-        return arrayList;
+	public void initalizeTestVector() {
+		arrayListTest.clear();
+		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+		arrayListExpected = new ArrayList<Long>(arrayListTest);
+		Collections.sort(arrayListExpected);
 	}
-	
+    
 	public static void main(String[] args) {
 		Main main = new Main();
-		for(main.generation=0; main.generation<6; main.generation++) {
+		for(main.generation=0; main.generation<1000; main.generation++) {
+			main.initalizeTestVector();
 			main.createPopulation();
 			main.execute();
 			main.selection();
-			//if(main.generation%100 == 0) {
-			//	System.out.print(main.generation + ",");
-			//}
+			if(main.generation%100 == 0) {
+				System.out.println("OUT" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).vector.toString() + main.listProgramPopulation.get(0).source);
+			}
 		}
 		System.out.println("");
 		System.out.println("Ending best " + main.fitnessBest.toString());

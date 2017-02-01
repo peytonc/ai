@@ -1,12 +1,10 @@
 package minijava;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.tools.Diagnostic;
@@ -17,10 +15,8 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import javax.tools.JavaCompiler.CompilationTask;
 
-public class CallableMiniJava implements Callable<Void> {
-	private static final String[] compileOptions = new String[]{"-d", "bin", "-classpath", System.getProperty("java.class.path")};
-	private static final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler(); 
-	private static final Iterable<String> compilationOptions = Arrays.asList(compileOptions);
+public class CallableMiniJava implements Runnable {
+	private static final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler(); 
 	private Program program = null;
 	
 	public CallableMiniJava(Program program) {
@@ -28,41 +24,67 @@ public class CallableMiniJava implements Callable<Void> {
 	}
 	
 	@Override
-	public Void call() throws Exception {
-System.out.println("IN " + program.ID + program.vector.toString() + program.source);
+	public void run() {
+		ProgramClassLoader dynamicClassLoader = null;
 		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-		try (StandardJavaFileManager standardJavaFileManager = compiler.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
+		try (StandardJavaFileManager standardJavaFileManager = javaCompiler.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
 			Iterable<? extends JavaFileObject> javaFileObject = Arrays.asList(program);
-			CompilationTask compilerTask = compiler.getTask(null, standardJavaFileManager, diagnostics, compilationOptions, null, javaFileObject);
-			if (!compilerTask.call()) {	//Compile and check for program errors, random code may have compile errors
+			dynamicClassLoader = new ProgramClassLoader(ClassLoader.getSystemClassLoader());
+			ProgramClassSimpleJavaFileObject programClassSimpleJavaFileObject = null;
+			try {
+				programClassSimpleJavaFileObject = new ProgramClassSimpleJavaFileObject("package" + program.ID + ".GeneticProgram");
+			} catch (Exception e) {
+				program.vector = null;
+				e.printStackTrace();
+			}
+			ProgramForwardingJavaFileManager programForwardingJavaFileManager = new ProgramForwardingJavaFileManager(standardJavaFileManager, programClassSimpleJavaFileObject, dynamicClassLoader);
+			CompilationTask compilerTask = javaCompiler.getTask(null, programForwardingJavaFileManager, diagnostics, null, null, javaFileObject);
+			Boolean success = compilerTask.call();
+			for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+				program.vector = null;
+		    	System.out.println(diagnostic.getMessage(null));
+		    }
+			if (!success) {	//Compile and check for program errors, random code may have compile errors
 				if(diagnostics.getDiagnostics().size() != 0) {
 					program.vector = null;
 				}
-			    for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-			    	System.out.println(diagnostic.getMessage(null));
-			    }
+			    
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		if(program.vector != null) {
-			Class<?> cls = Class.forName("package" + program.ID + ".GeneticProgram");
-			Method method = cls.getMethod("compute", ArrayList.class);
+			Class<?> cls = null;
+			try {
+				cls = dynamicClassLoader.loadClass(Program.PACKAGE_NAME + program.ID + "." + Program.PROGRAM_CLASS_NAME);
+			} catch (ClassNotFoundException e1) {
+				program.vector = null;
+				e1.printStackTrace();
+			}
+			Method method = null;
+			try {
+				method = cls.getMethod("compute", ArrayList.class);
+			} catch (NoSuchMethodException e1) {
+				program.vector = null;
+				e1.printStackTrace();
+			} catch (SecurityException e1) {
+				e1.printStackTrace();
+			}
 			long timeStart = System.nanoTime();
 			try {
 				method.invoke(null, program.vector);
-			} catch(IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch(Exception e) {
 				program.vector = null;
+				e.printStackTrace();
 			}
 			program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart);
 		}
-if(program.vector == null) {
-System.out.println("OUT " + program.ID + "NULL                          " + program.source);
+/*if(program.vector != null) {
+System.out.println("ID" + program.ID + program.fitness.toString() + program.vector.toString() + program.source);
 } else {
-System.out.println("OUT " + program.ID + program.vector.toString() + program.source);
-}
-		return null;
+System.out.println("ID" + program.ID + program.fitness.toString() + "NULL                    " + program.source);
+}*/
 	}
 
 }

@@ -12,8 +12,8 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	public final static String PROGRAM_CLASS_NAME = new String("GeneticProgram");
 	public final static String PACKAGE_NAME = new String("package");
 	public String source;
-	Fitness fitness = new Fitness();
-	ArrayList<Long> vector;
+	public Fitness fitness = new Fitness();
+	public ArrayList<Long> vector;
 	public int ID;
 	
 	/**

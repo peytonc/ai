@@ -11,16 +11,16 @@ public class Fitness implements Comparable<Fitness> {
 		size = Integer.MAX_VALUE;
 	}
 	public String toString() {
-		return "Fitness{difference=" + difference + ",speed=" + speed + ",size=" + size + "}";
+		return "Fitness{difference=" + difference + ",size=" + size + ",speed=" + speed + "}";
 	}
 	
 	@Override
 	public int compareTo(Fitness fitness) {
 		int compare = Integer.compare(difference, fitness.difference);
 		if(compare == 0) {
-			compare = Long.compare(speed, fitness.speed);
+			compare = Integer.compare(size, fitness.size);
 			if(compare == 0) {
-				compare = Integer.compare(size, fitness.size);
+				compare = Long.compare(speed, fitness.speed);
 			}
 		}
 		return compare;
