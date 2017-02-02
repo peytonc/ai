@@ -622,8 +622,10 @@ public class Main {
 	}
 	
 	public void selection() {
+		long differenceBase = getDifference(arrayListExpected, arrayListTest);
 		for(Program program : listProgramPopulation) {
 			program.fitness.difference = getDifference(arrayListExpected, program.vector);
+			program.fitness.fit = (double)program.fitness.difference / differenceBase;
 		}
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
@@ -665,12 +667,12 @@ public class Main {
 		}
 	}
 	
-	long getDifference(ArrayList<Long> arrayListExpected, ArrayList<Long> arrayListActual) {
+	long getDifference(ArrayList<Long> arrayList1, ArrayList<Long> arrayList2) {
 		Long difference = new Long(Long.MAX_VALUE);
-		if(arrayListActual != null && arrayListExpected.size()==arrayListActual.size()) {
+		if(arrayList1 != null && arrayList2 != null && arrayList1.size()==arrayList2.size()) {
 			difference = 0L;
 			for(int index=0; index<arrayListExpected.size(); index++) {
-				difference += Math.abs(arrayListExpected.get(index) - arrayListActual.get(index));
+				difference += Math.abs(arrayList1.get(index) - arrayList2.get(index));
 			}
 		}
 		return difference;

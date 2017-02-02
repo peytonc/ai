@@ -14,21 +14,21 @@ public class Fitness implements Comparable<Fitness> {
 	}
 	
 	public String toString() {
-		return "Fitness{"fit=" + fit + ",difference=" + difference + ",size=" + size + ",speed=" + speed + "}";
+		return "Fitness{fit=" + fit + ",difference=" + difference + ",size=" + size + ",speed=" + speed + "}";
 	}
 	
 	@Override
 	public int compareTo(Fitness fitness) {
-int compare = Double.compare(fit, fitness.fit);
+		int compare = Double.compare(fit, fitness.fit);
 		if(compare == 0) {
-		compare = Long.compare(difference, fitness.difference);
-		if(compare == 0) {
-			compare = Integer.compare(size, fitness.size);
+			compare = Long.compare(difference, fitness.difference);
 			if(compare == 0) {
-				compare = Long.compare(speed, fitness.speed);
+				compare = Integer.compare(size, fitness.size);
+				if(compare == 0) {
+					compare = Long.compare(speed, fitness.speed);
+				}
 			}
 		}
-	}
 		return compare;
 	}
 }
