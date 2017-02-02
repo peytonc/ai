@@ -10,6 +10,7 @@ program
     :   'package' PACKAGENAME ';'
 'import' 'java' '.' 'lang' '.' 'Exception' ';'
 'import' 'java' '.' 'util' '.' 'ArrayList' ';'
+'import' 'minijava' '.' 'Util' ';'
 'public' 'class' 'GeneticProgram' '{'
 'public' 'static' 'void' 'compute' '(' 'ArrayList' '<' 'Long' '>' LONGARRAYNAME ')' '{'
 'int' 'size' '=' LONGARRAYNAME '.' 'size' '(' ')' ';'
@@ -39,6 +40,7 @@ statement
     |   LONGNAME '=' 'new' 'Long' '(' expressionNumeric ')' ';'
     |	BOOLEANARRAYNAME '.' 'set' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ',' 'new' 'Boolean' '(' expressionBoolean ')' ')' ';'
     |   BOOLEANNAME '=' 'new' 'Boolean' '(' expressionBoolean ')' ';'
+    |   'Util' '.' 'f' '(' expressionNumeric ',' LONGARRAYNAME ',' LONGARRAYNAME ',' expressionNumeric ',' expressionNumeric ')' ';'
     ;
 
 expressionNumeric

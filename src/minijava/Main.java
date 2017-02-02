@@ -36,8 +36,8 @@ public class Main {
 	
 	private List<Program> listProgramParent = new ArrayList<Program>(maxParent);
 	public List<Program> listProgramPopulation = new ArrayList<Program>(maxPopulation);
-	private ArrayList<Long> arrayListTest = new ArrayList<Long>();
-	private ArrayList<Long> arrayListExpected;
+	private ArrayList<ArrayList<Long>> arrayListTests;
+	private ArrayList<ArrayList<Long>> arrayListAnswers;
 	private Fitness fitnessBest;
 	
 	private List<ParseTree> listParseTree = new ArrayList<ParseTree>();
@@ -45,6 +45,8 @@ public class Main {
 	private Random random = new Random(0);
 	private final static int maxSizeBeforeRestrict = 3000;
 	private final static int maxDepthCondition = 1;
+	private final static int maxTestVectors = 5;
+	private final static int maxTestVectorSize = 10;
 	
 	public Main() {
 		System.setProperty("java.home", JAVA_HOME);
@@ -53,8 +55,9 @@ public class Main {
 
 	public void loadProgram() {
 		try {
+			createTests();
 			String source = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
-			listProgramParent.add(new Program(replacePackage(source, 0), 0, arrayListTest));
+			listProgramParent.add(new Program(replacePackage(source, 0), 0, arrayListTests));
 			fitnessBest = null;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -68,13 +71,13 @@ public class Main {
 		for(Program program : listProgramParent) {
 			source = replacePackage(program.source, indexPackage);
 //System.out.println(source);
-			listProgramPopulation.add(new Program(source, indexPackage, arrayListTest));	// add parent to population
+			listProgramPopulation.add(new Program(source, indexPackage, arrayListTests));	// add parent to population
 			indexPackage++;
 			for(int indexChild=0; indexChild<maxChildren; indexChild++) {
 				source = replacePackage(program.source, indexPackage);
 				source = mutate(source);
 //System.out.println(source);
-				listProgramPopulation.add(new Program(source, indexPackage, arrayListTest));	// add child to population
+				listProgramPopulation.add(new Program(source, indexPackage, arrayListTests));	// add child to population
 				indexPackage++;
 			}
 		}
@@ -232,6 +235,7 @@ public class Main {
     |   LONGNAME '=' 'new Long(' expressionNumeric ');'
     |	BOOLEANARRAYNAME '.set(new Long(' expressionNumeric ').intValue()%size, new Boolean(' expressionBoolean '));'
     |   BOOLEANNAME '=' 'new Boolean(' expressionBoolean ');'
+    |   'Util' '.' 'f' '(' expressionNumeric ',' LONGARRAYNAME ',' LONGARRAYNAME ',' expressionNumeric ',' expressionNumeric ')' ';'
     */
 	public String generateStatementContext(int size, MiniJavaParser miniJavaParser, ParseTree parseTree) {
 		StringBuilder stringBuilder = new StringBuilder();
@@ -239,15 +243,15 @@ public class Main {
 		StringBuilder stringBuilderSourceStatement = null;
 		String sourceStatement = null;
 		if(parseTree == null) {
-			maxStatement = 7;	// 6 types + 1 empty declaration
+			maxStatement = 8;	// 7 types + 1 empty declaration
 		} else {
-			maxStatement = 10;	// 6 types + 1 empty declaration + 1 prepend statement + 1 append statement + 1 statement duplication
+			maxStatement = 11;	// 7 types + 1 empty declaration + 1 prepend statement + 1 append statement + 1 statement duplication
 		}
 		int statement = random.nextInt(maxStatement);
 		if(size>maxSizeBeforeRestrict) {
-			statement = 6;	// remove declaration
+			statement = 7;	// remove declaration
 		}
-		if (statement==7 || statement==8 || statement ==9) {
+		if (statement==8 || statement==9 || statement==10) {
 			stringBuilderSourceStatement = new StringBuilder();
 			for(int index=parseTree.getSourceInterval().a; index<=parseTree.getSourceInterval().b; index++) {
 				stringBuilderSourceStatement.append(miniJavaParser.getTokenStream().get(index).getText());
@@ -299,14 +303,27 @@ public class Main {
 				stringBuilder.append(");");
 				return stringBuilder.toString();
 			case 6:
-				return " ";
+				stringBuilder.append("Util.f(");
+				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
+				stringBuilder.append(",");
+				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
+				stringBuilder.append(",");
+				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
+				stringBuilder.append(",");
+				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
+				stringBuilder.append(",");
+				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
+				stringBuilder.append(");");
+				return stringBuilder.toString();
 			case 7:
-				size += sourceStatement.length();
-				return sourceStatement + " " + generateStatementContext(size, null, null);
+				return " ";
 			case 8:
 				size += sourceStatement.length();
-				return generateStatementContext(size, null, null) + " " +  sourceStatement;
+				return sourceStatement + " " + generateStatementContext(size, null, null);
 			case 9:
+				size += sourceStatement.length();
+				return generateStatementContext(size, null, null) + " " +  sourceStatement;
+			case 10:
 				return sourceStatement + " " +  sourceStatement;
 			default:
 				return null;
@@ -622,19 +639,40 @@ public class Main {
 	}
 	
 	public void selection() {
-		long differenceBase = getDifference(arrayListExpected, arrayListTest);
+		ArrayList<Long> arrayListDifferencesBase = getDifferences(arrayListTests, arrayListAnswers);
 		for(Program program : listProgramPopulation) {
-			program.fitness.difference = getDifference(arrayListExpected, program.vector);
-			program.fitness.fit = (double)program.fitness.difference / differenceBase;
+			ArrayList<Long> arrayListDifferences = getDifferences(arrayListAnswers, program.vectors);
+			if(arrayListDifferences == null || arrayListDifferences.size()!=maxTestVectors) {
+				program.fitness.difference = Long.MAX_VALUE;
+				program.fitness.fit = Double.MAX_VALUE;
+			} else {
+				long differenceFinal = Long.MAX_VALUE;
+				double fitFinal = 0;
+				for(int index=0; index<arrayListDifferencesBase.size(); index++) {
+					long difference = arrayListDifferences.get(index);
+					double fit = (double)difference / arrayListDifferencesBase.get(index);
+					// select the worst fit as fitness metric for this program
+					if(difference!=Long.MAX_VALUE && fit>fitFinal) {
+						differenceFinal = difference;
+						fitFinal = fit;
+					}
+				}
+				program.fitness.difference = differenceFinal;
+				if(differenceFinal != Long.MAX_VALUE) {
+					program.fitness.fit = fitFinal;
+				} else {
+					program.fitness.fit = Double.MAX_VALUE;
+				}
+			}
 		}
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
-			System.out.println("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).vector.toString() + listProgramPopulation.get(0).source);
+			System.out.println("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
 		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			try {
-				System.out.println("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).vector.toString() + listProgramPopulation.get(0).source);
+				System.out.println("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
 				String source = listProgramPopulation.get(0).source;
 				source = replacePackage(source, 0);
 				Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
@@ -657,7 +695,7 @@ public class Main {
 				}
 			}
 			if(!exists) {
-				listProgramParent.add(new Program(replacePackage(program.source, indexPackage), indexPackage, arrayListTest));
+				listProgramParent.add(new Program(replacePackage(program.source, indexPackage), indexPackage, arrayListTests));
 				indexPackage++;
 			}
 		}
@@ -667,11 +705,26 @@ public class Main {
 		}
 	}
 	
-	long getDifference(ArrayList<Long> arrayList1, ArrayList<Long> arrayList2) {
+	ArrayList<Long> getDifferences(ArrayList<ArrayList<Long>> arrayList1, ArrayList<ArrayList<Long>> arrayList2) {
+		ArrayList<Long> arrayListDifferences = new ArrayList<Long>(maxTestVectors);
+		if(arrayList1 == null || arrayList2 == null) {
+			return null;
+		}
+		for(int index=0; index<maxTestVectors; index++) {
+			if(arrayList1.get(index) == null || arrayList2.get(index) ==  null) {
+				return null;
+			} else {
+				arrayListDifferences.add(getDifference(arrayList1.get(index), arrayList2.get(index)));
+			}
+		}
+		return arrayListDifferences;
+	}
+	
+	Long getDifference(ArrayList<Long> arrayList1, ArrayList<Long> arrayList2) {
 		Long difference = new Long(Long.MAX_VALUE);
 		if(arrayList1 != null && arrayList2 != null && arrayList1.size()==arrayList2.size()) {
 			difference = 0L;
-			for(int index=0; index<arrayListExpected.size(); index++) {
+			for(int index=0; index<arrayList1.size(); index++) {
 				difference += Math.abs(arrayList1.get(index) - arrayList2.get(index));
 			}
 		}
@@ -682,8 +735,20 @@ public class Main {
 		return source.replaceFirst("package package[0-9]*\\s*;", "package package" + packageNumber + ";");
 	}
 	
-	public void initalizeTestVector() {
-		arrayListTest.clear();
+	public void createTests() {
+		arrayListTests = new ArrayList<ArrayList<Long>>(maxTestVectors);
+		arrayListAnswers = new ArrayList<ArrayList<Long>>(maxTestVectors);
+		for(int index=0; index<maxTestVectors; index++) {
+			ArrayList<Long> arrayListTest = new ArrayList<Long>(maxTestVectorSize);
+			createTest(arrayListTest);
+			arrayListTests.add(arrayListTest);
+			ArrayList<Long> arrayListAnswer = new ArrayList<Long>(arrayListTest);
+			Collections.sort(arrayListAnswer);
+			arrayListAnswers.add(arrayListAnswer);
+		}
+	}
+	
+	public void createTest(ArrayList<Long> arrayListTest) {
 		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
 		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
 		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
@@ -694,14 +759,12 @@ public class Main {
 		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
 		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
 		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-		arrayListExpected = new ArrayList<Long>(arrayListTest);
-		Collections.sort(arrayListExpected);
 	}
     
 	public static void main(String[] args) {
 		Main main = new Main();
 		for(main.generation=0; main.generation<1000000; main.generation++) {
-			main.initalizeTestVector();
+			main.createTests();
 			main.createPopulation();
 			main.execute();
 			main.selection();
@@ -709,7 +772,7 @@ public class Main {
 				main.loadProgram();
 			}
 			if(main.generation%100 == 0) {
-				System.out.println("OUT" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).vector.toString() + main.listProgramPopulation.get(0).source);
+				System.out.println("OUT" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
 			}
 		}
 		System.out.println("");

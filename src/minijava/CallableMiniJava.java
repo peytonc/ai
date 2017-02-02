@@ -34,19 +34,19 @@ public class CallableMiniJava implements Runnable {
 			try {
 				programClassSimpleJavaFileObject = new ProgramClassSimpleJavaFileObject("package" + program.ID + ".GeneticProgram");
 			} catch (Exception e) {
-				program.vector = null;
+				program.vectors = null;
 				e.printStackTrace();
 			}
 			ProgramForwardingJavaFileManager programForwardingJavaFileManager = new ProgramForwardingJavaFileManager(standardJavaFileManager, programClassSimpleJavaFileObject, dynamicClassLoader);
 			CompilationTask compilerTask = javaCompiler.getTask(null, programForwardingJavaFileManager, diagnostics, null, null, javaFileObject);
 			Boolean success = compilerTask.call();
 			for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-				program.vector = null;
+				program.vectors = null;
 		    	System.out.println(diagnostic.getMessage(null));
 		    }
 			if (!success) {	//Compile and check for program errors, random code may have compile errors
 				if(diagnostics.getDiagnostics().size() != 0) {
-					program.vector = null;
+					program.vectors = null;
 				}
 			    
 			}
@@ -54,28 +54,33 @@ public class CallableMiniJava implements Runnable {
 			e.printStackTrace();
 		}
 
-		if(program.vector != null) {
+		if(program.vectors != null) {
 			Class<?> cls = null;
 			try {
 				cls = dynamicClassLoader.loadClass(Program.PACKAGE_NAME + program.ID + "." + Program.PROGRAM_CLASS_NAME);
 			} catch (ClassNotFoundException e1) {
-				program.vector = null;
+				program.vectors = null;
 				e1.printStackTrace();
 			}
 			Method method = null;
 			try {
 				method = cls.getMethod("compute", ArrayList.class);
 			} catch (NoSuchMethodException e1) {
-				program.vector = null;
+				program.vectors = null;
 				e1.printStackTrace();
 			} catch (SecurityException e1) {
 				e1.printStackTrace();
 			}
 			long timeStart = System.nanoTime();
 			try {
-				method.invoke(null, program.vector);
+				for(int index=0; index<program.vectors.size(); index++) {
+					method.invoke(null, program.vectors.get(index));
+					if(program.vectors.get(index)==null || program.vectors.get(index).isEmpty()) {
+						break;
+					}
+				}
 			} catch(Exception e) {
-				program.vector = null;
+				program.vectors = null;
 				e.printStackTrace();
 			}
 			program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart);

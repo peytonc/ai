@@ -13,7 +13,7 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	public final static String PACKAGE_NAME = new String("package");
 	public String source;
 	public Fitness fitness = new Fitness();
-	public ArrayList<Long> vector;
+	public ArrayList<ArrayList<Long>> vectors;
 	public int ID;
 	
 	/**
@@ -24,12 +24,16 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	 * @param source
 	 *            the source code for the compilation unit represented by this file object
 	 */
-	Program(String source, int ID, ArrayList<Long> vector) {
+	Program(String source, int ID, ArrayList<ArrayList<Long>> vectors) {
 		super(URI.create("string:///" + PACKAGE_NAME + ID + '/' + PROGRAM_CLASS_NAME + Kind.SOURCE.extension), Kind.SOURCE);
 		this.source = new String(source);
 		fitness.size = source.length();
 		this.ID = ID;
-		this.vector = new ArrayList<Long>(vector);
+		this.vectors = new ArrayList<ArrayList<Long>>(vectors.size());
+		for(int index=0; index<vectors.size(); index++) {
+			ArrayList<Long> arrayList = new ArrayList<Long>(vectors.get(index));
+			this.vectors.add(arrayList);
+		}
 	}
 
 	@Override
