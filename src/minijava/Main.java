@@ -30,8 +30,8 @@ public class Main {
 	public final int maxParent = 5;	// Size of parent pool
 	public final int maxChildren = 3;	// Number of children each parent produces
 	public final int maxPopulation = maxParent*maxChildren + maxParent;	// Total population size
-	public final int maxExecuteMilliseconds = 3000;
-	public final int maxGenerationsReload = 20;	// Force reload, because best fit program is usually just best due to random vector 
+	public final int maxExecuteMilliseconds = 2000;
+	public final int maxGenerationsReload = 5000;	// Force reload, because best fit program is usually just best due to random vector 
 	public int generation = 0;
 	
 	private List<Program> listProgramParent = new ArrayList<Program>(maxParent);
@@ -45,7 +45,7 @@ public class Main {
 	private Random random = new Random(0);
 	private final static int maxSizeBeforeRestrict = 3000;
 	private final static int maxDepthCondition = 1;
-	private final static int maxTestVectors = 5;
+	private final static int maxTestVectors = 3000;
 	private final static int maxTestVectorSize = 10;
 	
 	public Main() {
@@ -646,7 +646,17 @@ public class Main {
 				program.fitness.difference = Long.MAX_VALUE;
 				program.fitness.fit = Double.MAX_VALUE;
 			} else {
-				long differenceFinal = Long.MAX_VALUE;
+				long differenceSum = 0;
+				double fitSum = 0;
+				for(int index=0; index<maxTestVectors; index++) {
+					long difference = arrayListDifferences.get(index);
+					double fit = (double)difference / arrayListDifferencesBase.get(index);
+					differenceSum += difference;
+					fitSum += fit;
+				}
+				program.fitness.difference = differenceSum/maxTestVectors;
+				program.fitness.fit = fitSum/maxTestVectors;
+				/*long differenceFinal = Long.MAX_VALUE;
 				double fitFinal = 0;
 				for(int index=0; index<arrayListDifferencesBase.size(); index++) {
 					long difference = arrayListDifferences.get(index);
@@ -662,7 +672,7 @@ public class Main {
 					program.fitness.fit = fitFinal;
 				} else {
 					program.fitness.fit = Double.MAX_VALUE;
-				}
+				}*/
 			}
 		}
 		Collections.sort(listProgramPopulation);
