@@ -50,7 +50,6 @@ public class Main {
 	private ArrayList<ArrayList<Long>> arrayListAnswers;
 	private Fitness fitnessBest;
 	
-	private List<ParseTree> listParseTree = new ArrayList<ParseTree>();
 	private Vocabulary vocabulary;
 	private Random random = new Random(0);
 	private final static int maxSizeBeforeRestrict = 3000;
@@ -78,19 +77,26 @@ public class Main {
 		int indexPackage = 0;
 		String source;
 		listProgramPopulation.clear();
+		//make ANTLR parsers for parents, used by crossover
 		for(Program program : listProgramParent) {
 			source = replacePackage(program.source, indexPackage);
-//System.out.println(source);
-			listProgramPopulation.add(new Program(source, indexPackage, arrayListTests));	// add parent to population
+			Program programParent = new Program(source, indexPackage, arrayListTests);
+			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(new ANTLRInputStream(programParent.source));
+			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));
+			program.miniJavaParser = programParent.miniJavaParser;		// may contain incorrect ID
+			listProgramPopulation.add(programParent);	// add parent to population
 			indexPackage++;
+		}
+		for(Program program : listProgramParent) {
+			BlockContext blockContext = program.miniJavaParser.program().block();
 			for(int indexChild=0; indexChild<maxChildren; indexChild++) {
-				source = replacePackage(program.source, indexPackage);
-				if(random.nextBoolean()) {
-					source = crossover(source);
-				} else {
-					source = mutate(source);
-				}
+				//if(random.nextBoolean()) {
+				//	source = crossover(source);
+				//} else {
+					source = mutate(program.miniJavaParser, blockContext, program.source);
+				//}
 //System.out.println(source);
+				source = replacePackage(program.source, indexPackage);
 				listProgramPopulation.add(new Program(source, indexPackage, arrayListTests));	// add child to population
 				indexPackage++;
 			}
@@ -101,13 +107,10 @@ public class Main {
 		return null;
 	}
 	
-	public String mutate(String source) {
-		MiniJavaLexer miniJavaLexer = new MiniJavaLexer(new ANTLRInputStream(source));
-		MiniJavaParser miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));
+	public String mutate(MiniJavaParser miniJavaParser, BlockContext blockContext, String source) {
+		List<ParseTree> listParseTree = new ArrayList<ParseTree>();
 		vocabulary = miniJavaParser.getVocabulary();
-		BlockContext blockContext = miniJavaParser.program().block();
-		listParseTree.clear();
-		getParseTreeNonLiteral(blockContext);
+		getParseTreeNonLiteral(listParseTree, blockContext);
 		ParseTree parseTree = listParseTree.get(random.nextInt(listParseTree.size()));
 		int a = parseTree.getSourceInterval().a;
 		int b = parseTree.getSourceInterval().b;
@@ -615,7 +618,7 @@ public class Main {
 		}
 	}
 	
-	private void getParseTreeNonLiteral(ParseTree parseTree) {
+	private void getParseTreeNonLiteral(List<ParseTree> listParseTree, ParseTree parseTree) {
 		if(parseTree==null || parseTree.getText()==null) {
 			return;
 		}
@@ -631,7 +634,7 @@ public class Main {
 			listParseTree.add(parseTree);
 			for(int index=0; index<parseTree.getChildCount(); index++) {
 				ParseTree parseTreeChild = parseTree.getChild(index);
-				getParseTreeNonLiteral(parseTreeChild);
+				getParseTreeNonLiteral(listParseTree, parseTreeChild);
 			}
 		}
 	}
