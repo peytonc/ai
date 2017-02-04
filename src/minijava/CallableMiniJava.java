@@ -1,22 +1,10 @@
 package minijava;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import javax.tools.Diagnostic;
-import javax.tools.DiagnosticCollector;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
-import javax.tools.JavaCompiler.CompilationTask;
-
 public class CallableMiniJava implements Runnable {
-	private static final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler(); 
 	private Program program = null;
 	
 	public CallableMiniJava(Program program) {
@@ -25,39 +13,10 @@ public class CallableMiniJava implements Runnable {
 	
 	@Override
 	public void run() {
-		ProgramClassLoader dynamicClassLoader = null;
-		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-		try (StandardJavaFileManager standardJavaFileManager = javaCompiler.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
-			Iterable<? extends JavaFileObject> javaFileObject = Arrays.asList(program);
-			dynamicClassLoader = new ProgramClassLoader(ClassLoader.getSystemClassLoader());
-			ProgramClassSimpleJavaFileObject programClassSimpleJavaFileObject = null;
-			try {
-				programClassSimpleJavaFileObject = new ProgramClassSimpleJavaFileObject("package" + program.ID + ".GeneticProgram");
-			} catch (Exception e) {
-				program.vectors = null;
-				e.printStackTrace();
-			}
-			ProgramForwardingJavaFileManager programForwardingJavaFileManager = new ProgramForwardingJavaFileManager(standardJavaFileManager, programClassSimpleJavaFileObject, dynamicClassLoader);
-			CompilationTask compilerTask = javaCompiler.getTask(null, programForwardingJavaFileManager, diagnostics, null, null, javaFileObject);
-			Boolean success = compilerTask.call();
-			for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-				program.vectors = null;
-		    	System.out.println(diagnostic.getMessage(null));
-		    }
-			if (!success) {	//Compile and check for program errors, random code may have compile errors
-				if(diagnostics.getDiagnostics().size() != 0) {
-					program.vectors = null;
-				}
-			    
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 		if(program.vectors != null) {
 			Class<?> cls = null;
 			try {
-				cls = dynamicClassLoader.loadClass(Program.PACKAGE_NAME + program.ID + "." + Program.PROGRAM_CLASS_NAME);
+				cls = program.programClassLoader.loadClass(Program.PACKAGE_NAME + program.ID + "." + Program.PROGRAM_CLASS_NAME);
 			} catch (ClassNotFoundException e1) {
 				program.vectors = null;
 				e1.printStackTrace();

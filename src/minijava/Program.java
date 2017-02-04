@@ -15,6 +15,7 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	public Fitness fitness = new Fitness();
 	public ArrayList<ArrayList<Long>> vectors;
 	public int ID;
+	public ProgramClassLoader programClassLoader = null;
 	
 	/**
 	 * Constructs a new JavaSourceFromString.
@@ -34,6 +35,7 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 			ArrayList<Long> arrayList = new ArrayList<Long>(vectors.get(index));
 			this.vectors.add(arrayList);
 		}
+		programClassLoader = new ProgramClassLoader(ClassLoader.getSystemClassLoader());
 	}
 
 	@Override

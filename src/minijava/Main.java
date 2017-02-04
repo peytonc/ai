@@ -5,12 +5,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+import javax.tools.JavaCompiler.CompilationTask;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -75,12 +85,20 @@ public class Main {
 			indexPackage++;
 			for(int indexChild=0; indexChild<maxChildren; indexChild++) {
 				source = replacePackage(program.source, indexPackage);
-				source = mutate(source);
+				if(random.nextBoolean()) {
+					source = crossover(source);
+				} else {
+					source = mutate(source);
+				}
 //System.out.println(source);
 				listProgramPopulation.add(new Program(source, indexPackage, arrayListTests));	// add child to population
 				indexPackage++;
 			}
 		}
+	}
+	
+	public String crossover(String source) {
+		return null;
 	}
 	
 	public String mutate(String source) {
@@ -618,12 +636,46 @@ public class Main {
 		}
 	}
 	
+	public void compile() {
+		final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler(); 
+		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
+		for(Program program : listProgramPopulation) {
+			try (StandardJavaFileManager standardJavaFileManager = javaCompiler.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
+				Iterable<? extends JavaFileObject> javaFileObject = Arrays.asList(program);
+				ProgramClassSimpleJavaFileObject programClassSimpleJavaFileObject = null;
+				try {
+					programClassSimpleJavaFileObject = new ProgramClassSimpleJavaFileObject("package" + program.ID + ".GeneticProgram");
+				} catch (Exception e) {
+					program.vectors = null;
+					e.printStackTrace();
+				}
+				ProgramForwardingJavaFileManager programForwardingJavaFileManager = new ProgramForwardingJavaFileManager(standardJavaFileManager, programClassSimpleJavaFileObject, program.programClassLoader);
+				CompilationTask compilerTask = javaCompiler.getTask(null, programForwardingJavaFileManager, diagnostics, null, null, javaFileObject);
+				Boolean success = compilerTask.call();
+				for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+					program.vectors = null;
+			    	System.out.println(diagnostic.getMessage(null));
+			    }
+				if (!success) {	//Compile and check for program errors, random code may have compile errors
+					if(diagnostics.getDiagnostics().size() != 0) {
+						program.vectors = null;
+					}
+				    
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	public void execute() {
 		final ExecutorService executorService = Executors.newFixedThreadPool(maxPopulation);
 		try {	// Load the class and use it
 			List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(maxPopulation);
 			for(Program program : listProgramPopulation) {
-				listCallable.add(new CallableMiniJava(program));
+				if(program.vectors != null) {
+					listCallable.add(new CallableMiniJava(program));
+				}
 			}
 			for(CallableMiniJava callableMiniJava : listCallable) {
 				executorService.execute(callableMiniJava);
@@ -776,6 +828,7 @@ public class Main {
 		for(main.generation=0; main.generation<1000000; main.generation++) {
 			main.createTests();
 			main.createPopulation();
+			main.compile();
 			main.execute();
 			main.selection();
 			if(main.generation%main.maxGenerationsReload == 0) {
