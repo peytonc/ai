@@ -30,7 +30,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import minijava.parser.MiniJavaLexer;
 import minijava.parser.MiniJavaParser;
-import minijava.parser.MiniJavaParser.*;
 
 public class Main {
 	// This will require JAVA_HOME be set to JDK. JRE home will cause a NullPointerException
@@ -52,7 +51,7 @@ public class Main {
 	
 	private Vocabulary vocabulary;
 	private Random random = new Random(0);
-	private final static int maxSizeBeforeRestrict = 3000;
+	private final static int maxSizeBeforeRestrict = 4000;
 	private final static int maxDepthCondition = 1;
 	private final static int maxTestVectors = 3000;
 	private final static int maxTestVectorSize = 10;
@@ -82,53 +81,80 @@ public class Main {
 			source = replacePackage(program.source, indexPackage);
 			Program programParent = new Program(source, indexPackage, arrayListTests);
 			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(new ANTLRInputStream(programParent.source));
-			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));
-			program.miniJavaParser = programParent.miniJavaParser;		// may contain incorrect ID
+			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
+			programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR 4.6 only allows one call to program() before EOF error
+			program.miniJavaParser = programParent.miniJavaParser;
+			program.blockContext = programParent.blockContext;
 			listProgramPopulation.add(programParent);	// add parent to population
 			indexPackage++;
 		}
 		for(Program program : listProgramParent) {
-			BlockContext blockContext = program.miniJavaParser.program().block();
 			for(int indexChild=0; indexChild<maxChildren; indexChild++) {
-				//if(random.nextBoolean()) {
-				//	source = crossover(source);
-				//} else {
-					source = mutate(program.miniJavaParser, blockContext, program.source);
-				//}
+				Program program2 = null;	// program2 null means mutate
+				if(random.nextBoolean()) {	// program2 !null means crossover
+					program2 = listProgramParent.get(random.nextInt(listProgramParent.size()));
+				}
+				source = create(program, program2, program.source);
 //System.out.println(source);
-				source = replacePackage(program.source, indexPackage);
+				source = replacePackage(source, indexPackage);
 				listProgramPopulation.add(new Program(source, indexPackage, arrayListTests));	// add child to population
 				indexPackage++;
 			}
 		}
 	}
 	
-	public String crossover(String source) {
-		return null;
-	}
-	
-	public String mutate(MiniJavaParser miniJavaParser, BlockContext blockContext, String source) {
-		List<ParseTree> listParseTree = new ArrayList<ParseTree>();
-		vocabulary = miniJavaParser.getVocabulary();
-		getParseTreeNonLiteral(listParseTree, blockContext);
-		ParseTree parseTree = listParseTree.get(random.nextInt(listParseTree.size()));
-		int a = parseTree.getSourceInterval().a;
-		int b = parseTree.getSourceInterval().b;
-		int size = miniJavaParser.getTokenStream().size()-1;	// remove last token inserted by ANTLR, <EOF>
+	public String create(Program program1, Program program2, String source) {
+		List<ParseTree> listParseTree1 = new ArrayList<ParseTree>();
+		vocabulary = program1.miniJavaParser.getVocabulary();
+		getParseTreeNonLiteral(listParseTree1, program1.blockContext);
+		ParseTree parseTree1 = listParseTree1.get(random.nextInt(listParseTree1.size()));
+		int a = parseTree1.getSourceInterval().a;
+		int b = parseTree1.getSourceInterval().b;
+		int size = program1.miniJavaParser.getTokenStream().size()-1;	// remove last token inserted by ANTLR, <EOF>
 		StringBuilder stringBuilder = new StringBuilder(source.length());
 		for(int index=0; index<a; index++) {
-			stringBuilder.append(miniJavaParser.getTokenStream().get(index).getText());
+			stringBuilder.append(program1.miniJavaParser.getTokenStream().get(index).getText());
 			stringBuilder.append(" ");
 		}
 		//Oddity, but to calculate total size of prepend and append source code
 		StringBuilder stringBuilderAppend = new StringBuilder(source.length());
 		for(int index=b+1; index<size; index++) {
-			stringBuilderAppend.append(miniJavaParser.getTokenStream().get(index).getText());
+			stringBuilderAppend.append(program1.miniJavaParser.getTokenStream().get(index).getText());
 			stringBuilderAppend.append(" ");
 		}
 
 		int length = stringBuilder.length() + stringBuilderAppend.length();
-		stringBuilder.append(generator(miniJavaParser, parseTree, length));	// replace interval [a,b] with random segment of code of same type
+		if(program2 == null) {	// mutate source
+			stringBuilder.append(generator(program1.miniJavaParser, parseTree1, length));	// replace interval [a,b] with random segment of code of same type
+		} else {	// crossover program and program2
+			List<ParseTree> listParseTree2 = new ArrayList<ParseTree>();
+			getParseTreeNonLiteral(listParseTree2, program2.blockContext);
+			List<ParseTree> listParseTreeCandidate = new ArrayList<ParseTree>();
+			for(ParseTree parseTree2 : listParseTree2) {	// add all equivalent class types
+				if(!parseTree2.getClass().getName().equals("minijava.parser.MiniJavaParser$BlockContext")) {	// don't add blocks, as it results in equivalent program
+					if(parseTree2.getClass().getName().equals(parseTree1.getClass().getName())) {
+						if (parseTree2.getClass().getName().equals("org.antlr.v4.runtime.tree.TerminalNodeImpl")) {	// TerminalNodeImpl has multiple sub-types
+							TerminalNode terminalNode1 = (TerminalNode)parseTree1;
+							TerminalNode terminalNode2 = (TerminalNode)parseTree2;
+							if(terminalNode1.getSymbol().getType() == terminalNode2.getSymbol().getType()) {
+								listParseTreeCandidate.add(parseTree2);
+							}
+						} else {
+							listParseTreeCandidate.add(parseTree2);
+						}
+					}
+				}
+			}
+			if(listParseTreeCandidate.size() > 0) {	// crossover if equivalent class type exists
+				ParseTree parseTree2 = listParseTreeCandidate.get(random.nextInt(listParseTreeCandidate.size()));
+				for(int index=parseTree2.getSourceInterval().a; index<=parseTree2.getSourceInterval().b; index++) {
+					stringBuilder.append(program2.miniJavaParser.getTokenStream().get(index).getText());
+					stringBuilder.append(" ");
+				}
+			} else {	// mutate source because no equivalent class types
+				stringBuilder.append(generator(program1.miniJavaParser, parseTree1, length));	// replace interval [a,b] with random segment of code of same type
+			}
+		}
 		stringBuilder.append(" ");
 		stringBuilder.append(stringBuilderAppend);
 		return stringBuilder.toString();

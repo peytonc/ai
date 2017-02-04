@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import javax.tools.SimpleJavaFileObject;
 
 import minijava.parser.MiniJavaParser;
+import minijava.parser.MiniJavaParser.BlockContext;
 
 /**
  * A file object used to represent source coming from a string.
@@ -19,6 +20,7 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	public int ID;
 	public ProgramClassLoader programClassLoader = null;
 	public MiniJavaParser miniJavaParser = null;
+	BlockContext blockContext = null;
 	
 	/**
 	 * Constructs a new JavaSourceFromString.
