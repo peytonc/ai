@@ -19,13 +19,27 @@ public class Fitness implements Comparable<Fitness> {
 	
 	@Override
 	public int compareTo(Fitness fitness) {
-		int compare = Double.compare(fit, fitness.fit);
-		if(compare == 0) {
-			compare = Long.compare(difference, fitness.difference);
+		int compare = 0;
+		if(size < Main.maxSizeBeforeRestrict ) {
+			compare = Double.compare(fit, fitness.fit);
 			if(compare == 0) {
-				compare = Integer.compare(size, fitness.size);
+				compare = Long.compare(difference, fitness.difference);
 				if(compare == 0) {
-					compare = Long.compare(speed, fitness.speed);
+					compare = Integer.compare(size, fitness.size);
+					if(compare == 0) {
+						compare = Long.compare(speed, fitness.speed);
+					}
+				}
+			}
+		} else {
+			compare = Integer.compare(size, fitness.size);
+			if(compare == 0) {
+				compare = Double.compare(fit, fitness.fit);
+				if(compare == 0) {
+					compare = Long.compare(difference, fitness.difference);
+					if(compare == 0) {
+						compare = Long.compare(speed, fitness.speed);
+					}
 				}
 			}
 		}

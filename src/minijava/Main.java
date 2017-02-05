@@ -51,7 +51,7 @@ public class Main {
 	
 	private Vocabulary vocabulary;
 	private Random random = new Random(0);
-	private final static int maxSizeBeforeRestrict = 4000;
+	public final static int maxSizeBeforeRestrict = 3000;
 	private final static int maxDepthCondition = 1;
 	private final static int maxTestVectors = 3000;
 	private final static int maxTestVectorSize = 10;
@@ -130,17 +130,24 @@ public class Main {
 			List<ParseTree> listParseTree2 = new ArrayList<ParseTree>();
 			getParseTreeNonLiteral(listParseTree2, program2.blockContext);
 			List<ParseTree> listParseTreeCandidate = new ArrayList<ParseTree>();
-			for(ParseTree parseTree2 : listParseTree2) {	// add all equivalent class types
-				if(!parseTree2.getClass().getName().equals("minijava.parser.MiniJavaParser$BlockContext")) {	// don't add blocks, as it results in equivalent program
-					if(parseTree2.getClass().getName().equals(parseTree1.getClass().getName())) {
-						if (parseTree2.getClass().getName().equals("org.antlr.v4.runtime.tree.TerminalNodeImpl")) {	// TerminalNodeImpl has multiple sub-types
-							TerminalNode terminalNode1 = (TerminalNode)parseTree1;
-							TerminalNode terminalNode2 = (TerminalNode)parseTree2;
-							if(terminalNode1.getSymbol().getType() == terminalNode2.getSymbol().getType()) {
-								listParseTreeCandidate.add(parseTree2);
+			if(length < maxSizeBeforeRestrict) {
+				for(ParseTree parseTree2 : listParseTree2) {	// add all equivalent class types
+					if(!parseTree2.getClass().getName().equals("minijava.parser.MiniJavaParser$BlockContext")) {	// don't add blocks, as it results in equivalent program
+						if(parseTree2.getClass().getName().equals(parseTree1.getClass().getName())) {
+							if (parseTree2.getClass().getName().equals("org.antlr.v4.runtime.tree.TerminalNodeImpl")) {	// TerminalNodeImpl has multiple sub-types
+								TerminalNode terminalNode1 = (TerminalNode)parseTree1;
+								TerminalNode terminalNode2 = (TerminalNode)parseTree2;
+								if(terminalNode1.getSymbol().getType() == terminalNode2.getSymbol().getType()) {
+									if(length + parseTree2.getText().length() < maxSizeBeforeRestrict) {
+										listParseTreeCandidate.add(parseTree2);
+									}
+								}
+							} else {
+								String s = parseTree2.getText();
+								if(length + parseTree2.getText().length() < maxSizeBeforeRestrict) {
+									listParseTreeCandidate.add(parseTree2);
+								}
 							}
-						} else {
-							listParseTreeCandidate.add(parseTree2);
 						}
 					}
 				}
