@@ -40,7 +40,7 @@ public class Main {
 	public final int maxChildren = 3;	// Number of children each parent produces
 	public final int maxPopulation = maxParent*maxChildren + maxParent;	// Total population size
 	public final int maxExecuteMilliseconds = 2000;
-	public final int maxGenerationsReload = 5000;	// Force reload, because best fit program is usually just best due to random vector 
+	public final int maxGenerationsReload = 1000;	// Force reload, because best fit program could be to random variable (distribution of means) 
 	public int generation = 0;
 	
 	private List<Program> listProgramParent = new ArrayList<Program>(maxParent);
@@ -51,7 +51,9 @@ public class Main {
 	
 	private Vocabulary vocabulary;
 	private Random random = new Random(0);
-	public final static int maxSizeBeforeRestrict = 3000;
+	public static int maxSizeBeforeRestrictMin = 3000;
+	public static int maxSizeBeforeRestrictMax = 5000;
+	public static int maxSizeBeforeRestrict = maxSizeBeforeRestrictMax;
 	private final static int maxDepthCondition = 1;
 	private final static int maxTestVectors = 3000;
 	private final static int maxTestVectorSize = 10;
@@ -143,7 +145,6 @@ public class Main {
 									}
 								}
 							} else {
-								String s = parseTree2.getText();
 								if(length + parseTree2.getText().length() < maxSizeBeforeRestrict) {
 									listParseTreeCandidate.add(parseTree2);
 								}
@@ -859,9 +860,17 @@ public class Main {
 		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
 	}
     
+	public void createEnviroment() {
+		// model environment resource (specifically program size) as Summer-Winter-Summer or maxSizeBeforeRestrictMax-maxSizeBeforeRestrictMin-maxSizeBeforeRestrictMax
+		double percent = (double)(generation%maxGenerationsReload)/maxGenerationsReload;
+		double cosineWithOffset = (Math.cos(percent*2*Math.PI)+1)/2;
+		maxSizeBeforeRestrict = (int)(maxSizeBeforeRestrictMin + cosineWithOffset*(maxSizeBeforeRestrictMax-maxSizeBeforeRestrictMin));
+	}
+	
 	public static void main(String[] args) {
 		Main main = new Main();
 		for(main.generation=0; main.generation<1000000; main.generation++) {
+			main.createEnviroment();
 			main.createTests();
 			main.createPopulation();
 			main.compile();
