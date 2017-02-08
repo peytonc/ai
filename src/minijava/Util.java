@@ -8,7 +8,7 @@ public class Util {
 		final int maxTypes = 1;
 		int type = (int)functionIndex%maxTypes;
 		int index1 = (int)indexArray1%arrayList1.size();
-		int index2 = (int)indexArray1%arrayList2.size();
+		int index2 = (int)indexArray2%arrayList2.size();
 		switch(type) {
 			case 0:
 				if(arrayList1.get(index1) < arrayList2.get(index2)) {
