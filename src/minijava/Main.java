@@ -51,9 +51,11 @@ public class Main {
 	
 	private Vocabulary vocabulary;
 	private Random random = new Random(0);
-	public static int maxSizeBeforeRestrictMin = 3000;
-	public static int maxSizeBeforeRestrictMax = 5000;
-	public static int maxSizeBeforeRestrict = maxSizeBeforeRestrictMax;
+	public static int sizeBeforeRestrictMin = 0;
+	public static int sizeBeforeRestrictMax = 0;
+	public static int sizeBeforeRestrict = 0;
+	private final static double sizeBeforeRestrictMinPercent = 0.95;
+	private final static double sizeBeforeRestrictMaxPercent = 1.25;
 	private final static int maxDepthCondition = 1;
 	private final static int maxTestVectors = 3000;
 	private final static int maxTestVectorSize = 10;
@@ -67,7 +69,11 @@ public class Main {
 		try {
 			createTests();
 			String source = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
-			listProgramParent.add(new Program(replacePackage(source, 0), 0, arrayListTests));
+			source = replacePackage(source, 0);
+			sizeBeforeRestrictMin = (int)(sizeBeforeRestrictMinPercent * source.length());
+			sizeBeforeRestrictMax = (int)(sizeBeforeRestrictMaxPercent * source.length());
+			sizeBeforeRestrict = sizeBeforeRestrictMax;
+			listProgramParent.add(new Program(source, 0, arrayListTests));
 			fitnessBest = null;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -132,7 +138,7 @@ public class Main {
 			List<ParseTree> listParseTree2 = new ArrayList<ParseTree>();
 			getParseTreeNonLiteral(listParseTree2, program2.blockContext);
 			List<ParseTree> listParseTreeCandidate = new ArrayList<ParseTree>();
-			if(length < maxSizeBeforeRestrict) {
+			if(length < sizeBeforeRestrict) {
 				for(ParseTree parseTree2 : listParseTree2) {	// add all equivalent class types
 					if(!parseTree2.getClass().getName().equals("minijava.parser.MiniJavaParser$BlockContext")) {	// don't add blocks, as it results in equivalent program
 						if(parseTree2.getClass().getName().equals(parseTree1.getClass().getName())) {
@@ -140,12 +146,12 @@ public class Main {
 								TerminalNode terminalNode1 = (TerminalNode)parseTree1;
 								TerminalNode terminalNode2 = (TerminalNode)parseTree2;
 								if(terminalNode1.getSymbol().getType() == terminalNode2.getSymbol().getType()) {
-									if(length + parseTree2.getText().length() < maxSizeBeforeRestrict) {
+									if(length + parseTree2.getText().length() < sizeBeforeRestrict) {
 										listParseTreeCandidate.add(parseTree2);
 									}
 								}
 							} else {
-								if(length + parseTree2.getText().length() < maxSizeBeforeRestrict) {
+								if(length + parseTree2.getText().length() < sizeBeforeRestrict) {
 									listParseTreeCandidate.add(parseTree2);
 								}
 							}
@@ -206,7 +212,7 @@ public class Main {
 		String source;
 		size += 2;
 		stringBuilder.append("{");
-		if(size<maxSizeBeforeRestrict) {
+		if(size<sizeBeforeRestrict) {
 			source = generateStatementContext(size, null, null);
 			size += source.length();
 			stringBuilder.append(source);
@@ -224,7 +230,7 @@ public class Main {
 		String source;
 		final int maxDeclaration = 6;	// 4 types + 1 double declaration + 1 empty declaration
 		int declaration = random.nextInt(maxDeclaration);
-		if(size>maxSizeBeforeRestrict) {
+		if(size>sizeBeforeRestrict) {
 			declaration = 5;	// remove declaration
 		}
 		switch(declaration) {
@@ -300,13 +306,13 @@ public class Main {
 		if(parseTree == null) {
 			maxStatement = 8;	// 7 types + 1 empty declaration
 		} else {
-			maxStatement = 11;	// 7 types + 1 empty declaration + 1 prepend statement + 1 append statement + 1 statement duplication
+			maxStatement = 13;	// 7 types + 1 empty declaration + 1 prepend statement + 1 append statement + 1 statement duplication + 1 insert if/else + 1 insert while
 		}
 		int statement = random.nextInt(maxStatement);
-		if(size>maxSizeBeforeRestrict) {
+		if(size>sizeBeforeRestrict) {
 			statement = 7;	// remove declaration
 		}
-		if (statement==8 || statement==9 || statement==10) {
+		if (statement>=8 && statement<=12) {
 			stringBuilderSourceStatement = new StringBuilder();
 			for(int index=parseTree.getSourceInterval().a; index<=parseTree.getSourceInterval().b; index++) {
 				stringBuilderSourceStatement.append(miniJavaParser.getTokenStream().get(index).getText());
@@ -380,6 +386,22 @@ public class Main {
 				return generateStatementContext(size, null, null) + " " +  sourceStatement;
 			case 10:
 				return sourceStatement + " " +  sourceStatement;
+			case 11:
+				stringBuilder.append("if(");
+				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
+				stringBuilder.append("){");
+				stringBuilder.append(sourceStatement);
+				stringBuilder.append("}else{");
+				stringBuilder.append(sourceStatement);
+				stringBuilder.append("}");
+				return stringBuilder.toString();
+			case 12:
+				stringBuilder.append("while(!Thread.currentThread().isInterrupted()&&");
+				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
+				stringBuilder.append("){");
+				stringBuilder.append(sourceStatement);
+				stringBuilder.append("}");
+				return stringBuilder.toString();
 			default:
 				return null;
 		}
@@ -404,7 +426,7 @@ public class Main {
 		if(depth>maxDepthCondition) {
 			expression = random.nextInt(3);	// limit to first 3 types
 		}
-		if(size>maxSizeBeforeRestrict) {
+		if(size>sizeBeforeRestrict) {
 			expression = random.nextInt(3);	// limit to first 3 types
 		}
 		switch(expression) {
@@ -507,7 +529,7 @@ public class Main {
 		if(depth>maxDepthCondition) {
 			expression = random.nextInt(4);	// limit to first 4 types
 		}
-		if(size>maxSizeBeforeRestrict) {
+		if(size>sizeBeforeRestrict) {
 			expression = random.nextInt(4);	// limit to first 4 types
 		}
 		switch(expression) {
@@ -861,10 +883,10 @@ public class Main {
 	}
     
 	public void createEnviroment() {
-		// model environment resource (specifically program size) as Summer-Winter-Summer or maxSizeBeforeRestrictMax-maxSizeBeforeRestrictMin-maxSizeBeforeRestrictMax
+		// model environment resource (specifically program size) as Summer-Winter-Summer or sizeBeforeRestrictMax-sizeBeforeRestrictMin-sizeBeforeRestrictMax
 		double percent = (double)(generation%maxGenerationsReload)/maxGenerationsReload;
 		double cosineWithOffset = (Math.cos(percent*2*Math.PI)+1)/2;
-		maxSizeBeforeRestrict = (int)(maxSizeBeforeRestrictMin + cosineWithOffset*(maxSizeBeforeRestrictMax-maxSizeBeforeRestrictMin));
+		sizeBeforeRestrict = (int)(sizeBeforeRestrictMin + cosineWithOffset*(sizeBeforeRestrictMax-sizeBeforeRestrictMin));
 	}
 	
 	public static void main(String[] args) {

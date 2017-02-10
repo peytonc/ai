@@ -20,10 +20,10 @@ public class Fitness implements Comparable<Fitness> {
 	@Override
 	public int compareTo(Fitness fitness) {
 		int compare = 0;
-		if(size <= Main.maxSizeBeforeRestrict ) {
+		if(size <= Main.sizeBeforeRestrict ) {
 			compare = Double.compare(fit, fitness.fit);
 		} else {
-			compare = Double.compare(fit+size/Main.maxSizeBeforeRestrict, fitness.fit+fitness.size/Main.maxSizeBeforeRestrict);
+			compare = Double.compare(fit+size/Main.sizeBeforeRestrict, fitness.fit+fitness.size/Main.sizeBeforeRestrict);
 		}
 		if(compare == 0) {
 			compare = Long.compare(difference, fitness.difference);
