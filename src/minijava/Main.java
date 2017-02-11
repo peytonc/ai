@@ -375,7 +375,7 @@ public class Main {
 				return stringBuilder.toString();
 			case 6:
 				stringBuilder.append("Util.f(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
+				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "NUMBER"));
 				stringBuilder.append(",");
 				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
 				stringBuilder.append(",");
