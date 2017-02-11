@@ -60,9 +60,10 @@ public class Main {
 	public static int sizeBeforeRestrict = 0;
 	private final static double sizeBeforeRestrictMinPercent = 0.95;
 	private final static double sizeBeforeRestrictMaxPercent = 1.25;
-	private final static int maxDepthCondition = 1;
 	private final static int maxTestVectors = 3000;
 	private final static int maxTestVectorSize = 10;
+	private final static int maxNewCodeSegmentSize = 80;
+	private final static double worstFitAccepted = 2.0;
 	
 	public Main() {
 		try(InputStream inputStream = new FileInputStream(PROPERTIES_FILENAME)) {
@@ -113,7 +114,7 @@ public class Main {
 				if(random.nextBoolean()) {	// program2 !null means crossover
 					program2 = listProgramParent.get(random.nextInt(listProgramParent.size()));
 				}
-				source = create(program, program2, program.source);
+				source = createProgram(program, program2, program.source);
 				source = replacePackage(source, indexPackage);
 				listProgramPopulation.add(new Program(source, indexPackage, arrayListTests));	// add child to population
 				indexPackage++;
@@ -121,7 +122,7 @@ public class Main {
 		}
 	}
 	
-	public String create(Program program1, Program program2, String source) {
+	public String createProgram(Program program1, Program program2, String source) {
 		List<ParseTree> listParseTree1 = new ArrayList<ParseTree>();
 		vocabulary = program1.miniJavaParser.getVocabulary();
 		getParseTreeNonLiteral(listParseTree1, program1.blockContext);
@@ -143,25 +144,23 @@ public class Main {
 
 		int length = stringBuilder.length() + stringBuilderAppend.length();
 		if(program2 == null) {	// mutate source
-			stringBuilder.append(generator(program1.miniJavaParser, parseTree1, length));	// replace interval [a,b] with random segment of code of same type
+			stringBuilder.append(generator(program1.miniJavaParser, parseTree1));	// replace interval [a,b] with random segment of code of same type
 		} else {	// crossover program and program2
 			List<ParseTree> listParseTree2 = new ArrayList<ParseTree>();
 			getParseTreeNonLiteral(listParseTree2, program2.blockContext);
 			List<ParseTree> listParseTreeCandidate = new ArrayList<ParseTree>();
 			if(length < sizeBeforeRestrict) {
 				for(ParseTree parseTree2 : listParseTree2) {	// add all equivalent class types
-					if(!parseTree2.getClass().getName().equals("minijava.parser.MiniJavaParser$BlockContext")) {	// don't add blocks, as it results in equivalent program
-						if(parseTree2.getClass().getName().equals(parseTree1.getClass().getName())) {
-							if (parseTree2.getClass().getName().equals("org.antlr.v4.runtime.tree.TerminalNodeImpl")) {	// TerminalNodeImpl has multiple sub-types
-								TerminalNode terminalNode1 = (TerminalNode)parseTree1;
-								TerminalNode terminalNode2 = (TerminalNode)parseTree2;
-								if(terminalNode1.getSymbol().getType() == terminalNode2.getSymbol().getType()) {
-									if(length + parseTree2.getText().length() < sizeBeforeRestrict) {
+					if(length + parseTree2.getText().length() < sizeBeforeRestrict) {
+						if(!parseTree2.getClass().getName().equals("minijava.parser.MiniJavaParser$BlockContext")) {	// don't add blocks, as it results in equivalent program
+							if(parseTree2.getClass().getName().equals(parseTree1.getClass().getName())) {
+								if (parseTree2.getClass().getName().equals("org.antlr.v4.runtime.tree.TerminalNodeImpl")) {	// TerminalNodeImpl has multiple sub-types
+									TerminalNode terminalNode1 = (TerminalNode)parseTree1;
+									TerminalNode terminalNode2 = (TerminalNode)parseTree2;
+									if(terminalNode1.getSymbol().getType() == terminalNode2.getSymbol().getType()) {
 										listParseTreeCandidate.add(parseTree2);
 									}
-								}
-							} else {
-								if(length + parseTree2.getText().length() < sizeBeforeRestrict) {
+								} else {
 									listParseTreeCandidate.add(parseTree2);
 								}
 							}
@@ -176,7 +175,7 @@ public class Main {
 					stringBuilder.append(" ");
 				}
 			} else {	// mutate source because no equivalent class types
-				stringBuilder.append(generator(program1.miniJavaParser, parseTree1, length));	// replace interval [a,b] with random segment of code of same type
+				stringBuilder.append(generator(program1.miniJavaParser, parseTree1));	// replace interval [a,b] with random segment of code of same type
 			}
 		}
 		stringBuilder.append(" ");
@@ -184,501 +183,33 @@ public class Main {
 		return stringBuilder.toString();
 	}
 	
-	public String generator(MiniJavaParser miniJavaParser, ParseTree parseTree, int size) {
+	public String generator(MiniJavaParser miniJavaParser, ParseTree parseTree) {
 		switch(parseTree.getClass().getName()) {
 			case "minijava.parser.MiniJavaParser$BlockContext":
-				return generateBlockContext(size);
+				return Generator.generateBlockContext(maxNewCodeSegmentSize);
 			case "minijava.parser.MiniJavaParser$DeclarationContext":
-				return generateDeclarationContext(size);
+				return Generator.generateDeclarationContext(maxNewCodeSegmentSize);
 			case "minijava.parser.MiniJavaParser$LongArrayDeclarationContext":
-				return generateLongArrayDeclarationContext(size);
+				return Generator.generateLongArrayDeclarationContext(maxNewCodeSegmentSize);
 			case "minijava.parser.MiniJavaParser$LongDeclarationContext":
-				return generateLongDeclarationContext(size);
+				return Generator.generateLongDeclarationContext(maxNewCodeSegmentSize);
 			case "minijava.parser.MiniJavaParser$BooleanArrayDeclarationContext":
-				return generateBooleanArrayDeclarationContext(size);
+				return Generator.generateBooleanArrayDeclarationContext(maxNewCodeSegmentSize);
 			case "minijava.parser.MiniJavaParser$BooleanDeclarationContext":
-				return generateBooleanDeclarationContext(size);
+				return Generator.generateBooleanDeclarationContext(maxNewCodeSegmentSize);
 			case "minijava.parser.MiniJavaParser$StatementContext":
-				return generateStatementContext(size, miniJavaParser, parseTree);
+				return Generator.generateStatementContext(maxNewCodeSegmentSize, miniJavaParser, parseTree);
 			case "minijava.parser.MiniJavaParser$ExpressionNumericContext":
-				return generateExpressionNumericContext(size, 0);
+				return Generator.generateExpressionNumericContext(maxNewCodeSegmentSize);
 			case "minijava.parser.MiniJavaParser$ExpressionBooleanContext":
-				return generateExpressionBooleanContext(size, 0);
+				return Generator.generateExpressionBooleanContext(maxNewCodeSegmentSize);
 			case "minijava.parser.MiniJavaParser$LongArrayValueContext":
-				return generateLongArrayValueContext(size);
+				return Generator.generateLongArrayValueContext(maxNewCodeSegmentSize);
 			case "minijava.parser.MiniJavaParser$BooleanArrayValueContext":
-				return generateBooleanArrayValueContext(size);
+				return Generator.generateBooleanArrayValueContext(maxNewCodeSegmentSize);
 			case "org.antlr.v4.runtime.tree.TerminalNodeImpl":
 				TerminalNode terminalNode = (TerminalNode)parseTree;
-				return generateTerminalNode(size, vocabulary.getSymbolicName(terminalNode.getSymbol().getType()));
-			default:
-				return null;
-		}
-	}
-	
-	//'{' declaration* statement* '}'
-	public String generateBlockContext(int size) {
-		StringBuilder stringBuilder = new StringBuilder();
-		String source;
-		size += 2;
-		stringBuilder.append("{");
-		if(size<sizeBeforeRestrict) {
-			source = generateStatementContext(size, null, null);
-			size += source.length();
-			stringBuilder.append(source);
-		}
-		stringBuilder.append("}");
-		return stringBuilder.toString();
-	}
-	
-	/*    :   longArrayDeclaration
-    |   longDeclaration
-    |   booleanArrayDeclaration
-    |   booleanDeclaration
-    */
-	public String generateDeclarationContext(int size) {
-		String source;
-		final int maxDeclaration = 6;	// 4 types + 1 double declaration + 1 empty declaration
-		int declaration = random.nextInt(maxDeclaration);
-		if(size>sizeBeforeRestrict) {
-			declaration = 5;	// remove declaration
-		}
-		switch(declaration) {
-			case 0:
-				return generateLongArrayDeclarationContext(size);
-			case 1:
-				return generateLongDeclarationContext(size);
-			case 2:
-				return generateBooleanArrayDeclarationContext(size);
-			case 3:
-				return generateBooleanDeclarationContext(size);
-			case 4:
-				size++;	// whitespace per-added to avoid possible infinite loop
-				source = generateDeclarationContext(size);
-				size += source.length();
-				return source + " " + generateDeclarationContext(size);
-			case 5:
-				return " ";
-			default:
-				return null;
-		}
-	}
-	
-	//'ArrayList<Long>' LONGARRAYNAME '= new ArrayList<Long>(size);'
-	public String generateLongArrayDeclarationContext(int size) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("ArrayList<Long> ");
-		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
-		stringBuilder.append("= new ArrayList<Long>(size); ");
-		return stringBuilder.toString();
-	}
-	
-	//'Long' LONGNAME '= new Long(0);'
-	public String generateLongDeclarationContext(int size) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("Long ");
-		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGNAME"));
-		stringBuilder.append("= new Long(0); ");
-		return stringBuilder.toString();
-	}
-	
-	//'ArrayList<Boolean>' BOOLEANARRAYNAME '= new ArrayList<Boolean>(size);'
-	public String generateBooleanArrayDeclarationContext(int size) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("ArrayList<Boolean> ");
-		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANARRAYNAME"));
-		stringBuilder.append("= new ArrayList<Boolean>(size); ");
-		return stringBuilder.toString();
-	}
-	
-	//'Boolean' BOOLEANNAME '= new Boolean(false);'
-	public String generateBooleanDeclarationContext(int size) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("Boolean ");
-		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANNAME"));
-		stringBuilder.append("= new Boolean(false); ");
-		return stringBuilder.toString();
-	}
-	
-	/*    :   'if(' expressionBoolean ')' block 'else' block
-    |   'while(!Thread.currentThread().isInterrupted()&&' expressionBoolean ')' block
-    |	LONGARRAYNAME '.set(new Long(' expressionNumeric ').intValue()%size, new Long(' expressionNumeric '));'
-    |   LONGNAME '=' 'new Long(' expressionNumeric ');'
-    |	BOOLEANARRAYNAME '.set(new Long(' expressionNumeric ').intValue()%size, new Boolean(' expressionBoolean '));'
-    |   BOOLEANNAME '=' 'new Boolean(' expressionBoolean ');'
-    |   'Util' '.' 'f' '(' expressionNumeric ',' LONGARRAYNAME ',' LONGARRAYNAME ',' expressionNumeric ',' expressionNumeric ')' ';'
-    */
-	public String generateStatementContext(int size, MiniJavaParser miniJavaParser, ParseTree parseTree) {
-		StringBuilder stringBuilder = new StringBuilder();
-		int maxStatement;
-		StringBuilder stringBuilderSourceStatement = null;
-		String sourceStatement = null;
-		if(parseTree == null) {
-			maxStatement = 8;	// 7 types + 1 empty declaration
-		} else {
-			maxStatement = 13;	// 7 types + 1 empty declaration + 1 prepend statement + 1 append statement + 1 statement duplication + 1 insert if/else + 1 insert while
-		}
-		int statement = random.nextInt(maxStatement);
-		if(size>sizeBeforeRestrict) {
-			statement = 7;	// remove declaration
-		}
-		if (statement>=8 && statement<=12) {
-			stringBuilderSourceStatement = new StringBuilder();
-			for(int index=parseTree.getSourceInterval().a; index<=parseTree.getSourceInterval().b; index++) {
-				stringBuilderSourceStatement.append(miniJavaParser.getTokenStream().get(index).getText());
-				stringBuilderSourceStatement.append(" ");
-			}
-			sourceStatement = stringBuilderSourceStatement.toString();
-		}
-		switch(statement) {
-			case 0:
-				stringBuilder.append("if(");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(")");
-				stringBuilder.append(generateBlockContext(size+stringBuilder.length()));
-				stringBuilder.append("else");
-				stringBuilder.append(generateBlockContext(size+stringBuilder.length()));
-				return stringBuilder.toString();
-			case 1:
-				stringBuilder.append("while(!Thread.currentThread().isInterrupted()&&");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(")");
-				stringBuilder.append(generateBlockContext(size+stringBuilder.length()));
-				return stringBuilder.toString();
-			case 2:
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
-				stringBuilder.append(".set(new Long(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(").intValue()%size, new Long(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-				stringBuilder.append("));");
-				return stringBuilder.toString();
-			case 3:
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGNAME"));
-				stringBuilder.append("= new Long(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(");");
-				return stringBuilder.toString();
-			case 4:
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANARRAYNAME"));
-				stringBuilder.append(".set(new Long(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(").intValue()%size, new Boolean(");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-				stringBuilder.append("));");
-				return stringBuilder.toString();
-			case 5:
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANNAME"));
-				stringBuilder.append("= new Boolean(");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(");");
-				return stringBuilder.toString();
-			case 6:
-				stringBuilder.append("Util.f(");
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "NUMBER"));
-				stringBuilder.append(",");
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
-				stringBuilder.append(",");
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
-				stringBuilder.append(",");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(",");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-				stringBuilder.append(");");
-				return stringBuilder.toString();
-			case 7:
-				return " ";
-			case 8:
-				size += sourceStatement.length();
-				return sourceStatement + " " + generateStatementContext(size, null, null);
-			case 9:
-				size += sourceStatement.length();
-				return generateStatementContext(size, null, null) + " " +  sourceStatement;
-			case 10:
-				return sourceStatement + " " +  sourceStatement;
-			case 11:
-				stringBuilder.append("if(");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-				stringBuilder.append("){");
-				stringBuilder.append(sourceStatement);
-				stringBuilder.append("}else{");
-				stringBuilder.append(sourceStatement);
-				stringBuilder.append("}");
-				return stringBuilder.toString();
-			case 12:
-				stringBuilder.append("while(!Thread.currentThread().isInterrupted()&&");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), 0));
-				stringBuilder.append("){");
-				stringBuilder.append(sourceStatement);
-				stringBuilder.append("}");
-				return stringBuilder.toString();
-			default:
-				return null;
-		}
-	}
-	
-	/*     :   NUMBER
-    |   LONGNAME
-    |	LONGARRAYNAME '.' 'size()'
-    |   longArrayValue
-    |   '(' '-' expressionNumeric ')'
-    |   expressionNumeric '^' expressionNumeric
-    |   expressionNumeric '%' expressionNumeric
-    |   expressionNumeric '*' expressionNumeric
-    |   expressionNumeric '/' expressionNumeric
-    |   expressionNumeric '+' expressionNumeric
-    |   expressionNumeric '-' expressionNumeric
-    */
-	public String generateExpressionNumericContext(int size, int depth) {
-		StringBuilder stringBuilder = new StringBuilder();
-		final int maxExpression = 13;	// 13 types
-		int expression = random.nextInt(maxExpression);
-		if(depth>maxDepthCondition) {
-			expression = random.nextInt(3);	// limit to first 3 types
-		}
-		if(size>sizeBeforeRestrict) {
-			expression = random.nextInt(3);	// limit to first 3 types
-		}
-		switch(expression) {
-			case 0:
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "NUMBER"));
-				return stringBuilder.toString();
-			case 1:
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGNAME"));
-				return stringBuilder.toString();
-			case 2:
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
-				stringBuilder.append(".size()");
-				return stringBuilder.toString();
-			case 3:
-				stringBuilder.append(generateLongArrayValueContext(size));
-				return stringBuilder.toString();
-			case 4:
-				stringBuilder.append("(-");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 5:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("&");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 6:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("|");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 7:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("^");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 8:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("%");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 9:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("*");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 10:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("/");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 11:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("+");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 12:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("-");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			default:
-				return null;
-		}
-	}
-	
-	/*    :   BOOLEAN
-    |   BOOLEANNAME
-    |   booleanArrayValue
-    |   '(' '!' expressionBoolean ')'
-    |   expressionNumeric '<' expressionNumeric
-    |   expressionNumeric '<=' expressionNumeric
-    |   expressionNumeric '==' expressionNumeric
-    |   expressionNumeric '!=' expressionNumeric
-    |   expressionBoolean '==' expressionBoolean
-    |   expressionBoolean '!=' expressionBoolean
-    |   expressionBoolean '&&' expressionBoolean
-    |   expressionBoolean '||' expressionBoolean
-    */
-	public String generateExpressionBooleanContext(int size, int depth) {
-		StringBuilder stringBuilder = new StringBuilder();
-		final int maxExpression = 12;	// 12 types
-		int expression = random.nextInt(maxExpression);
-		if(depth>maxDepthCondition) {
-			expression = random.nextInt(4);	// limit to first 4 types
-		}
-		if(size>sizeBeforeRestrict) {
-			expression = random.nextInt(4);	// limit to first 4 types
-		}
-		switch(expression) {
-			case 0:
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEAN"));
-				return stringBuilder.toString();
-			case 1:
-				stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANNAME"));
-				return stringBuilder.toString();
-			case 2:
-				stringBuilder.append(generateBooleanArrayValueContext(size));
-				return stringBuilder.toString();
-			case 3:
-				stringBuilder.append("(!");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 4:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("<");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 5:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("<=");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 6:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("==");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 7:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("!=");
-				stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 8:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("==");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 9:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("!=");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 10:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("&&");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 11:
-				stringBuilder.append("(");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append("||");
-				stringBuilder.append(generateExpressionBooleanContext(size+stringBuilder.length(), depth+1));
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			default:
-				return null;
-		}
-	}
-	
-	//LONGARRAYNAME '.get(new Long(' expressionNumeric ').intValue()%size)'
-	public String generateLongArrayValueContext(int size) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "LONGARRAYNAME"));
-		stringBuilder.append(".get(new Long(");
-		stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-		stringBuilder.append(").intValue()%size)");
-		return stringBuilder.toString();
-	}
-	
-	//BOOLEANARRAYNAME '.get(new Long(' expressionNumeric ').intValue()%size)'
-	public String generateBooleanArrayValueContext(int size) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(generateTerminalNode(size+stringBuilder.length(), "BOOLEANARRAYNAME"));
-		stringBuilder.append(".get(new Long(");
-		stringBuilder.append(generateExpressionNumericContext(size+stringBuilder.length(), 0));
-		stringBuilder.append(").intValue()%size)");
-		return stringBuilder.toString();
-	}
-	
-	//LONGARRAYNAME	'values' DIGIT DIGIT
-	//LONGNAME	'value' DIGIT DIGIT
-	//BOOLEANARRAYNAME	'conditions' DIGIT DIGIT
-	//BOOLEANNAME	'condition' DIGIT DIGIT
-	//BOOLEAN	'false' | 'true'
-	//NUMBER	'0' | DIGITNOZERO DIGIT*
-	public String generateTerminalNode(int size, String symbolicName) {
-		StringBuilder stringBuilder = new StringBuilder();
-		switch(symbolicName) {
-			case "LONGARRAYNAME":
-				stringBuilder.append("values");
-				//stringBuilder.append(random.nextInt(10));
-				stringBuilder.append(0);
-				stringBuilder.append(random.nextInt(10));
-				return stringBuilder.toString();
-			case "LONGNAME":
-				stringBuilder.append("value");
-				//stringBuilder.append(random.nextInt(10));
-				stringBuilder.append(0);
-				stringBuilder.append(random.nextInt(10));
-				return stringBuilder.toString();
-			case "BOOLEANARRAYNAME":
-				stringBuilder.append("conditions");
-				//stringBuilder.append(random.nextInt(10));
-				stringBuilder.append(0);
-				stringBuilder.append(random.nextInt(10));
-				return stringBuilder.toString();
-			case "BOOLEANNAME":
-				stringBuilder.append("condition");
-				//stringBuilder.append(random.nextInt(10));
-				stringBuilder.append(0);
-				stringBuilder.append(random.nextInt(10));
-				return stringBuilder.toString();
-			case "BOOLEAN":
-				if(random.nextBoolean()) {
-					return "true";
-				} else {
-					return "false";
-				}
-			case "NUMBER":
-				return Integer.toString(random.nextInt(100));
+				return Generator.generateTerminalNode(maxNewCodeSegmentSize, vocabulary.getSymbolicName(terminalNode.getSymbol().getType()));
 			default:
 				return null;
 		}
@@ -705,7 +236,7 @@ public class Main {
 		}
 	}
 	
-	public void compile() {
+	public void compilePopulation() {
 		final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler(); 
 		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
 		for(Program program : listProgramPopulation) {
@@ -737,7 +268,7 @@ public class Main {
 		}
 	}
 	
-	public void execute() {
+	public void executePopulation() {
 		final ExecutorService executorService = Executors.newFixedThreadPool(maxPopulation);
 		try {	// Load the class and use it
 			List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(maxPopulation);
@@ -758,7 +289,7 @@ public class Main {
 		}
 	}
 	
-	public void selection() {
+	public void evaluatePopulation() {
 		ArrayList<Long> arrayListDifferencesBase = getDifferences(arrayListTests, arrayListAnswers);
 		for(Program program : listProgramPopulation) {
 			ArrayList<Long> arrayListDifferences = getDifferences(arrayListAnswers, program.vectors);
@@ -776,25 +307,11 @@ public class Main {
 				}
 				program.fitness.difference = differenceSum/maxTestVectors;
 				program.fitness.fit = fitSum/maxTestVectors;
-				/*long differenceFinal = Long.MAX_VALUE;
-				double fitFinal = 0;
-				for(int index=0; index<arrayListDifferencesBase.size(); index++) {
-					long difference = arrayListDifferences.get(index);
-					double fit = (double)difference / arrayListDifferencesBase.get(index);
-					// select the worst fit as fitness metric for this program
-					if(difference!=Long.MAX_VALUE && fit>fitFinal) {
-						differenceFinal = difference;
-						fitFinal = fit;
-					}
-				}
-				program.fitness.difference = differenceFinal;
-				if(differenceFinal != Long.MAX_VALUE) {
-					program.fitness.fit = fitFinal;
-				} else {
-					program.fitness.fit = Double.MAX_VALUE;
-				}*/
 			}
 		}
+	}
+	
+	public void storeBestFit() {
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
@@ -811,11 +328,17 @@ public class Main {
 				e.printStackTrace();
 			}
 		}
-		listProgramParent.clear();
+	}
+	
+	public void downselectPopulation() {
 		int indexPackage = 0;
+		listProgramParent.clear();
 		for(Program program : listProgramPopulation) {
-			if(indexPackage>=maxParent || program.fitness.difference == Long.MAX_VALUE || program.fitness.speed >= Integer.MAX_VALUE || program.fitness.size == Integer.MAX_VALUE) {
+			if(indexPackage>=maxParent) {
 				break;
+			}
+			if(program.fitness.fit>=worstFitAccepted || program.fitness.difference==Long.MAX_VALUE || program.fitness.speed>=Integer.MAX_VALUE || program.fitness.size==Integer.MAX_VALUE) {
+				continue;
 			}
 			boolean exists = false;
 			String stringSource = program.source.replaceAll("\\s+","");
@@ -831,36 +354,43 @@ public class Main {
 			}
 		}
 		if(listProgramParent.size() == 0) {
-			LOGGER.info("Restarting");
+			LOGGER.warning("Restarting");
 			fitnessBest = null;
 			loadProgram();
 		}
 	}
 	
 	ArrayList<Long> getDifferences(ArrayList<ArrayList<Long>> arrayList1, ArrayList<ArrayList<Long>> arrayList2) {
-		ArrayList<Long> arrayListDifferences = new ArrayList<Long>(maxTestVectors);
 		if(arrayList1 == null || arrayList2 == null) {
 			return null;
-		}
-		for(int index=0; index<maxTestVectors; index++) {
-			if(arrayList1.get(index) == null || arrayList2.get(index) ==  null) {
-				return null;
-			} else {
-				arrayListDifferences.add(getDifference(arrayList1.get(index), arrayList2.get(index)));
+		} else {
+			ArrayList<Long> arrayListDifferences = new ArrayList<Long>(maxTestVectors);
+			for(int index=0; index<maxTestVectors; index++) {
+				Long difference = getDifference(arrayList1.get(index), arrayList2.get(index));
+				if(difference == null) {
+					return null;
+				} else {
+					arrayListDifferences.add(difference);
+				}
 			}
+			return arrayListDifferences;
 		}
-		return arrayListDifferences;
 	}
 	
 	Long getDifference(ArrayList<Long> arrayList1, ArrayList<Long> arrayList2) {
-		Long difference = new Long(Long.MAX_VALUE);
-		if(arrayList1 != null && arrayList2 != null && arrayList1.size()==arrayList2.size()) {
-			difference = 0L;
+		if(arrayList1 == null || arrayList2 == null || arrayList1.size()!=arrayList2.size()) {
+			return null;
+		} else {
+			Long difference = new Long(0);
 			for(int index=0; index<arrayList1.size(); index++) {
+				if(arrayList1.get(index) == Long.MAX_VALUE || arrayList2.get(index) == Long.MAX_VALUE) {
+					return null;
+				}
 				difference += Math.abs(arrayList1.get(index) - arrayList2.get(index));
 			}
+			return difference;
 		}
-		return difference;
+		
 	}
 	
 	String replacePackage(String source, int packageNumber) {
@@ -906,14 +436,19 @@ public class Main {
 			main.createEnviroment();
 			main.createTests();
 			main.createPopulation();
-			main.compile();
-			main.execute();
-			main.selection();
+			main.compilePopulation();
+			main.executePopulation();
+			main.evaluatePopulation();
+			main.storeBestFit();
+			main.downselectPopulation();
 			if(main.generation%main.maxGenerationsReload == 0) {
+				LOGGER.fine("RLD" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
 				main.loadProgram();
 			}
 			if(main.generation%100 == 0) {
-				//LOGGER.info("OUT" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
+	
+				LOGGER.info("PP0" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
+				LOGGER.info("PPN" + main.generation + "ID" + main.listProgramPopulation.get(main.listProgramPopulation.size()-1).ID + main.listProgramPopulation.get(main.listProgramPopulation.size()-1).fitness.toString() + main.listProgramPopulation.get(main.listProgramPopulation.size()-1).source);
 			}
 		}
 	}

@@ -34,7 +34,7 @@ declaration
     ;
 
 statement
-    :   'if' '(' expressionBoolean ')' block 'else' block
+    :   'if' '(' expressionBoolean ')' block ('else' block)?
     |   'while' '(' '!' 'Thread' '.' 'currentThread' '(' ')' '.' 'isInterrupted' '(' ')' '&&' expressionBoolean ')' block
 	|	LONGARRAYNAME '.' 'set' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ',' 'new' 'Long' '(' expressionNumeric ')' ')' ';'
     |   LONGNAME '=' 'new' 'Long' '(' expressionNumeric ')' ';'
