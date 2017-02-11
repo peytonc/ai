@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -71,6 +70,7 @@ public class Main {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		fitnessBest = null;
 		loadProgram();
 	}
 
@@ -83,7 +83,9 @@ public class Main {
 			sizeBeforeRestrictMax = (int)(sizeBeforeRestrictMaxPercent * source.length());
 			sizeBeforeRestrict = sizeBeforeRestrictMax;
 			listProgramParent.add(new Program(source, 0, arrayListTests));
-			fitnessBest = null;
+			//restart generate interval at beginning, so environment cycle doesn't make starved/winter population the best
+			generation -= generation%maxGenerationsReload;
+			createEnviroment();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -796,11 +798,12 @@ public class Main {
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
-			LOGGER.info("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
+			LOGGER.info("NEW" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
 		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
+			LOGGER.info(fitnessBest.toString() + sizeBeforeRestrict);
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			try {
-				LOGGER.info("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
+				LOGGER.info("BST" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
 				String source = listProgramPopulation.get(0).source;
 				source = replacePackage(source, 0);
 				Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
@@ -829,6 +832,7 @@ public class Main {
 		}
 		if(listProgramParent.size() == 0) {
 			LOGGER.info("Restarting");
+			fitnessBest = null;
 			loadProgram();
 		}
 	}
@@ -909,7 +913,7 @@ public class Main {
 				main.loadProgram();
 			}
 			if(main.generation%100 == 0) {
-				LOGGER.info("OUT" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
+				//LOGGER.info("OUT" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
 			}
 		}
 	}
