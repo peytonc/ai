@@ -44,11 +44,5 @@ public class CallableMiniJava implements Runnable {
 			}
 			program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart);
 		}
-/*if(program.vector != null) {
-System.out.println("ID" + program.ID + program.fitness.toString() + program.vector.toString() + program.source);
-} else {
-System.out.println("ID" + program.ID + program.fitness.toString() + "NULL                    " + program.source);
-}*/
 	}
-
 }

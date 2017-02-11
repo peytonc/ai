@@ -1,6 +1,8 @@
 package minijava;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -9,10 +11,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -32,8 +37,7 @@ import minijava.parser.MiniJavaLexer;
 import minijava.parser.MiniJavaParser;
 
 public class Main {
-	// This will require JAVA_HOME be set to JDK. JRE home will cause a NullPointerException
-	public final static String JAVA_HOME = new String("/usr/local/jdk1.8.0_121/");
+	private static final String PROPERTIES_FILENAME = new String("config.properties");
 	public final static String PROGRAM_FILENAME = new String("GeneticProgram.java");
 	public final Path pathBase = Paths.get("");
 	public final int maxParent = 5;	// Size of parent pool
@@ -43,6 +47,7 @@ public class Main {
 	public final int maxGenerationsReload = 1000;	// Force reload, because best fit program could be to random variable (distribution of means) 
 	public int generation = 0;
 	
+	private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 	private List<Program> listProgramParent = new ArrayList<Program>(maxParent);
 	public List<Program> listProgramPopulation = new ArrayList<Program>(maxPopulation);
 	private ArrayList<ArrayList<Long>> arrayListTests;
@@ -61,7 +66,11 @@ public class Main {
 	private final static int maxTestVectorSize = 10;
 	
 	public Main() {
-		System.setProperty("java.home", JAVA_HOME);
+		try(InputStream inputStream = new FileInputStream(PROPERTIES_FILENAME)) {
+			LogManager.getLogManager().readConfiguration(inputStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		loadProgram();
 	}
 
@@ -103,7 +112,6 @@ public class Main {
 					program2 = listProgramParent.get(random.nextInt(listProgramParent.size()));
 				}
 				source = create(program, program2, program.source);
-//System.out.println(source);
 				source = replacePackage(source, indexPackage);
 				listProgramPopulation.add(new Program(source, indexPackage, arrayListTests));	// add child to population
 				indexPackage++;
@@ -713,7 +721,7 @@ public class Main {
 				Boolean success = compilerTask.call();
 				for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
 					program.vectors = null;
-			    	System.out.println(diagnostic.getMessage(null));
+					LOGGER.severe(diagnostic.getMessage(null));
 			    }
 				if (!success) {	//Compile and check for program errors, random code may have compile errors
 					if(diagnostics.getDiagnostics().size() != 0) {
@@ -741,11 +749,10 @@ public class Main {
 			}
 			executorService.shutdown();
 			if(!executorService.awaitTermination(maxExecuteMilliseconds, TimeUnit.MILLISECONDS)) {
-				//System.out.println("Forcing shutdownNow");
 				executorService.shutdownNow();
 			}
 		} catch (Exception e) {
-			System.out.println("Exception on terminate");
+			LOGGER.severe("Exception on terminate");
 		}
 	}
 	
@@ -789,11 +796,11 @@ public class Main {
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
-			System.out.println("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
+			LOGGER.info("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
 		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			try {
-				System.out.println("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
+				LOGGER.info("GEN" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
 				String source = listProgramPopulation.get(0).source;
 				source = replacePackage(source, 0);
 				Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
@@ -821,7 +828,7 @@ public class Main {
 			}
 		}
 		if(listProgramParent.size() == 0) {
-			System.out.println("Restarting");
+			LOGGER.info("Restarting");
 			loadProgram();
 		}
 	}
@@ -902,10 +909,8 @@ public class Main {
 				main.loadProgram();
 			}
 			if(main.generation%100 == 0) {
-				System.out.println("OUT" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
+				LOGGER.info("OUT" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
 			}
 		}
-		System.out.println("");
-		System.out.println("Ending best " + main.fitnessBest.toString());
 	}
 }
