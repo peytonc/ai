@@ -316,16 +316,18 @@ public class Main {
 		if(fitnessBest == null) {
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			LOGGER.info("NEW" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
-		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
-			LOGGER.info(fitnessBest.toString() + sizeBeforeRestrict);
-			fitnessBest = listProgramPopulation.get(0).fitness;
-			try {
-				LOGGER.info("BST" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
-				String source = listProgramPopulation.get(0).source;
-				source = replacePackage(source, 0);
-				Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
-			} catch (IOException e) {
-				e.printStackTrace();
+		} else if(fitnessBest.fit > listProgramPopulation.get(0).fitness.fit) {	// only store in terms of best fit, then compareTo
+			if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
+				LOGGER.info(fitnessBest.toString() + sizeBeforeRestrict);
+				fitnessBest = listProgramPopulation.get(0).fitness;
+				try {
+					LOGGER.info("BST" + generation + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
+					String source = listProgramPopulation.get(0).source;
+					source = replacePackage(source, 0);
+					Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -333,15 +335,15 @@ public class Main {
 	public void downselectPopulation() {
 		int indexPackage = 0;
 		listProgramParent.clear();
-		for(Program program : listProgramPopulation) {
+		for(Program programPopulation : listProgramPopulation) {
 			if(indexPackage>=maxParent) {
 				break;
 			}
-			if(program.fitness.fit>=worstFitAccepted || program.fitness.difference==Long.MAX_VALUE || program.fitness.speed>=Integer.MAX_VALUE || program.fitness.size==Integer.MAX_VALUE) {
+			if(programPopulation.fitness.fit>=worstFitAccepted || programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed>=Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
 				continue;
 			}
 			boolean exists = false;
-			String stringSource = program.source.replaceAll("\\s+","");
+			String stringSource = programPopulation.source.replaceAll("\\s+","");
 			for(Program programParent : listProgramParent) {
 				if(programParent.source.replaceAll("\\s+","").equalsIgnoreCase(stringSource)) {
 					exists = true;
@@ -349,7 +351,7 @@ public class Main {
 				}
 			}
 			if(!exists) {
-				listProgramParent.add(new Program(replacePackage(program.source, indexPackage), indexPackage, arrayListTests));
+				listProgramParent.add(new Program(replacePackage(programPopulation.source, indexPackage), indexPackage, arrayListTests));
 				indexPackage++;
 			}
 		}
@@ -442,13 +444,12 @@ public class Main {
 			main.storeBestFit();
 			main.downselectPopulation();
 			if(main.generation%main.maxGenerationsReload == 0) {
-				LOGGER.fine("RLD" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
+				LOGGER.fine("RLD" + main.generation + "ID" + main.listProgramParent.get(0).ID + main.listProgramParent.get(0).fitness.toString() + main.listProgramParent.get(0).source);
 				main.loadProgram();
 			}
 			if(main.generation%100 == 0) {
-	
-				LOGGER.info("PP0" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
-				LOGGER.info("PPN" + main.generation + "ID" + main.listProgramPopulation.get(main.listProgramPopulation.size()-1).ID + main.listProgramPopulation.get(main.listProgramPopulation.size()-1).fitness.toString() + main.listProgramPopulation.get(main.listProgramPopulation.size()-1).source);
+				LOGGER.info("PP0" + main.generation + "ID" + main.listProgramParent.get(0).ID + main.listProgramParent.get(0).fitness.toString() + main.listProgramParent.get(0).source);
+				LOGGER.info("PPN" + main.generation + "ID" + main.listProgramParent.get(main.listProgramParent.size()-1).ID + main.listProgramParent.get(main.listProgramParent.size()-1).fitness.toString() + main.listProgramParent.get(main.listProgramParent.size()-1).source);
 			}
 		}
 	}

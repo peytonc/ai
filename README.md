@@ -1,8 +1,19 @@
 # Synopsis #
 
-The project is a genetic program (GP) that automatically generates source code in order to solve a particular problem. The GP is written in Java and generates source code in Java. The problem is defined by a set of input variables (X) and and the desired output variables (Y). The GP’s goal is to generate source code P that maps X to Y, which is the functional mapping of Y=P(X).
+The project is a genetic program (GP) that automatically generates source code in order to solve a particular problem. The GP is written in Java and generates source code in Java. The problem is defined by a set of input variables (X) and the desired output variables (Y). The GP’s goal is to generate source code P that maps X to Y, resulting in the functional mapping Y=P(X).
 
 The GP creates an population (or set) of pseudo-random source codes from a population of parent source code; by way of mutation and crossover. Source code fitness is determined by correctness or closeness to solving a specific problem, code size, code speed, and no compile/runtime error/warnings. The most fit of this population becomes the parents of the next generation of codes. And the process repeats. This approach uses concepts from compiler construction and genetic programming.
+
+Each generation of the GP life cycle is as follows:
+1. createEnviroment();
+2. createTests();
+3. createPopulation();
+4. compilePopulation();
+5. executePopulation();
+6. evaluatePopulation();
+7. storeBestFit();
+8. downselectPopulation();
+
 
 # Installation #
 
@@ -22,4 +33,4 @@ The GP creates an population (or set) of pseudo-random source codes from a popul
 
 # License #
 
-See LICENSE file. Request for additional open source license types. 
+See [LICENSE.md](LICENSE.md) for details.
