@@ -26,10 +26,10 @@ Each generation of the GP life cycle is as follows:
 
 # Resources #
 
-1. https://github.com/peytonc/ai
-2. https://en.wikipedia.org/wiki/Genetic_programming
-3. http://cswww.essex.ac.uk/staff/poli/gp-field-guide/index.html
-4. http://www.antlr.org/
+1. [https://github.com/peytonc/ai](https://github.com/peytonc/ai)
+2. [https://en.wikipedia.org/wiki/Genetic_programming](https://en.wikipedia.org/wiki/Genetic_programming)
+3. [http://cswww.essex.ac.uk/staff/poli/gp-field-guide/index.html](http://cswww.essex.ac.uk/staff/poli/gp-field-guide/index.html)
+4. [http://www.antlr.org](http://www.antlr.org)
 
 # License #
 
