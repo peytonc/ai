@@ -60,8 +60,7 @@ public class Main {
 	public static int sizeBeforeRestrict = 0;
 	private final static double sizeBeforeRestrictMinPercent = 0.95;
 	private final static double sizeBeforeRestrictMaxPercent = 1.25;
-	private final static int maxTestVectors = 3000;
-	private final static int maxTestVectorSize = 10;
+	public final static int maxTestVectors = 3000;
 	private final static int maxNewCodeSegmentSize = 80;
 	private final static double worstFitAccepted = 2.0;
 	
@@ -397,33 +396,13 @@ public class Main {
 	String replacePackage(String source, int packageNumber) {
 		return source.replaceFirst("package package[0-9]*\\s*;", "package package" + packageNumber + ";");
 	}
-	
-	public void createTests() {
-		arrayListTests = new ArrayList<ArrayList<Long>>(maxTestVectors);
-		arrayListAnswers = new ArrayList<ArrayList<Long>>(maxTestVectors);
-		for(int index=0; index<maxTestVectors; index++) {
-			ArrayList<Long> arrayListTest = new ArrayList<Long>(maxTestVectorSize);
-			createTest(arrayListTest);
-			arrayListTests.add(arrayListTest);
-			ArrayList<Long> arrayListAnswer = new ArrayList<Long>(arrayListTest);
-			Collections.sort(arrayListAnswer);
-			arrayListAnswers.add(arrayListAnswer);
-		}
-	}
-	
-	public void createTest(ArrayList<Long> arrayListTest) {
-		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-		arrayListTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
-	}
     
+	public void createTests() {
+		arrayListTests = new ArrayList<ArrayList<Long>>(Main.maxTestVectors);
+		arrayListAnswers = new ArrayList<ArrayList<Long>>(Main.maxTestVectors);
+		Test.createTests(arrayListTests, arrayListAnswers);
+	}
+	
 	public void createEnviroment() {
 		// model environment resource (specifically program size) as Summer-Winter-Summer or sizeBeforeRestrictMax-sizeBeforeRestrictMin-sizeBeforeRestrictMax
 		double percent = (double)(generation%maxGenerationsReload)/maxGenerationsReload;
