@@ -426,7 +426,7 @@ public class Main {
 				main.loadProgram();
 			}
 			if(main.generation%100 == 0) {
-				//LOGGER.info("PP0" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
+				LOGGER.info("PP0" + main.generation + "ID" + main.listProgramPopulation.get(0).ID + main.listProgramPopulation.get(0).fitness.toString() + main.listProgramPopulation.get(0).source);
 				//LOGGER.info("PPN" + main.generation + "ID" + main.listProgramPopulation.get(main.listProgramPopulation.size()-1).ID + main.listProgramPopulation.get(main.listProgramPopulation.size()-1).fitness.toString() + main.listProgramPopulation.get(main.listProgramPopulation.size()-1).source);
 			}
 		}
