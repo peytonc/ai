@@ -35,6 +35,7 @@ public class CallableMiniJava implements Runnable {
 				for(int index=0; index<program.vectors.size(); index++) {
 					method.invoke(null, program.vectors.get(index));
 					if(program.vectors.get(index)==null || program.vectors.get(index).isEmpty()) {
+						program.vectors = null;
 						break;
 					}
 				}

@@ -5,15 +5,16 @@ The project is a genetic program (GP) that automatically generates source code i
 The GP creates an population (or set) of pseudo-random source codes from a population of parent source code; by way of mutation and crossover. Source code fitness is determined by correctness or closeness to solving a specific problem, code size, code speed, and no compile/runtime error/warnings. The most fit of this population becomes the parents of the next generation of codes. And the process repeats. This approach uses concepts from compiler construction and genetic programming.
 
 Each generation of the GP life cycle is as follows:
-1. createEnviroment();
-2. createTests();
-3. createPopulation();
-4. compilePopulation();
-5. executePopulation();
-6. evaluatePopulation();
-7. storeBestFit();
-8. downselectPopulation();
-
+```java
+createEnviroment();
+createTests();
+createPopulation();
+compilePopulation();
+executePopulation();
+evaluatePopulation();
+storeBestFit();
+downselectPopulation();
+```
 
 # Installation #
 
