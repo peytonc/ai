@@ -12,15 +12,17 @@ import minijava.parser.MiniJavaParser.BlockContext;
  * A file object used to represent source coming from a string.
  */
 public class Program extends SimpleJavaFileObject implements Comparable<Program> {
-	public final static String PROGRAM_CLASS_NAME = new String("GeneticProgram");
-	public final static String PACKAGE_NAME = new String("package");
+	public final static String PROGRAM_CLASS = new String("GeneticProgram");
+	public final static String PACKAGE_SPECIES = new String("species");
+	public final static String PACKAGE_ID = new String("id");
 	public String source;
 	public Fitness fitness = new Fitness();
 	public ArrayList<ArrayList<Long>> vectors;
+	public int species;
 	public int ID;
 	public ProgramClassLoader programClassLoader = null;
 	public MiniJavaParser miniJavaParser = null;
-	BlockContext blockContext = null;
+	public BlockContext blockContext = null;
 	
 	/**
 	 * Constructs a new JavaSourceFromString.
@@ -30,15 +32,17 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	 * @param source
 	 *            the source code for the compilation unit represented by this file object
 	 */
-	Program(String source, int ID, ArrayList<ArrayList<Long>> vectors) {
-		super(URI.create("string:///" + PACKAGE_NAME + ID + '/' + PROGRAM_CLASS_NAME + Kind.SOURCE.extension), Kind.SOURCE);
+	Program(String source, int species, int ID, int sizeBeforeRestrict, Tests tests) {
+		super(URI.create("string:///" + PACKAGE_SPECIES + species + '/' + PACKAGE_ID + ID + '/' + PROGRAM_CLASS + Kind.SOURCE.extension), Kind.SOURCE);
 		this.source = new String(source);
 		fitness.size = source.length();
+		fitness.sizeBeforeRestrict = sizeBeforeRestrict;
+		this.species = species;
 		this.ID = ID;
-		this.vectors = new ArrayList<ArrayList<Long>>(vectors.size());
-		for(int index=0; index<vectors.size(); index++) {
-			ArrayList<Long> arrayList = new ArrayList<Long>(vectors.get(index));
-			this.vectors.add(arrayList);
+		vectors = new ArrayList<ArrayList<Long>>(tests.listTests.size());
+		for(int index=0; index<tests.listTests.size(); index++) {
+			ArrayList<Long> arrayList = new ArrayList<Long>(tests.listTests.get(index).listTest);
+			vectors.add(arrayList);
 		}
 		programClassLoader = new ProgramClassLoader(ClassLoader.getSystemClassLoader());
 	}

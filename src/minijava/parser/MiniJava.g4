@@ -23,7 +23,7 @@ block
     ;
 
 block
-    :   '{' statement* '}'
+    :   '{' declaration* statement* '}'
     ;
 
 declaration
@@ -72,6 +72,7 @@ expressionBoolean
     |   '(' expressionBoolean '!=' expressionBoolean ')'
     |   '(' expressionBoolean '&&' expressionBoolean ')'
     |   '(' expressionBoolean '||' expressionBoolean ')'
+    |   '(' expressionBoolean '^' expressionBoolean ')'
     ;
 
 longArrayDeclaration
@@ -99,8 +100,10 @@ booleanDeclaration
     ;
     
 PACKAGENAME
-	:   'package' DIGIT
-	|   'package' DIGITNOZERO DIGIT
+	:   'species' '0' '.' 'id' '0'
+	|   'species' '0' '.' 'id' DIGITNOZERO DIGIT*
+	|   'species' DIGITNOZERO DIGIT* '.' 'id' '0'
+	|   'species' DIGITNOZERO DIGIT* '.' 'id' DIGITNOZERO DIGIT*
     ;
     
 LONGARRAYNAME

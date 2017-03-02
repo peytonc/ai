@@ -18,6 +18,7 @@ public class Util {
 					arrayList1.set(index1, arrayList2.get(index2));
 					arrayList2.set(index2, temp);
 				}
+				break;
 		}
 	}
 }

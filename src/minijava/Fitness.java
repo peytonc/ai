@@ -5,12 +5,14 @@ public class Fitness implements Comparable<Fitness> {
 	public long difference;
 	public long speed;
 	public int size;
+	public int sizeBeforeRestrict;
 	
 	public Fitness() {
 		fit = Double.MAX_VALUE;
 		difference = Long.MAX_VALUE;
 		speed = Integer.MAX_VALUE;
 		size = Integer.MAX_VALUE;
+		sizeBeforeRestrict = 0;
 	}
 	
 	public String toString() {
@@ -20,10 +22,10 @@ public class Fitness implements Comparable<Fitness> {
 	@Override
 	public int compareTo(Fitness fitness) {
 		int compare = 0;
-		if(size <= Main.sizeBeforeRestrict ) {
+		if(size <= sizeBeforeRestrict ) {
 			compare = Double.compare(fit, fitness.fit);
 		} else {
-			compare = Double.compare(fit+size/Main.sizeBeforeRestrict, fitness.fit+fitness.size/Main.sizeBeforeRestrict);
+			compare = Double.compare(fit+size/sizeBeforeRestrict, fitness.fit+fitness.size/sizeBeforeRestrict);
 		}
 		if(compare == 0) {
 			compare = Long.compare(difference, fitness.difference);

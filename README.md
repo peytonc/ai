@@ -23,7 +23,8 @@ downselectPopulation();
 3. java -jar ../../../lib/antlr-4.6-complete.jar -package minijava.parser MiniJava.g4
 4. cd ../../..
 5. mkdir log
-6. TODO add command line execution
+6. mkdir data
+7. TODO add command line execution
 
 # Resources #
 

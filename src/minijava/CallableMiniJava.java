@@ -16,7 +16,7 @@ public class CallableMiniJava implements Runnable {
 		if(program.vectors != null) {
 			Class<?> cls = null;
 			try {
-				cls = program.programClassLoader.loadClass(Program.PACKAGE_NAME + program.ID + "." + Program.PROGRAM_CLASS_NAME);
+				cls = program.programClassLoader.loadClass(Program.PACKAGE_SPECIES + program.species + "." + Program.PACKAGE_ID + program.ID + "." + Program.PROGRAM_CLASS);
 			} catch (ClassNotFoundException e1) {
 				program.vectors = null;
 				e1.printStackTrace();
@@ -33,13 +33,19 @@ public class CallableMiniJava implements Runnable {
 			long timeStart = System.nanoTime();
 			try {
 				for(int index=0; index<program.vectors.size(); index++) {
-					method.invoke(null, program.vectors.get(index));
-					if(program.vectors.get(index)==null || program.vectors.get(index).isEmpty()) {
+					if(Thread.currentThread().isInterrupted()) {
 						program.vectors = null;
 						break;
+					} else {
+						method.invoke(null, program.vectors.get(index));
+						if(program.vectors.get(index)==null || program.vectors.get(index).isEmpty()) {
+							program.vectors = null;
+							break;
+						}
 					}
 				}
 			} catch(Exception e) {
+				System.out.println("CallableMiniJavaCallableMiniJavaCallableMiniJava");
 				program.vectors = null;
 				e.printStackTrace();
 			}
