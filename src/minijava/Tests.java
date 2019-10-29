@@ -8,11 +8,11 @@ public class Tests {
 	public List<Test> listTests;
 	public List<Long> listDifferencesBase;
 	
-	public final static int maxTestVectors = 3000;
+	public static final int MAX_TEST_VECTORS = 2000;
 	
 	public void createTests() {
-		List<Test> listTests = new ArrayList<Test>(maxTestVectors);
-		for(int index=0; index<maxTestVectors; index++) {
+		List<Test> listTests = new ArrayList<Test>(MAX_TEST_VECTORS);
+		for(int index=0; index<MAX_TEST_VECTORS; index++) {
 			Test test = new Test();
 			listTests.add(test);
 		}

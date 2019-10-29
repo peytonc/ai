@@ -1,6 +1,7 @@
 package minijava;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -9,11 +10,31 @@ public class Test {
 	public final List<Long> listTest;
 	public final List<Long> listAnswer;
 	
-	private final static Random random = new Random(Main.randomSeed);
-	private final static int maxTestVectorSize = 10;
+	private static final Random RANDOM = new Random(GEP.RANDOM_SEED);
+	private static final int MAX_TEST_VECTOR_SIZE = 1;
+	
+	private static boolean firstCall = true;
+	private static final int MAX_COMPOSITE = 10000000;
+    private static int[] smoothness = new int[MAX_COMPOSITE];
+    public static void sieveOfEratosthenes() {
+        Arrays.fill(smoothness,1);        // assume largest prime factor is 1
+        for(int i=2; i<smoothness.length; i++) {
+        	if(smoothness[i] == 1)	{	// update sieve with each prime number, and skip composite numbers
+	            for(int j=1; i*j<smoothness.length; j++) {
+	            	smoothness[i*j] = i;
+	            }
+        	}
+        }
+    }
 	
 	public Test() {
-		List<Long> listTest = new ArrayList<Long>(maxTestVectorSize);
+		synchronized(this) {
+			if(firstCall) {
+				firstCall = false;
+				sieveOfEratosthenes();
+			}
+		}
+		List<Long> listTest = new ArrayList<Long>(MAX_TEST_VECTOR_SIZE);
 		createTest(listTest);
 		this.listTest = Collections.unmodifiableList(listTest);
 		List<Long> listAnswer = new ArrayList<Long>(listTest);
@@ -38,33 +59,26 @@ public class Test {
 		}
 	}
 	
-	// random ASCII character between [65-90]
+	// random composite numbers
 	private void createTest(List<Long> listTest) {
-		for(int index=0; index<maxTestVectorSize; index++) {
-			listTest.add(new Long(random.nextInt(26)+65));
-		}
-	}
-	
-	// ROT13 cipher
-	private void createAnswer(List<Long> listAnswer) {
-		for(int index=0; index<maxTestVectorSize; index++) {
-			long rot13 = listAnswer.get(index)+13;
-			if(rot13>90) {
-				rot13 = (rot13-90)+64;
+		for(int index=0; index<MAX_TEST_VECTOR_SIZE; index++) {
+			int i = RANDOM.nextInt(MAX_COMPOSITE-6) + 4;
+			for(int j=i; i<smoothness.length; j++) {
+				if(smoothness[j] != j)	{
+					break;	// found a composite number
+				}
+				i++;
 			}
-			listAnswer.set(index, rot13);
+			listTest.add(new Long(i));
 		}
 	}
 	
-	// random array of data
-	private void createTest1() {
-		for(int index=0; index<maxTestVectorSize; index++) {
-			listTest.add(new Long(random.nextInt(Integer.MAX_VALUE)));
+	// smoothness
+	private void createAnswer(List<Long> listAnswer) {
+		for(int index=0; index<MAX_TEST_VECTOR_SIZE; index++) {
+			int result = listAnswer.get(index).intValue();
+			long largestFactor = smoothness[result];
+			listAnswer.set(index, largestFactor);
 		}
-	}
-	
-	// sort array
-	private void createAnswer1() {
-		Collections.sort(listAnswer);
 	}
 }

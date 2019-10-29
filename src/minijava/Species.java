@@ -33,29 +33,29 @@ import minijava.parser.MiniJavaParser;
 
 public class Species implements Runnable {
 	public Fitness fitnessBest = null;
-	public final static int maxExecuteMilliseconds = 2000;
-	public int stagnant = maxStagnant;
+	public static final int MAX_EXECUTE_MILLISECONDS = 2000;
+	public int stagnant = MAX_STAGNANT;
 	public int species;
 	
-	private static final int maxStagnant = 5;	// number of years a species can live without progress on bestfit
-	private final int maxParent = 5;	// Size of parent pool
-	private final int maxChildren = 3;	// Number of children each parent produces
-	private final int maxPopulation = maxParent*maxChildren + maxParent;	// Total population size
-	private static final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
-	private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
-	private Random random = new Random(Main.randomSeed);
-	private final static int maxNewCodeSegmentSize = 75;
-	private final static double worstFitAccepted = 2.0;
-	private List<Program> listProgramParent = new ArrayList<Program>(maxParent);
-	private List<Program> listProgramPopulation = new ArrayList<Program>(maxPopulation);
-	private List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(maxPopulation);
+	private static final int MAX_STAGNANT = 5;	// number of years a species can live without progress on bestfit
+	private static final int MAX_PARENT = 5;	// Size of parent pool
+	private static final int MAX_CHILDREN = 3;	// Number of children each parent produces
+	private static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
+	private static final JavaCompiler JAVA_COMPILER = ToolProvider.getSystemJavaCompiler();
+	private static final Logger LOGGER = Logger.getLogger(GEP.class.getName());
+	private Random random = new Random(GEP.RANDOM_SEED);
+	private static final int MAX_NEW_CODE_SEGMENT_SIZE = 75;
+	private static final double WORST_FIX_ACCEPTED = 2.0;
+	private List<Program> listProgramParent = new ArrayList<Program>(MAX_PARENT);
+	private List<Program> listProgramPopulation = new ArrayList<Program>(MAX_POPULATION);
+	private List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(MAX_POPULATION);
 	private String stringBestSourceCompact;
 	private String stringBestSource;
 	private static int sizeBeforeRestrictMin = 0;
 	private static int sizeBeforeRestrictMax = 0;
 	private static int sizeBeforeRestrict = 0;
-	private final static double sizeBeforeRestrictMinPercent = 0.95;
-	private final static double sizeBeforeRestrictMaxPercent = 1.25;
+	private static final double SIZE_BEFORE_RESTRICT_MIN_PERCENT = 0.95;
+	private static final double SIZE_BEFORE_RESTRICT_MAX_PERCENT = 1.25;
 	private Tests tests = null;
 	
 	private int daysPerYear;
@@ -83,8 +83,8 @@ public class Species implements Runnable {
 	
 	public void initalizeYear(int year) {
 		this.year = year;
-		sizeBeforeRestrictMin = (int)(sizeBeforeRestrictMinPercent * stringBestSource.length());
-		sizeBeforeRestrictMax = (int)(sizeBeforeRestrictMaxPercent * stringBestSource.length());
+		sizeBeforeRestrictMin = (int)(SIZE_BEFORE_RESTRICT_MIN_PERCENT * stringBestSource.length());
+		sizeBeforeRestrictMax = (int)(SIZE_BEFORE_RESTRICT_MAX_PERCENT * stringBestSource.length());
 		stagnant--;
 	}
 	
@@ -143,7 +143,7 @@ public class Species implements Runnable {
 			indexPackage++;
 		}
 		for(Program program : listProgramParent) {
-			for(int indexChild=0; indexChild<maxChildren; indexChild++) {
+			for(int indexChild=0; indexChild<MAX_CHILDREN; indexChild++) {
 				Program program2 = null;	// program2 null means mutate
 				if(random.nextBoolean()) {	// program2 !null means crossover
 					program2 = listProgramParent.get(random.nextInt(listProgramParent.size()));
@@ -159,7 +159,7 @@ public class Species implements Runnable {
 	public void compilePopulation() { 
 		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
 		for(Program program : listProgramPopulation) {
-			try (StandardJavaFileManager standardJavaFileManager = javaCompiler.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
+			try (StandardJavaFileManager standardJavaFileManager = JAVA_COMPILER.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
 				Iterable<? extends JavaFileObject> javaFileObject = Arrays.asList(program);
 				ProgramClassSimpleJavaFileObject programClassSimpleJavaFileObject = null;
 				try {
@@ -169,7 +169,7 @@ public class Species implements Runnable {
 					e.printStackTrace();
 				}
 				ProgramForwardingJavaFileManager programForwardingJavaFileManager = new ProgramForwardingJavaFileManager(standardJavaFileManager, programClassSimpleJavaFileObject, program.programClassLoader);
-				CompilationTask compilerTask = javaCompiler.getTask(null, programForwardingJavaFileManager, diagnostics, null, null, javaFileObject);
+				CompilationTask compilerTask = JAVA_COMPILER.getTask(null, programForwardingJavaFileManager, diagnostics, null, null, javaFileObject);
 				Boolean success = compilerTask.call();
 				for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
 					program.vectors = null;
@@ -182,13 +182,14 @@ public class Species implements Runnable {
 				    
 				}
 			} catch (IOException e) {
+				LOGGER.severe("Must use JDK that includes javac");
 				e.printStackTrace();
 			}
 		}
 	}
 	
 	public void executePopulation() {
-		ExecutorService executorService = Executors.newFixedThreadPool(Main.threads-1);
+		ExecutorService executorService = Executors.newFixedThreadPool(GEP.THREADS_PER_SPECIES-1);
 		try {	// Load the class and use it
 			listCallable.clear();
 			for(Program program : listProgramPopulation) {
@@ -200,11 +201,11 @@ public class Species implements Runnable {
 				executorService.execute(callableMiniJava);
 			}
 			executorService.shutdown();
-			if(!executorService.awaitTermination(maxExecuteMilliseconds, TimeUnit.MILLISECONDS)) {
+			if(!executorService.awaitTermination(MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
 				executorService.shutdownNow();
-				int milliseconds = maxExecuteMilliseconds;
-				while(!executorService.awaitTermination(maxExecuteMilliseconds, TimeUnit.MILLISECONDS)) {
-					milliseconds += maxExecuteMilliseconds;
+				int milliseconds = MAX_EXECUTE_MILLISECONDS;
+				while(!executorService.awaitTermination(MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
+					milliseconds += MAX_EXECUTE_MILLISECONDS;
 					LOGGER.warning("Runaway species #" + species + " for " + milliseconds + " milliseconds");
 				}
 			}
@@ -238,14 +239,14 @@ public class Species implements Runnable {
 	public void storeBestFit() {
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
-			stagnant = maxStagnant;
+			stagnant = MAX_STAGNANT;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			stringBestSource = listProgramPopulation.get(0).source;
 			stringBestSourceCompact = removeSpace(stringBestSource);
 			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
 		} else if(fitnessBest.fit >= listProgramPopulation.get(0).fitness.fit) {	// first store in terms of best fit, next use compareTo
 			if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
-				stagnant = maxStagnant;
+				stagnant = MAX_STAGNANT;
 				fitnessBest = listProgramPopulation.get(0).fitness;
 				try {
 					LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
@@ -267,10 +268,10 @@ public class Species implements Runnable {
 		int indexPackage = 0;
 		listProgramParent.clear();
 		for(Program programPopulation : listProgramPopulation) {
-			if(indexPackage>=maxParent) {
+			if(indexPackage>=MAX_PARENT) {
 				break;
 			}
-			if(programPopulation.fitness.fit>=worstFitAccepted || programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed>=Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
+			if(programPopulation.fitness.fit>=WORST_FIX_ACCEPTED || programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed>=Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
 				continue;
 			}
 			boolean exists = false;
@@ -356,30 +357,30 @@ public class Species implements Runnable {
 	private String generator(MiniJavaParser miniJavaParser, ParseTree parseTree) {
 		switch(parseTree.getClass().getName()) {
 			case "minijava.parser.MiniJavaParser$BlockContext":
-				return Generator.generateBlockContext(maxNewCodeSegmentSize);
+				return Generator.generateBlockContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "minijava.parser.MiniJavaParser$DeclarationContext":
-				return Generator.generateDeclarationContext(maxNewCodeSegmentSize);
+				return Generator.generateDeclarationContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "minijava.parser.MiniJavaParser$LongArrayDeclarationContext":
-				return Generator.generateLongArrayDeclarationContext(maxNewCodeSegmentSize);
+				return Generator.generateLongArrayDeclarationContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "minijava.parser.MiniJavaParser$LongDeclarationContext":
-				return Generator.generateLongDeclarationContext(maxNewCodeSegmentSize);
+				return Generator.generateLongDeclarationContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "minijava.parser.MiniJavaParser$BooleanArrayDeclarationContext":
-				return Generator.generateBooleanArrayDeclarationContext(maxNewCodeSegmentSize);
+				return Generator.generateBooleanArrayDeclarationContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "minijava.parser.MiniJavaParser$BooleanDeclarationContext":
-				return Generator.generateBooleanDeclarationContext(maxNewCodeSegmentSize);
+				return Generator.generateBooleanDeclarationContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "minijava.parser.MiniJavaParser$StatementContext":
-				return Generator.generateStatementContext(maxNewCodeSegmentSize, miniJavaParser, parseTree);
+				return Generator.generateStatementContext(MAX_NEW_CODE_SEGMENT_SIZE, miniJavaParser, parseTree);
 			case "minijava.parser.MiniJavaParser$ExpressionNumericContext":
-				return Generator.generateExpressionNumericContext(maxNewCodeSegmentSize, miniJavaParser, parseTree);
+				return Generator.generateExpressionNumericContext(MAX_NEW_CODE_SEGMENT_SIZE, miniJavaParser, parseTree);
 			case "minijava.parser.MiniJavaParser$ExpressionBooleanContext":
-				return Generator.generateExpressionBooleanContext(maxNewCodeSegmentSize, miniJavaParser, parseTree);
+				return Generator.generateExpressionBooleanContext(MAX_NEW_CODE_SEGMENT_SIZE, miniJavaParser, parseTree);
 			case "minijava.parser.MiniJavaParser$LongArrayValueContext":
-				return Generator.generateLongArrayValueContext(maxNewCodeSegmentSize);
+				return Generator.generateLongArrayValueContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "minijava.parser.MiniJavaParser$BooleanArrayValueContext":
-				return Generator.generateBooleanArrayValueContext(maxNewCodeSegmentSize);
+				return Generator.generateBooleanArrayValueContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "org.antlr.v4.runtime.tree.TerminalNodeImpl":
 				TerminalNode terminalNode = (TerminalNode)parseTree;
-				return Generator.generateTerminalNode(maxNewCodeSegmentSize, miniJavaParser, parseTree, MiniJavaParser.VOCABULARY.getSymbolicName(terminalNode.getSymbol().getType()));
+				return Generator.generateTerminalNode(MAX_NEW_CODE_SEGMENT_SIZE, miniJavaParser, parseTree, MiniJavaParser.VOCABULARY.getSymbolicName(terminalNode.getSymbol().getType()));
 			default:
 				return null;
 		}

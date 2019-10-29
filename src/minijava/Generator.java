@@ -9,7 +9,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import minijava.parser.MiniJavaParser;
 
 public class Generator {
-	private static Random random = new Random(Main.randomSeed);
+	private static Random random = new Random(GEP.RANDOM_SEED);
 	
 	//'{' declaration* statement* '}'
 	public static String generateBlockContext(int maxNewCodeSegmentSize) {
@@ -203,60 +203,18 @@ public class Generator {
 				stringBuilder.append(");");
 				return stringBuilder.toString();
 			case 6:
-				final Pattern pattern = Pattern.compile("\\s*Util\\s*\\.\\s*f\\s*\\(\\s*(\\d+)\\s*,\\s*(.+)\\s*,\\s*(.+)\\s*,\\s*(.+)\\s*,\\s*(.+)\\s*\\)\\s*;");
-				//Util . f ( 3 , values05 , values00 , ( ( 6 ^ ( values08 . get ( new Long ( 5 ) . intValue ( ) % size ) / ( ( ( ( values09 . get ( new Long ( 20 ) . intValue ( ) % size ) + 6 ) + 1 ) - 11 ) - 1 ) ) ) - 1 ) , 0 ) ; 
-				Matcher matcher = null;
-				if(sourceStatement != null) {
-					matcher = pattern.matcher(sourceStatement);
-					if(matcher.find()) {
-						variant = random.nextInt(2);
-					}
-				}
-				switch(variant) {
-					case 0:
-						stringBuilder.append("Util.f(");
-						stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "NUMBER"));
-						stringBuilder.append(",");
-						stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGARRAYNAME"));
-						stringBuilder.append(",");
-						stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGARRAYNAME"));
-						stringBuilder.append(",");
-						stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-						stringBuilder.append(",");
-						stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-						stringBuilder.append(");");
-						return stringBuilder.toString();
-					case 1:
-						stringBuilder.append("if(");
-						stringBuilder.append(matcher.group(2));
-						stringBuilder.append(".get(new Long(");
-						stringBuilder.append(matcher.group(4));
-						stringBuilder.append(").intValue() % size) < ");
-						stringBuilder.append(matcher.group(3));
-						stringBuilder.append(".get(new Long(");
-						stringBuilder.append(matcher.group(5));
-						stringBuilder.append(").intValue() % size)) {");
-						stringBuilder.append("value00 = new Long(");
-						stringBuilder.append(matcher.group(2));
-						stringBuilder.append(".get(new Long(");
-						stringBuilder.append(matcher.group(4));
-						stringBuilder.append(").intValue() % size));");
-						stringBuilder.append(matcher.group(2));
-						stringBuilder.append(".set(new Long(");
-						stringBuilder.append(matcher.group(4));
-						stringBuilder.append(").intValue() % size, new Long(");
-						stringBuilder.append(matcher.group(3));
-						stringBuilder.append(".get(new Long(");
-						stringBuilder.append(matcher.group(5));
-						stringBuilder.append(").intValue() % size)");
-						stringBuilder.append("));");
-						stringBuilder.append(matcher.group(3));
-						stringBuilder.append(".set(new Long(");
-						stringBuilder.append(matcher.group(5));
-						stringBuilder.append(").intValue() % size, new Long(value00));}");
-						System.out.println(stringBuilder.toString());
-						return stringBuilder.toString();
-				}
+				stringBuilder.append("Util.f(");
+				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "NUMBER"));
+				stringBuilder.append(",");
+				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGARRAYNAME"));
+				stringBuilder.append(",");
+				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGARRAYNAME"));
+				stringBuilder.append(",");
+				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
+				stringBuilder.append(",");
+				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
+				stringBuilder.append(");");
+				return stringBuilder.toString();
 			case 7:
 				return " ";
 			case 8:

@@ -12,9 +12,9 @@ import minijava.parser.MiniJavaParser.BlockContext;
  * A file object used to represent source coming from a string.
  */
 public class Program extends SimpleJavaFileObject implements Comparable<Program> {
-	public final static String PROGRAM_CLASS = new String("GeneticProgram");
-	public final static String PACKAGE_SPECIES = new String("species");
-	public final static String PACKAGE_ID = new String("id");
+	public static final String PROGRAM_CLASS = new String("GeneticProgram");
+	public static final String PACKAGE_SPECIES = new String("species");
+	public static final String PACKAGE_ID = new String("id");
 	public String source;
 	public Fitness fitness = new Fitness();
 	public ArrayList<ArrayList<Long>> vectors;
