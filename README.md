@@ -20,7 +20,7 @@ downselectPopulation();
 
 1. git clone https://github.com/peytonc/ai.git
 2. cd ai/src/minijava/parser
-3. java -jar ../../../lib/antlr-4.6-complete.jar -package minijava.parser MiniJava.g4
+3. java -jar ../../../lib/antlr-4.7.2-complete.jar -package minijava.parser MiniJava.g4
 4. cd ../../..
 5. mkdir log
 6. mkdir data

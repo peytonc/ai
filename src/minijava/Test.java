@@ -65,9 +65,9 @@ public class Test {
 			int i = RANDOM.nextInt(MAX_COMPOSITE-6) + 4;
 			for(int j=i; i<smoothness.length; j++) {
 				if(smoothness[j] != j)	{
-					break;	// found a composite number
+					i = j;	// found a composite number
+					break;
 				}
-				i++;
 			}
 			listTest.add(new Long(i));
 		}

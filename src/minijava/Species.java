@@ -23,7 +23,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import javax.tools.JavaCompiler.CompilationTask;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -33,7 +33,7 @@ import minijava.parser.MiniJavaParser;
 
 public class Species implements Runnable {
 	public Fitness fitnessBest = null;
-	public static final int MAX_EXECUTE_MILLISECONDS = 2000;
+	public static final int MAX_EXECUTE_MILLISECONDS = 40000;
 	public int stagnant = MAX_STAGNANT;
 	public int species;
 	
@@ -111,10 +111,10 @@ public class Species implements Runnable {
 		evaluatePopulation();
 		storeBestFit();
 		downselectPopulation();
-		//if(day%1 == 0) {
-		//	LOGGER.info("Y" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
+		if(day%1 == 0) {
+			LOGGER.info("Y" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
 		//	LOGGER.info("Y" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
-		//}
+		}
 	}
 	
 	public void createEnviroment() {
@@ -135,7 +135,7 @@ public class Species implements Runnable {
 		for(Program program : listProgramParent) {
 			source = replacePackage(program.source, species, indexPackage);
 			Program programParent = new Program(source, species, indexPackage, sizeBeforeRestrict, tests);
-			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(new ANTLRInputStream(programParent.source));
+			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(CharStreams.fromString(programParent.source));
 			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
 			programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR 4.6 only allows one call to program() before EOF error
 			program.miniJavaParser = programParent.miniJavaParser;
