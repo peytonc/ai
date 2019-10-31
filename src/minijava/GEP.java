@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class GEP {
 	private static final String PROPERTIES_FILENAME = new String("config.properties");
 	public static final String PROGRAM_FILENAME = new String("GeneticProgram.java");
-	public static final int MAX_SPECIES = 5;	// Number of species in environment
+	public static final int MAX_SPECIES = 1;	// Number of species in environment
 	public static final int THREADS_PER_SPECIES = (int)Math.ceil((double)Runtime.getRuntime().availableProcessors()/MAX_SPECIES)+1;
 	public final Path pathBase = Paths.get("");
 	public static final int DAYS_PER_YEAR = 1000;

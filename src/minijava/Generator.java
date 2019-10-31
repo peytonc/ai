@@ -1,8 +1,6 @@
 package minijava;
 
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -111,20 +109,19 @@ public class Generator {
     |   LONGNAME '=' 'new Long(' expressionNumeric ');'
     |	BOOLEANARRAYNAME '.set(new Long(' expressionNumeric ').intValue()%size, new Boolean(' expressionBoolean '));'
     |   BOOLEANNAME '=' 'new Boolean(' expressionBoolean ');'
-    |   'Util' '.' 'f' '(' expressionNumeric ',' LONGARRAYNAME ',' LONGARRAYNAME ',' expressionNumeric ',' expressionNumeric ')' ';'
     */
 	public static String generateStatementContext(int maxNewCodeSegmentSize, MiniJavaParser miniJavaParser, ParseTree parseTree) {
 		StringBuilder stringBuilder = new StringBuilder();
-		int maxStatement = 8;	// 7 types + 1 empty declaration
+		int maxStatement = 7;	// 6 types + 1 empty declaration
 		int variant = 0;
 		String sourceStatement = null;
 		if(parseTree != null && random.nextBoolean()) {
 			sourceStatement = getCode(miniJavaParser, parseTree);	// mutate with existing expression
-			maxStatement = 11;	// 7 types + 1 empty declaration + 1 prepend statement + 1 append statement + 1 statement duplication
+			maxStatement = 10;	// 6 types + 1 empty declaration + 1 prepend statement + 1 append statement + 1 statement duplication
 		}
 		int statement = random.nextInt(maxStatement);
 		if(maxNewCodeSegmentSize<=0) {
-			statement = 7;	// remove declaration
+			statement = 6;	// remove declaration
 		}
 		switch(statement) {
 			case 0:
@@ -203,48 +200,40 @@ public class Generator {
 				stringBuilder.append(");");
 				return stringBuilder.toString();
 			case 6:
-				stringBuilder.append("Util.f(");
-				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "NUMBER"));
-				stringBuilder.append(",");
-				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGARRAYNAME"));
-				stringBuilder.append(",");
-				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGARRAYNAME"));
-				stringBuilder.append(",");
-				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-				stringBuilder.append(",");
-				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-				stringBuilder.append(");");
-				return stringBuilder.toString();
-			case 7:
 				return " ";
-			case 8:
+			case 7:
 				// allow sourceStatement.length() without effect on maxNewCodeSegmentSize
 				return sourceStatement + " " + generateStatementContext(maxNewCodeSegmentSize, null, null);
-			case 9:
+			case 8:
 				// allow sourceStatement.length() without effect on maxNewCodeSegmentSize
 				return generateStatementContext(maxNewCodeSegmentSize, null, null) + " " +  sourceStatement;
-			case 10:
+			case 9:
 				return sourceStatement + " " +  sourceStatement;
 			default:
 				return null;
 		}
 	}
 	
-	/*     :   NUMBER
+	/*	:   NUMBER
     |   LONGNAME
-    |	LONGARRAYNAME '.' 'size()'
+	|	LONGARRAYNAME '.' 'size' '(' ')'
     |   longArrayValue
     |   '(' '-' expressionNumeric ')'
-    |   expressionNumeric '^' expressionNumeric
-    |   expressionNumeric '%' expressionNumeric
-    |   expressionNumeric '*' expressionNumeric
-    |   expressionNumeric '/' expressionNumeric
-    |   expressionNumeric '+' expressionNumeric
-    |   expressionNumeric '-' expressionNumeric
+    |   '(' expressionNumeric '&' expressionNumeric ')'
+    |   '(' expressionNumeric '|' expressionNumeric ')'
+    |   '(' expressionNumeric '^' expressionNumeric ')'
+    |   '(' expressionNumeric '%' expressionNumeric ')'
+    |   '(' expressionNumeric '*' expressionNumeric ')'
+    |   '(' expressionNumeric '/' expressionNumeric ')'
+    |   '(' expressionNumeric '+' expressionNumeric ')'
+    |   '(' expressionNumeric '-' expressionNumeric ')'
+    |   'Util' '.' 'f' '(' NUMBER ',' expressionNumeric ')'
+    |   'Util' '.' 'f' '(' NUMBER ',' expressionNumeric ',' expressionNumeric ')'
+    |   'Util' '.' 'f' '(' NUMBER ',' expressionNumeric ',' expressionNumeric ',' expressionNumeric ')'
     */
 	public static String generateExpressionNumericContext(int maxNewCodeSegmentSize, MiniJavaParser miniJavaParser, ParseTree parseTree) {
 		StringBuilder stringBuilder = new StringBuilder();
-		final int maxExpression = 13;	// 13 types
+		final int maxExpression = 16;	// 16 types
 		int variant = 0;
 		String sourceExpression = null;
 		int expression = random.nextInt(maxExpression);
@@ -468,6 +457,33 @@ public class Generator {
 						stringBuilder.append("1");
 						break;
 				}
+				stringBuilder.append(")");
+				return stringBuilder.toString();
+			case 13:
+				stringBuilder.append("Util.f(");
+				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "NUMBER"));
+				stringBuilder.append(",");
+				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
+				stringBuilder.append(")");
+				return stringBuilder.toString();
+			case 14:
+				stringBuilder.append("Util.f(");
+				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "NUMBER"));
+				stringBuilder.append(",");
+				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
+				stringBuilder.append(",");
+				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
+				stringBuilder.append(")");
+				return stringBuilder.toString();
+			case 15:
+				stringBuilder.append("Util.f(");
+				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "NUMBER"));
+				stringBuilder.append(",");
+				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
+				stringBuilder.append(",");
+				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
+				stringBuilder.append(",");
+				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
 			default:

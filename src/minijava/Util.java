@@ -10,68 +10,80 @@ public class Util {
 	public static final BigInteger I2 = new BigInteger("2");
 	public static final BigInteger I8 = new BigInteger("8");
     
-	public static void f(long functionIndex, ArrayList<Long> arrayList1, ArrayList<Long> arrayList2, long long1, long long2) {
-		final int maxTypes = 7;
+	public static long f(long functionIndex, long long1) {
+		final int maxTypes = 4;
 		int type = (int)functionIndex%maxTypes;
-		int index1, index2, index3;
-		BigInteger bigInteger1, bigInteger2, bigInteger3;
+		long returnValue = 0;
+		BigInteger bigInteger1;
+		
+		switch(type) {
+			case 0:	// sqrt
+			    bigInteger1 = BigInteger.valueOf(long1);
+			    bigInteger1 = sqrt(bigInteger1);
+			    returnValue = bigInteger1.longValue();
+			    break;
+			case 1:	// abs
+			    bigInteger1 = BigInteger.valueOf(long1);
+			    bigInteger1 = bigInteger1.abs();
+			    returnValue = bigInteger1.longValue();
+			    break;
+			case 2:	// Cantor pairing, w=floor((sqrt(8i+1)-1)/2)
+				bigInteger1 = BigInteger.valueOf(long1);
+				bigInteger1 = sqrt(bigInteger1.multiply(I8).add(I1)).subtract(I1).divide(I2);
+				returnValue = bigInteger1.longValue();
+			    break;	
+			case 3:	// Cantor pairing, t=(w*w+w)/2, w=floor((sqrt(8i+1)-1)/2)
+				bigInteger1 = BigInteger.valueOf(long1);
+				bigInteger1 = sqrt(bigInteger1.multiply(I8).add(I1)).subtract(I1).divide(I2);
+				bigInteger1 = bigInteger1.multiply(bigInteger1).add(bigInteger1).divide(I2);
+				returnValue = bigInteger1.longValue();
+			    break;
+		}
+		
+		return returnValue;
+	}
+	
+	public static long f(long functionIndex, long long1, long long2) {
+		final int maxTypes = 2;
+		int type = (int)functionIndex%maxTypes;
+		long returnValue = 0;
+		BigInteger bigInteger1, bigInteger2;
 		
 		switch(type) {
 			case 0:	// gcd
-				index1 = (int)long1%arrayList1.size();
-				index2 = (int)long2%arrayList2.size();
-			    bigInteger1 = BigInteger.valueOf(arrayList1.get(index1));
-			    bigInteger2 = BigInteger.valueOf(arrayList2.get(index2));
-			    bigInteger3 = bigInteger1.gcd(bigInteger2);
-			    arrayList1.set(index1, bigInteger3.longValue());
-			    break;	
+			    bigInteger1 = BigInteger.valueOf(long1);
+			    bigInteger2 = BigInteger.valueOf(long2);
+			    bigInteger1 = bigInteger1.gcd(bigInteger2);
+			    returnValue = bigInteger1.longValue();
+			    break;
 			case 1:	// a^2 mod n
-				index1 = (int)long1%arrayList1.size();
-				index2 = (int)long2%arrayList2.size();
-			    bigInteger1 = BigInteger.valueOf(arrayList1.get(index1));
-			    bigInteger2 = BigInteger.valueOf(arrayList2.get(index2));
-			    bigInteger3 = bigInteger1.multiply(bigInteger1).mod(bigInteger2);
-			    arrayList1.set(index1, bigInteger3.longValue());
-			    break;
-			case 2:	// b^e mod n
-				index1 = (int)long1%arrayList1.size();
-				index2 = (int)long2%arrayList2.size();
-				index3 = (int)(long1+1)%arrayList2.size();
-			    bigInteger1 = BigInteger.valueOf(arrayList1.get(index1));
-			    bigInteger2 = BigInteger.valueOf(arrayList2.get(index2));
-			    bigInteger3 = BigInteger.valueOf(arrayList1.get(index3));
-			    bigInteger3 = bigInteger1.modPow(bigInteger2, bigInteger3);
-			    arrayList1.set(index1, bigInteger3.longValue());
+				bigInteger1 = BigInteger.valueOf(long1);
+				bigInteger2 = BigInteger.valueOf(long2);
+				bigInteger1 = bigInteger1.multiply(bigInteger1).mod(bigInteger2);
+				returnValue = bigInteger1.longValue();
 			    break;	
-			case 3:	// Cantor pairing (w parameter)
-				index1 = (int)long1%arrayList1.size();
-			    bigInteger1 = BigInteger.valueOf(arrayList1.get(index1));
-			    bigInteger3 = sqrt(bigInteger1.multiply(I8).add(I1)).subtract(I1).divide(I2);
-			    arrayList1.set(index1, bigInteger3.longValue());
-			    break;	
-			case 4:	// Cantor pairing (r parameter)
-				index1 = (int)long1%arrayList1.size();
-			    bigInteger1 = BigInteger.valueOf(arrayList1.get(index1));
-			    bigInteger2 = sqrt(bigInteger1.multiply(I8).add(I1)).subtract(I1).divide(I2);
-			    bigInteger3 = bigInteger2.multiply(bigInteger2).add(bigInteger2).divide(I2);
-			    arrayList1.set(index1, bigInteger3.longValue());
-			    break;
-			case 5:	// sqrt
-				index1 = (int)long1%arrayList1.size();
-			    bigInteger1 = BigInteger.valueOf(arrayList1.get(index1));
-			    bigInteger3 = sqrt(bigInteger1);
-			    arrayList1.set(index1, bigInteger3.longValue());
-			    break;
-			case 6:	// swap if smaller
-				index1 = (int)long1%arrayList1.size();
-				index2 = (int)long2%arrayList2.size();
-				if(arrayList1.get(index1) < arrayList2.get(index2)) {
-					Long temp = new Long(arrayList1.get(index1));
-					arrayList1.set(index1, arrayList2.get(index2));
-					arrayList2.set(index2, temp);
-				}
-				break;
 		}
+		
+		return returnValue;
+	}
+	
+	public static long f(long functionIndex, long long1, long long2, long long3) {
+		final int maxTypes = 1;
+		int type = (int)functionIndex%maxTypes;
+		long returnValue = 0;
+		BigInteger bigInteger1, bigInteger2, bigInteger3;
+		
+		switch(type) {
+			case 0:	// modPow or b^e mod n
+			    bigInteger1 = BigInteger.valueOf(long1);
+			    bigInteger2 = BigInteger.valueOf(long2);
+			    bigInteger3 = BigInteger.valueOf(long3);
+			    bigInteger1 = bigInteger1.modPow(bigInteger2, bigInteger3);
+			    returnValue = bigInteger1.longValue();
+			    break;
+		}
+		
+		return returnValue;
 	}
 	
     public static BigInteger sqrt(BigInteger m) {

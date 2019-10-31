@@ -40,7 +40,6 @@ statement
     |   LONGNAME '=' 'new' 'Long' '(' expressionNumeric ')' ';'
     |	BOOLEANARRAYNAME '.' 'set' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ',' 'new' 'Boolean' '(' expressionBoolean ')' ')' ';'
     |   BOOLEANNAME '=' 'new' 'Boolean' '(' expressionBoolean ')' ';'
-    |   'Util' '.' 'f' '(' NUMBER ',' LONGARRAYNAME ',' LONGARRAYNAME ',' expressionNumeric ',' expressionNumeric ')' ';'
     ;
 
 expressionNumeric
@@ -57,6 +56,9 @@ expressionNumeric
     |   '(' expressionNumeric '/' expressionNumeric ')'
     |   '(' expressionNumeric '+' expressionNumeric ')'
     |   '(' expressionNumeric '-' expressionNumeric ')'
+    |   'Util' '.' 'f' '(' NUMBER ',' expressionNumeric ')'
+    |   'Util' '.' 'f' '(' NUMBER ',' expressionNumeric ',' expressionNumeric ')'
+    |   'Util' '.' 'f' '(' NUMBER ',' expressionNumeric ',' expressionNumeric ',' expressionNumeric ')'
     ;
 
 expressionBoolean

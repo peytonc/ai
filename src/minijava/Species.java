@@ -41,6 +41,7 @@ public class Species implements Runnable {
 	private static final int MAX_PARENT = 5;	// Size of parent pool
 	private static final int MAX_CHILDREN = 3;	// Number of children each parent produces
 	private static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
+	private static final int MUTATE_FACTOR = 4;	// CROSSOVER=1, MUTATE=MUTATE_FACTOR, CROSSOVER to MUTATE ratio is 1/MUTATE_FACTOR
 	private static final JavaCompiler JAVA_COMPILER = ToolProvider.getSystemJavaCompiler();
 	private static final Logger LOGGER = Logger.getLogger(GEP.class.getName());
 	private Random random = new Random(GEP.RANDOM_SEED);
@@ -144,9 +145,11 @@ public class Species implements Runnable {
 		}
 		for(Program program : listProgramParent) {
 			for(int indexChild=0; indexChild<MAX_CHILDREN; indexChild++) {
-				Program program2 = null;	// program2 null means mutate
-				if(random.nextBoolean()) {	// program2 !null means crossover
-					program2 = listProgramParent.get(random.nextInt(listProgramParent.size()));
+				Program program2;
+				if(random.nextInt() % MUTATE_FACTOR == 0) {	
+					program2 = listProgramParent.get(random.nextInt(listProgramParent.size()));		// program2!=null means crossover
+				} else {
+					program2 = null;	// program2==null means mutate
 				}
 				source = createProgram(program, program2, program.source);
 				source = replacePackage(source, species, indexPackage);
@@ -301,6 +304,7 @@ public class Species implements Runnable {
 		List<ParseTree> listParseTree1 = new ArrayList<ParseTree>();
 		getParseTreeNonLiteral(listParseTree1, program1.blockContext);
 		ParseTree parseTree1 = listParseTree1.get(random.nextInt(listParseTree1.size()));
+		
 		int a = parseTree1.getSourceInterval().a;
 		int b = parseTree1.getSourceInterval().b;
 		int size = program1.miniJavaParser.getTokenStream().size()-1;	// remove last token inserted by ANTLR, <EOF>
