@@ -8,7 +8,7 @@ public class Tests {
 	public List<Test> listTests;
 	public List<Long> listDifferencesBase;
 	
-	public static final int MAX_TEST_VECTORS = 2000;
+	public static final int MAX_TEST_VECTORS = 500;
 	
 	public void createTests() {
 		List<Test> listTests = new ArrayList<Test>(MAX_TEST_VECTORS);

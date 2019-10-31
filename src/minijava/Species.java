@@ -37,7 +37,7 @@ public class Species implements Runnable {
 	public int stagnant = MAX_STAGNANT;
 	public int species;
 	
-	private static final int MAX_STAGNANT = 5;	// number of years a species can live without progress on bestfit
+	private static final int MAX_STAGNANT = 4;	// number of years a species can live without progress on bestfit
 	private static final int MAX_PARENT = 5;	// Size of parent pool
 	private static final int MAX_CHILDREN = 3;	// Number of children each parent produces
 	private static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
