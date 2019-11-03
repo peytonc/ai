@@ -112,7 +112,7 @@ public class GEP {
 	
 	public boolean isSolved() {
 		for(Species species : listSpecies) {
-			if(species.fitnessBest.fit == 0) {
+			if(species.fitnessBest!=null && species.fitnessBest.fit == 0) {
 				return true;
 			}
 		}
