@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class GEP {
 	private static final String PROPERTIES_FILENAME = new String("config.properties");
 	public static final String PROGRAM_FILENAME = new String("GeneticProgram.java");
-	public static final int MAX_SPECIES = 1;	// Number of species in environment
+	public static final int MAX_SPECIES = 3;	// Number of species in environment
 	public static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	public static final int THREADS_PER_SPECIES = (int)Math.ceil((double)AVAILABLE_PROCESSORS/MAX_SPECIES)+1;
 	public final Path pathBase = Paths.get("");
@@ -102,6 +102,7 @@ public class GEP {
 			// Species ExecutorService is within this ExecutorService. Don't shutdownNow here as it hangs a Species forever
 			while(!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
 				LOGGER.warning("Runaway thread for " + minute + " minute(s)");
+				minute = minute + 1;
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
