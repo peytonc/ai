@@ -25,7 +25,7 @@ downselectPopulation();
 5. mkdir log
 6. mkdir data
 7. mkdir bin
-8. javac -d bin -sourcepath src -cp lib/antlr-4.7.2-complete.jar src/minijava/GEP.java
+8. javac -d bin -sourcepath src -cp lib/antlr-4.7.2-complete.jar src/minijava/GEP.java src/minijava/Util.java
 9. java -cp bin:lib/antlr-4.7.2-complete.jar minijava.GEP
 
 # Resources #

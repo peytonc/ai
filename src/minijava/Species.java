@@ -113,7 +113,7 @@ public class Species implements Runnable {
 		evaluatePopulation();
 		storeBestFit();
 		downselectPopulation();
-		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+		if(day%100 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("Y" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
 		//	LOGGER.info("Y" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
 		}
