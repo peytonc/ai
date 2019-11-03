@@ -57,6 +57,7 @@ public class GeneticProgram {
 				values00.set(new Long(0).intValue()%size, new Long(value00));
 			}
 			value08 = new Long(Util.f(0, value00));
+			values01.set(new Long(0).intValue()%size, new Long((value08+10000)));
 			value09 = new Long(1);
 			while(!Thread.currentThread().isInterrupted()&&(value09==1)) {
 				value01 = new Long(((((value01*value01)%value00)+value03)%value00));
@@ -74,6 +75,9 @@ public class GeneticProgram {
 						value09 = new Long(Util.f(0, value00, value05));
 					}
 					value08 = new Long((value08+1));
+				}
+				if(((value09==1)&&(values01.get(new Long(0).intValue()%size)<value08))) {
+					value09 = new Long((value08-Util.f(0, value00)));
 				}
 			}
 			values00.set(new Long(0).intValue()%size, new Long(value09));

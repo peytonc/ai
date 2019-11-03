@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -33,7 +34,8 @@ import minijava.parser.MiniJavaParser;
 
 public class Species implements Runnable {
 	public Fitness fitnessBest = null;
-	public static final int MAX_EXECUTE_MILLISECONDS = 40000;
+	public static final int MAX_EXECUTE_MILLISECONDS = 30000;
+	public static final int MAX_EXECUTE_MILLISECONDS_95PERCENT = (int) Math.floor(0.95*MAX_EXECUTE_MILLISECONDS);
 	public int stagnant = MAX_STAGNANT;
 	public int species;
 	
@@ -111,7 +113,7 @@ public class Species implements Runnable {
 		evaluatePopulation();
 		storeBestFit();
 		downselectPopulation();
-		if(day%1 == 0) {
+		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("Y" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
 		//	LOGGER.info("Y" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
 		}
@@ -130,6 +132,7 @@ public class Species implements Runnable {
 		listProgramPopulation.clear();
 		if(listProgramParent.isEmpty()) {
 			listProgramParent.add(new Program(stringBestSource, species, 0, sizeBeforeRestrict, tests));
+			LOGGER.info("RESTARTEDY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + listProgramParent.get(0).source);
 		}
 		//make ANTLR parsers for parents, used by crossover
 		for(Program program : listProgramParent) {
@@ -137,7 +140,7 @@ public class Species implements Runnable {
 			Program programParent = new Program(source, species, indexPackage, sizeBeforeRestrict, tests);
 			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(CharStreams.fromString(programParent.source));
 			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
-			programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR 4.6 only allows one call to program() before EOF error
+			programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR only allows one call to program() before EOF error?
 			program.miniJavaParser = programParent.miniJavaParser;
 			program.blockContext = programParent.blockContext;
 			listProgramPopulation.add(programParent);	// add parent to population
@@ -185,37 +188,54 @@ public class Species implements Runnable {
 				    
 				}
 			} catch (IOException e) {
-				LOGGER.severe("Must use JDK that includes javac");
+				LOGGER.severe("Must use JDK (Java bin directory must contain javac)");
 				e.printStackTrace();
 			}
 		}
 	}
 	
 	public void executePopulation() {
-		ExecutorService executorService = Executors.newFixedThreadPool(GEP.THREADS_PER_SPECIES-1);
-		try {	// Load the class and use it
-			listCallable.clear();
-			for(Program program : listProgramPopulation) {
-				if(program.vectors != null) {
-					listCallable.add(new CallableMiniJava(program));
+		List<Program> listProgramPopulationCompleted = new ArrayList<Program>(MAX_POPULATION);
+		
+		do {	// run all program until completed or eliminated from population
+			ExecutorService executorService = Executors.newFixedThreadPool(GEP.THREADS_PER_SPECIES-1);
+			try {	// Load the class and use it
+				listCallable.clear();
+				for(Program program : listProgramPopulation) {
+					if(program.vectors != null) {
+						listCallable.add(new CallableMiniJava(program));
+					}
 				}
-			}
-			for(CallableMiniJava callableMiniJava : listCallable) {
-				executorService.execute(callableMiniJava);
-			}
-			executorService.shutdown();
-			if(!executorService.awaitTermination(MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
-				executorService.shutdownNow();
-				int milliseconds = MAX_EXECUTE_MILLISECONDS;
-				while(!executorService.awaitTermination(MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
-					milliseconds += MAX_EXECUTE_MILLISECONDS;
-					LOGGER.warning("Runaway species #" + species + " for " + milliseconds + " milliseconds");
+				for(CallableMiniJava callableMiniJava : listCallable) {
+					executorService.execute(callableMiniJava);
 				}
+				executorService.shutdown();
+				if(!executorService.awaitTermination(MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
+					executorService.shutdownNow();
+					int milliseconds = MAX_EXECUTE_MILLISECONDS;
+					while(!executorService.awaitTermination(MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
+						milliseconds += MAX_EXECUTE_MILLISECONDS;
+						LOGGER.warning("Runaway species #" + species + " for " + milliseconds + " milliseconds");
+					}
+				}
+				
+				for (Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); iteratorProgram.hasNext();) {
+					Program program = iteratorProgram.next();
+			        if(program.vectors == null) {	// remove program when vectors is null
+			        	iteratorProgram.remove();
+			        } else if(program.fitness.speed > MAX_EXECUTE_MILLISECONDS_95PERCENT) {	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
+			        	iteratorProgram.remove();
+			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
+			        	iteratorProgram.remove();
+			        	listProgramPopulationCompleted.add(program);
+			        }
+			    }
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				LOGGER.severe("Exception on species #" + species);
 			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			LOGGER.severe("Exception on species #" + species);
-		}
+		} while (!listProgramPopulation.isEmpty());
+		listProgramPopulation = listProgramPopulationCompleted;
 	}
 	
 	public void evaluatePopulation() {
@@ -240,6 +260,9 @@ public class Species implements Runnable {
 	}
 	
 	public void storeBestFit() {
+		if(listProgramPopulation==null || listProgramPopulation.isEmpty()) {
+			return;
+		}
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
 			stagnant = MAX_STAGNANT;

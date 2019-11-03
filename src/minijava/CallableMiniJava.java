@@ -30,13 +30,18 @@ public class CallableMiniJava implements Runnable {
 			} catch (SecurityException e1) {
 				e1.printStackTrace();
 			}
-			long timeStart = System.nanoTime();
+			long timeStart = 0;
 			try {
-				for(int index=0; index<program.vectors.size(); index++) {
+				boolean isInterrupted = false;
+				int index = 0;
+				for(; index<program.vectors.size(); index++) {
 					if(Thread.currentThread().isInterrupted()) {
-						program.vectors = null;
+						isInterrupted = true;
 						break;
 					} else {
+						if(timeStart == 0) {
+							timeStart = System.nanoTime();
+						}
 						method.invoke(null, program.vectors.get(index));
 						if(program.vectors.get(index)==null || program.vectors.get(index).isEmpty()) {
 							program.vectors = null;
@@ -44,12 +49,19 @@ public class CallableMiniJava implements Runnable {
 						}
 					}
 				}
+				if(!isInterrupted && program.vectors != null && index==program.vectors.size()) {
+					program.fitness.isComplete = true;
+				}
 			} catch(Exception e) {
 				System.out.println("CallableMiniJavaCallableMiniJavaCallableMiniJava");
 				program.vectors = null;
 				e.printStackTrace();
 			}
-			program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart);
+			if(timeStart == 0) {
+				program.fitness.speed = 0;
+			} else {
+				program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart) + 1;	// add +1 to show process ran
+			}
 		}
 	}
 }
