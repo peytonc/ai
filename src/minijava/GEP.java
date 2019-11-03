@@ -15,16 +15,17 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 public class GEP {
-	private static final String PROPERTIES_FILENAME = new String("config.properties");
 	public static final String PROGRAM_FILENAME = new String("GeneticProgram.java");
 	public static final int MAX_SPECIES = 3;	// Number of species in environment
 	public static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	public static final int THREADS_PER_SPECIES = (int)Math.ceil((double)AVAILABLE_PROCESSORS/MAX_SPECIES)+1;
-	public final Path pathBase = Paths.get("");
 	public static final int DAYS_PER_YEAR = 1000;
 	public static final int RANDOM_SEED = 0;
 	
+	private static final String PROPERTIES_FILENAME = new String("config.properties");
 	private static final Logger LOGGER = Logger.getLogger(GEP.class.getName());
+	
+	public static Fitness fitnessBestGlobal = null;
 	private String sourceOrigin = null;
 	private Tests test = new Tests();
 	List<Species> listSpecies = new ArrayList<Species>(MAX_SPECIES);

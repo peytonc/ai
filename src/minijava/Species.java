@@ -278,11 +278,28 @@ public class Species implements Runnable {
 					LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
 					String source = listProgramPopulation.get(0).source;
 					source = replacePackage(source, species, 0);
-					if(!removeSpace(source).equals(stringBestSourceCompact)) {
+					if(!removeSpace(source).equals(stringBestSourceCompact)) {	// only save if different (reduce storage writes)
 						stringBestSource = source;
-						stringBestSourceCompact = removeSpace(stringBestSource);	// only save if different to reduce storage writes
+						stringBestSourceCompact = removeSpace(stringBestSource);	
 						Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
+						storeBestFitGlobal();
 					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	synchronized public void storeBestFitGlobal() {
+		final String PROGRAM_FILENAME_GLOBAL = new String("data" + File.separator + "GeneticProgram.java");
+		if(GEP.fitnessBestGlobal == null) {
+			GEP.fitnessBestGlobal = fitnessBest;
+		} else if(GEP.fitnessBestGlobal.fit >= fitnessBest.fit) {	// first store in terms of best fit, next use compareTo
+			if(GEP.fitnessBestGlobal.compareTo(fitnessBest) > 0) {
+				GEP.fitnessBestGlobal = fitnessBest;
+				try {
+					Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

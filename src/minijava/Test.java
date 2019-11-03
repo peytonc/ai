@@ -14,7 +14,7 @@ public class Test {
 	private static final int MAX_TEST_VECTOR_SIZE = 1;
 	
 	private static boolean firstCall = true;
-	private static final int MAX_COMPOSITE = 10000000;
+	private static final int MAX_COMPOSITE = 100000000;
     private static int[] smoothness = new int[MAX_COMPOSITE];
     public static void sieveOfEratosthenes() {
         Arrays.fill(smoothness,1);        // assume largest prime factor is 1
