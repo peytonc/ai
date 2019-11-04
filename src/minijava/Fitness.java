@@ -18,7 +18,7 @@ public class Fitness implements Comparable<Fitness> {
 	}
 	
 	public String toString() {
-		return "Fitness{fit=" + fit + ",difference=" + difference + ",size=" + size + ",speed=" + speed + "}";
+		return "Fitness{" + "difference=" + difference + ",fit=" + fit + ",size=" + size + ",speed=" + speed + "}";
 	}
 	
 	@Override
@@ -26,17 +26,18 @@ public class Fitness implements Comparable<Fitness> {
 		int compare = 0;
 		if(speed>=Integer.MAX_VALUE || fitness.speed>=Integer.MAX_VALUE) {
 			compare = Long.compare(speed, fitness.speed);
-		} else if(size <= sizeBeforeRestrict ) {
-			compare = Double.compare(fit, fitness.fit);
-		} else {
-			compare = Double.compare(fit+size/sizeBeforeRestrict, fitness.fit+fitness.size/sizeBeforeRestrict);
+		} else if(size > sizeBeforeRestrict || fitness.size > sizeBeforeRestrict) {
+			compare = Double.compare(difference * (size/sizeBeforeRestrict), fitness.difference * (fitness.size/sizeBeforeRestrict));
 		}
 		if(compare == 0) {
 			compare = Long.compare(difference, fitness.difference);
 			if(compare == 0) {
-				compare = Integer.compare(size, fitness.size);
+				compare = Double.compare(fit, fitness.fit);
 				if(compare == 0) {
-					compare = Long.compare(speed, fitness.speed);
+					compare = Integer.compare(size, fitness.size);
+					if(compare == 0) {
+						compare = Long.compare(speed, fitness.speed);
+					}
 				}
 			}
 		}

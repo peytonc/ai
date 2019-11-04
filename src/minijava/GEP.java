@@ -73,11 +73,9 @@ public class GEP {
 				if(fitnessLeastFit == null) {
 					leastFitIndex = index;
 					fitnessLeastFit = species.fitnessBest;
-				} else if(fitnessLeastFit.fit < species.fitnessBest.fit) {	// first store in terms of least fit, next use compareTo
-					if(fitnessLeastFit.compareTo(species.fitnessBest) < 0) {
-						leastFitIndex = index;
-						fitnessLeastFit = species.fitnessBest;
-					}
+				} else if(fitnessLeastFit.compareTo(species.fitnessBest) < 0) {
+					leastFitIndex = index;
+					fitnessLeastFit = species.fitnessBest;
 				}
 			}
 			index++;
@@ -113,7 +111,7 @@ public class GEP {
 	
 	public boolean isSolved() {
 		for(Species species : listSpecies) {
-			if(species.fitnessBest!=null && species.fitnessBest.fit == 0) {
+			if(species.fitnessBest!=null && species.fitnessBest.difference == 0) {
 				return true;
 			}
 		}

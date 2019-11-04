@@ -111,7 +111,7 @@ public class Species implements Runnable {
 		compilePopulation();
 		executePopulation();
 		evaluatePopulation();
-		storeBestFit();
+		storeBestFitness();
 		downselectPopulation();
 		if(day%100 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("Y" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
@@ -259,7 +259,7 @@ public class Species implements Runnable {
 		}
 	}
 	
-	public void storeBestFit() {
+	public void storeBestFitness() {
 		if(listProgramPopulation==null || listProgramPopulation.isEmpty()) {
 			return;
 		}
@@ -270,39 +270,35 @@ public class Species implements Runnable {
 			stringBestSource = listProgramPopulation.get(0).source;
 			stringBestSourceCompact = removeSpace(stringBestSource);
 			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
-		} else if(fitnessBest.fit >= listProgramPopulation.get(0).fitness.fit) {	// first store in terms of best fit, next use compareTo
-			if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
-				stagnant = MAX_STAGNANT;
-				fitnessBest = listProgramPopulation.get(0).fitness;
-				try {
-					LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
-					String source = listProgramPopulation.get(0).source;
-					source = replacePackage(source, species, 0);
-					if(!removeSpace(source).equals(stringBestSourceCompact)) {	// only save if different (reduce storage writes)
-						stringBestSource = source;
-						stringBestSourceCompact = removeSpace(stringBestSource);	
-						Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
-						storeBestFitGlobal();
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
+		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
+			stagnant = MAX_STAGNANT;
+			fitnessBest = listProgramPopulation.get(0).fitness;
+			try {
+				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
+				String source = listProgramPopulation.get(0).source;
+				source = replacePackage(source, species, 0);
+				if(!removeSpace(source).equals(stringBestSourceCompact)) {	// only save if different (reduce storage writes)
+					stringBestSource = source;
+					stringBestSourceCompact = removeSpace(stringBestSource);	
+					Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
+					storeBestFitnessGlobal();
 				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
 	
-	synchronized public void storeBestFitGlobal() {
+	synchronized public void storeBestFitnessGlobal() {
 		final String PROGRAM_FILENAME_GLOBAL = new String("data" + File.separator + "GeneticProgram.java");
 		if(GEP.fitnessBestGlobal == null) {
 			GEP.fitnessBestGlobal = fitnessBest;
-		} else if(GEP.fitnessBestGlobal.fit >= fitnessBest.fit) {	// first store in terms of best fit, next use compareTo
-			if(GEP.fitnessBestGlobal.compareTo(fitnessBest) > 0) {
-				GEP.fitnessBestGlobal = fitnessBest;
-				try {
-					Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+		} else if(GEP.fitnessBestGlobal.compareTo(fitnessBest) > 0) {
+			GEP.fitnessBestGlobal = fitnessBest;
+			try {
+				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
