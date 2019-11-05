@@ -24,7 +24,7 @@ public class Fitness implements Comparable<Fitness> {
 	@Override
 	public int compareTo(Fitness fitness) {
 		int compare = 0;
-		if(speed>=Integer.MAX_VALUE || fitness.speed>=Integer.MAX_VALUE) {
+		if(speed==Integer.MAX_VALUE || fitness.speed==Integer.MAX_VALUE) {
 			compare = Long.compare(speed, fitness.speed);
 		} else if(size > sizeBeforeRestrict || fitness.size > sizeBeforeRestrict) {
 			compare = Double.compare(difference * (size/sizeBeforeRestrict), fitness.difference * (fitness.size/sizeBeforeRestrict));
@@ -41,6 +41,7 @@ public class Fitness implements Comparable<Fitness> {
 				}
 			}
 		}
+		System.out.println(compare + " " + toString() + fitness.toString());
 		return compare;
 	}
 }

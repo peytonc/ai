@@ -46,14 +46,18 @@ public class Test {
 		if(list1 == null || list2 == null || list1.size()!=list2.size()) {
 			return null;
 		} else if(list1.size()>0 && list1.size()==list2.size()) {
-			Long difference = new Long(0);
+			Long differenceTotal = new Long(0);
 			for(int index=0; index<list1.size(); index++) {
 				if(list1.get(index) == Long.MAX_VALUE || list2.get(index) == Long.MAX_VALUE) {
 					return null;
 				}
-				difference += Math.abs(list1.get(index) - list2.get(index));
+				Long difference = Math.abs(list1.get(index) - list2.get(index));
+				if(difference<0 || difference>Integer.MAX_VALUE) {		// Intentionally using Integer instead of Long to control acceptable difference
+					return null;
+				}
+				differenceTotal += difference;
 			}
-			return difference;
+			return differenceTotal;
 		} else {
 			return null;
 		}
