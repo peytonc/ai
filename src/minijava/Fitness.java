@@ -41,7 +41,6 @@ public class Fitness implements Comparable<Fitness> {
 				}
 			}
 		}
-		System.out.println(compare + " " + toString() + fitness.toString());
 		return compare;
 	}
 }
