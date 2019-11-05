@@ -310,7 +310,7 @@ public class Species implements Runnable {
 			if(indexPackage>=MAX_PARENT) {
 				break;
 			}
-			if(programPopulation.fitness.fit>=WORST_FIX_ACCEPTED || programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed>=Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
+			if(programPopulation.fitness.fit>=WORST_FIX_ACCEPTED || programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
 				continue;
 			}
 			boolean exists = false;

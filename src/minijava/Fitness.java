@@ -30,9 +30,9 @@ public class Fitness implements Comparable<Fitness> {
 			compare = Double.compare(difference * (size/sizeBeforeRestrict), fitness.difference * (fitness.size/sizeBeforeRestrict));
 		}
 		if(compare == 0) {
-			compare = Long.compare(difference, fitness.difference);
+			compare = Double.compare(fit, fitness.fit);
 			if(compare == 0) {
-				compare = Double.compare(fit, fitness.fit);
+				compare = Long.compare(difference, fitness.difference);
 				if(compare == 0) {
 					compare = Integer.compare(size, fitness.size);
 					if(compare == 0) {

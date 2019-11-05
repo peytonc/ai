@@ -17,7 +17,7 @@ public class Tests {
 			listTests.add(test);
 		}
 		this.listTests = Collections.unmodifiableList(listTests);
-		listDifferencesBase = Collections.unmodifiableList(getDifferenceTestAnswer(listTests, listTests));
+		listDifferencesBase = Collections.unmodifiableList(getDifferenceTestAnswer(this.listTests, this.listTests));
 	}
 	
 	public static List<Long> getDifferenceAnswerAnswer(List<Test> list, ArrayList<ArrayList<Long>> vectors) {
