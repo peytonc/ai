@@ -52,11 +52,11 @@ class FitnessComparatorByDifference implements Comparator<Fitness> {
 			if(compare == 0) {
 				compare = Double.compare(fitness1.fit, fitness2.fit);
 				if(compare == 0) {
-					compare = Long.compare(fitness2.generationalFitness, fitness1.generationalFitness);		// flip order to obtain largest generationalFitness first
+					compare = Long.compare(fitness1.speed, fitness2.speed);
 					if(compare == 0) {
-						compare = Long.compare(fitness1.speed, fitness2.speed);
+						compare = Integer.compare(fitness1.size, fitness2.size);
 						if(compare == 0) {
-							compare = Integer.compare(fitness1.size, fitness2.size);
+							compare = Long.compare(fitness2.generationalFitness, fitness1.generationalFitness);		// flip order to obtain largest generationalFitness first
 						}
 					}
 				}
