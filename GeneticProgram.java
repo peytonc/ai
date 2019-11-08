@@ -47,40 +47,49 @@ public class GeneticProgram {
 		Boolean condition08 = new Boolean(false);
 		Boolean condition09 = new Boolean(false);
 		try {
-			value01 = new Long(2);
-			value02 = new Long(2);
-			value03 = new Long(19);
-			value04 = new Long(23);
-			value00 = new Long(values00.get(new Long(0).intValue()%size));
-			while(!Thread.currentThread().isInterrupted()&&((value00%2)==0)) {
-				value00 = new Long((value00/2));
-				values00.set(new Long(0).intValue()%size, new Long(value00));
-			}
-			value08 = new Long(Util.f(0, value00));
-			values01.set(new Long(0).intValue()%size, new Long((value08+10000)));
 			value09 = new Long(1);
-			while(!Thread.currentThread().isInterrupted()&&(value09==1)) {
-				value01 = new Long(((((value01*value01)%value00)+value03)%value00));
-				value02 = new Long(((((value02*value02)%value00)+value04)%value00));
-				value05 = new Long(((((value02*value02)%value00)+value04)%value00));
-				value06 = new Long((value01-value05));
-				value07 = new Long(Util.f(1, value06));
-				value09 = new Long(Util.f(0, value00, value07));
-				if((value09==1)) {
-					value05 = new Long((value08*value08));
-					value06 = new Long((value05%value00));
+			value00 = new Long(values00.get(new Long(0).intValue() % size));
+			value01 = new Long(2);
+			while (!Thread.currentThread().isInterrupted() && (((value00 % value01) == 0) && (value01 <= value00))) {
+				value00 = new Long((value00 / value01));
+				value02 = new Long(value01);
+				if((value00 == 1)) {
+					value09 = new Long(value02);
+				}
+			}
+			value01 = new Long(1);
+			value08 = new Long(Util.f(2, value00));
+			while (!Thread.currentThread().isInterrupted() && (value09 == 1)) {
+				value01 = new Long((value01 + 2));
+				while (!Thread.currentThread().isInterrupted() && (((value00 % value01) == 0) && (value01 <= value00))) {
+					value00 = new Long((value00 / value01));
+					value08 = new Long(Util.f(2, value00));
+					value02 = new Long(value01);
+					if((value00 == 1)) {
+						value09 = new Long(value02);
+					}
+				}
+				if((value09 == 1)) {
+					value05 = new Long((value08 * value08));
+					condition06 = new Boolean(false);
+					value05 = new Long((value08 * value08));
+					value06 = new Long((value05 % value00));
 					value07 = new Long(Util.f(0, value06));
-					if(((value07*value07)==value06)) {
-						value05 = new Long((value08+value07));
+					if (((value07 * value07) == value06)) {
+						value05 = new Long((value08 + value07));
 						value09 = new Long(Util.f(0, value00, value05));
 					}
-					value08 = new Long((value08+1));
-				}
-				if(((value09==1)&&(values01.get(new Long(0).intValue()%size)<value08))) {
-					value09 = new Long((value08-Util.f(0, value00)));
+					if (((value09 == 1) && (10000 < value01))) {
+						if ((value02 == 1)) {
+							value09 = new Long((value08 - Util.f(0, value00)));
+						} else {
+							value09 = new Long(value00);
+						}
+					}
+					value08 = new Long((value08 + 19));
 				}
 			}
-			values00.set(new Long(0).intValue()%size, new Long(value09));
+			values00.set(new Long(0).intValue() % size, new Long(value09));
 		} catch (Exception e) {
 			values00.clear();
 		}

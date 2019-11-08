@@ -6,6 +6,7 @@ public class Fitness implements Comparable<Fitness> {
 	public long speed;
 	public int size;
 	public int sizeBeforeRestrict;
+	public int speedBeforeRestrict;
 	public boolean isComplete;
 	
 	public Fitness() {
@@ -14,6 +15,7 @@ public class Fitness implements Comparable<Fitness> {
 		speed = Integer.MAX_VALUE;
 		size = Integer.MAX_VALUE;
 		sizeBeforeRestrict = 0;
+		speedBeforeRestrict = 0;
 		isComplete = false;
 	}
 	
@@ -28,11 +30,13 @@ public class Fitness implements Comparable<Fitness> {
 			compare = Long.compare(speed, fitness.speed);
 		} else if(size > sizeBeforeRestrict || fitness.size > sizeBeforeRestrict) {
 			compare = Double.compare(difference * (size/sizeBeforeRestrict), fitness.difference * (fitness.size/sizeBeforeRestrict));
+		} else if(speed > speedBeforeRestrict || fitness.speed > speedBeforeRestrict) {
+			compare = Double.compare(difference * (speed/speedBeforeRestrict), fitness.difference * (fitness.speed/speedBeforeRestrict));
 		}
 		if(compare == 0) {
-			compare = Double.compare(fit, fitness.fit);
+			compare = Long.compare(difference, fitness.difference);
 			if(compare == 0) {
-				compare = Long.compare(difference, fitness.difference);
+				compare = Double.compare(fit, fitness.fit);
 				if(compare == 0) {
 					compare = Integer.compare(size, fitness.size);
 					if(compare == 0) {

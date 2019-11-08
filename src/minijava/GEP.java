@@ -4,7 +4,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,11 +96,11 @@ public class GEP {
 				executorService.execute(species);
 			}
 			executorService.shutdown();
-			int minute = 0;
+			long timeStart = System.nanoTime();
 			// Species ExecutorService is within this ExecutorService. Don't shutdownNow here as it hangs a Species forever
 			while(!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-				LOGGER.warning("Runaway thread for " + minute + " minute(s)");
-				minute = minute + 1;
+				timeStart = System.nanoTime();
+				LOGGER.warning("Runaway thread for " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart) + "ms");
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();

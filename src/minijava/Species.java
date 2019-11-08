@@ -34,7 +34,7 @@ import minijava.parser.MiniJavaParser;
 
 public class Species implements Runnable {
 	public Fitness fitnessBest = null;
-	public static final int MAX_EXECUTE_MILLISECONDS = 30000;
+	public static final int MAX_EXECUTE_MILLISECONDS = 2000;
 	public static final int MAX_EXECUTE_MILLISECONDS_95PERCENT = (int) Math.floor(0.95*MAX_EXECUTE_MILLISECONDS);
 	public int stagnant = MAX_STAGNANT;
 	public int species;
@@ -48,17 +48,21 @@ public class Species implements Runnable {
 	private static final Logger LOGGER = Logger.getLogger(GEP.class.getName());
 	private Random random = new Random(GEP.RANDOM_SEED);
 	private static final int MAX_NEW_CODE_SEGMENT_SIZE = 75;
-	private static final double WORST_FIX_ACCEPTED = 2.0;
+	private static final double WORST_FIX_ACCEPTED = 1.5;
 	private List<Program> listProgramParent = new ArrayList<Program>(MAX_PARENT);
 	private List<Program> listProgramPopulation = new ArrayList<Program>(MAX_POPULATION);
 	private List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(MAX_POPULATION);
 	private String stringBestSourceCompact;
 	private String stringBestSource;
+	private int sizeSourceLength;
 	private static int sizeBeforeRestrictMin = 0;
 	private static int sizeBeforeRestrictMax = 0;
 	private static int sizeBeforeRestrict = 0;
-	private static final double SIZE_BEFORE_RESTRICT_MIN_PERCENT = 0.95;
-	private static final double SIZE_BEFORE_RESTRICT_MAX_PERCENT = 1.25;
+	private static int speedBeforeRestrictMin = 0;
+	private static int speedBeforeRestrictMax = 0;
+	private static int speedBeforeRestrict = 0;
+	private static final double RESTRICT_MIN_PERCENT = 0.95;
+	private static final double RESTRICT_MAX_PERCENT = 1.25;
 	private Tests tests = null;
 	
 	private int daysPerYear;
@@ -81,18 +85,21 @@ public class Species implements Runnable {
 				e1.printStackTrace();
 			}
 		}
+		sizeSourceLength = stringBestSource.length();
 		stringBestSourceCompact = removeSpace(sourceOrigin);
 	}
 	
 	public void initalizeYear(int year) {
 		this.year = year;
-		sizeBeforeRestrictMin = (int)(SIZE_BEFORE_RESTRICT_MIN_PERCENT * stringBestSource.length());
-		sizeBeforeRestrictMax = (int)(SIZE_BEFORE_RESTRICT_MAX_PERCENT * stringBestSource.length());
+		sizeBeforeRestrictMin = (int)(RESTRICT_MIN_PERCENT * sizeSourceLength);
+		sizeBeforeRestrictMax = (int)(RESTRICT_MAX_PERCENT * sizeSourceLength);
+		speedBeforeRestrictMin = (int)(RESTRICT_MIN_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
+		speedBeforeRestrictMax = (int)(RESTRICT_MAX_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
 		stagnant--;
 	}
 	
 	public void extinction() {
-		LOGGER.info("EXTY" + year + "S" + species + fitnessBest.toString() + stringBestSource);
+		LOGGER.info("EXTY" + year + "S" + species + " " + fitnessBest.toString() + stringBestSource);
 		try {
 			Files.delete(Paths.get(PROGRAM_FILENAME));
 		} catch (IOException e) {
@@ -101,6 +108,11 @@ public class Species implements Runnable {
 	}
 	
 	public void initalizeDay(int day) {
+		if (sizeSourceLength < stringBestSource.length()) {	
+			sizeSourceLength++;		// smooth convergence for fitness function
+		} else if (sizeSourceLength > stringBestSource.length()) {
+			sizeSourceLength--;
+		}
 		this.day = day;
 	}
 	
@@ -113,9 +125,9 @@ public class Species implements Runnable {
 		evaluatePopulation();
 		storeBestFitness();
 		downselectPopulation();
-		if(day%100 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
-			LOGGER.info("Y" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
-		//	LOGGER.info("Y" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
+		if(day%1000 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+			LOGGER.info("BY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
+			//LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
 		}
 	}
 	
@@ -124,6 +136,7 @@ public class Species implements Runnable {
 		double percent = (double)(day%daysPerYear)/daysPerYear;
 		double cosineWithOffset = (Math.cos(percent*2*Math.PI)+1)/2;
 		sizeBeforeRestrict = (int)(sizeBeforeRestrictMin + cosineWithOffset*(sizeBeforeRestrictMax-sizeBeforeRestrictMin));
+		speedBeforeRestrict = (int)(speedBeforeRestrictMin + cosineWithOffset*(speedBeforeRestrictMax-speedBeforeRestrictMin));
 	}
 
 	public void createPopulation() {
@@ -131,13 +144,13 @@ public class Species implements Runnable {
 		String source;
 		listProgramPopulation.clear();
 		if(listProgramParent.isEmpty()) {
-			listProgramParent.add(new Program(stringBestSource, species, 0, sizeBeforeRestrict, tests));
-			LOGGER.info("RESTARTEDY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + listProgramParent.get(0).source);
+			listProgramParent.add(new Program(stringBestSource, species, 0, sizeBeforeRestrict, speedBeforeRestrict, tests));
+			LOGGER.info("RESTARTEDY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + listProgramParent.get(0).source);
 		}
 		//make ANTLR parsers for parents, used by crossover
 		for(Program program : listProgramParent) {
 			source = replacePackage(program.source, species, indexPackage);
-			Program programParent = new Program(source, species, indexPackage, sizeBeforeRestrict, tests);
+			Program programParent = new Program(source, species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, tests);
 			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(CharStreams.fromString(programParent.source));
 			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
 			programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR only allows one call to program() before EOF error?
@@ -156,7 +169,7 @@ public class Species implements Runnable {
 				}
 				source = createProgram(program, program2, program.source);
 				source = replacePackage(source, species, indexPackage);
-				listProgramPopulation.add(new Program(source, species, indexPackage, sizeBeforeRestrict, tests));	// add child to population
+				listProgramPopulation.add(new Program(source, species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, tests));	// add child to population
 				indexPackage++;
 			}
 		}
@@ -269,12 +282,12 @@ public class Species implements Runnable {
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			stringBestSource = listProgramPopulation.get(0).source;
 			stringBestSourceCompact = removeSpace(stringBestSource);
-			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
+			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + listProgramPopulation.get(0).source);
 		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
 			stagnant = MAX_STAGNANT;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			try {
-				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + fitnessBest.toString() + listProgramPopulation.get(0).source);
+				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + listProgramPopulation.get(0).source);
 				String source = listProgramPopulation.get(0).source;
 				source = replacePackage(source, species, 0);
 				if(!removeSpace(source).equals(stringBestSourceCompact)) {	// only save if different (reduce storage writes)
@@ -322,7 +335,7 @@ public class Species implements Runnable {
 				}
 			}
 			if(!exists) {
-				listProgramParent.add(new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, sizeBeforeRestrict, tests));
+				listProgramParent.add(new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, tests));
 				indexPackage++;
 			}
 		}

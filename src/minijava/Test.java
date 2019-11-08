@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class Test {
 	public final List<Long> listTest;
@@ -12,11 +14,12 @@ public class Test {
 	
 	private static final Random RANDOM = new Random(GEP.RANDOM_SEED);
 	private static final int MAX_TEST_VECTOR_SIZE = 1;
-	
+	private static final Logger LOGGER = Logger.getLogger(Test.class.getName());
 	private static boolean firstCall = true;
 	private static final int MAX_COMPOSITE = 100000000;
     private static int[] smoothness = new int[MAX_COMPOSITE];
     public static void sieveOfEratosthenes() {
+    	long timeStart = System.nanoTime();
         Arrays.fill(smoothness,1);        // assume largest prime factor is 1
         for(int i=2; i<smoothness.length; i++) {
         	if(smoothness[i] == 1)	{	// update sieve with each prime number, and skip composite numbers
@@ -25,6 +28,7 @@ public class Test {
 	            }
         	}
         }
+        LOGGER.warning("sieveOfEratosthenes MAX_COMPOSITE=" + MAX_COMPOSITE + ", time=" + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart) + "ms");
     }
 	
 	public Test() {
