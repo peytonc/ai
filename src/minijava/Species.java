@@ -45,10 +45,11 @@ public class Species implements Runnable {
 	private static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
 	private static final int MUTATE_FACTOR = 4;	// CROSSOVER=1, MUTATE=MUTATE_FACTOR, CROSSOVER to MUTATE ratio is 1/MUTATE_FACTOR
 	private static final JavaCompiler JAVA_COMPILER = ToolProvider.getSystemJavaCompiler();
-	private static final Logger LOGGER = Logger.getLogger(GEP.class.getName());
-	private Random random = new Random(GEP.RANDOM_SEED);
+	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
+	private Random random = new Random(GP.RANDOM_SEED);
 	private static final int MAX_NEW_CODE_SEGMENT_SIZE = 75;
 	private static final double WORST_FIX_ACCEPTED = 1.5;
+	private static final int MAX_GENERATION_PRESERVE = 2;
 	private List<Program> listProgramParent = new ArrayList<Program>(MAX_PARENT);
 	private List<Program> listProgramPopulation = new ArrayList<Program>(MAX_POPULATION);
 	private List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(MAX_POPULATION);
@@ -123,12 +124,12 @@ public class Species implements Runnable {
 		compilePopulation();
 		executePopulation();
 		evaluatePopulation();
-		storeBestFitness();
-		downselectPopulation();
-		if(day%1000 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("BY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
 			//LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
 		}
+		storeBestFitness();
+		downselectPopulation();
 	}
 	
 	public void createEnviroment() {
@@ -144,13 +145,15 @@ public class Species implements Runnable {
 		String source;
 		listProgramPopulation.clear();
 		if(listProgramParent.isEmpty()) {
-			listProgramParent.add(new Program(stringBestSource, species, 0, sizeBeforeRestrict, speedBeforeRestrict, tests));
+			listProgramParent.add(new Program(stringBestSource, species, 0, sizeBeforeRestrict, speedBeforeRestrict, 0, 0, tests));
 			LOGGER.info("RESTARTEDY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + listProgramParent.get(0).source);
 		}
 		//make ANTLR parsers for parents, used by crossover
 		for(Program program : listProgramParent) {
+			long generation = program.fitness.generation;
+			long generationalFitness = program.fitness.generationalFitness;
 			source = replacePackage(program.source, species, indexPackage);
-			Program programParent = new Program(source, species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, tests);
+			Program programParent = new Program(source, species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, generation, generationalFitness, tests);
 			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(CharStreams.fromString(programParent.source));
 			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
 			programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR only allows one call to program() before EOF error?
@@ -169,7 +172,7 @@ public class Species implements Runnable {
 				}
 				source = createProgram(program, program2, program.source);
 				source = replacePackage(source, species, indexPackage);
-				listProgramPopulation.add(new Program(source, species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, tests));	// add child to population
+				listProgramPopulation.add(new Program(source, species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, 0, 0, tests));	// add child to population
 				indexPackage++;
 			}
 		}
@@ -211,7 +214,7 @@ public class Species implements Runnable {
 		List<Program> listProgramPopulationCompleted = new ArrayList<Program>(MAX_POPULATION);
 		
 		do {	// run all program until completed or eliminated from population
-			ExecutorService executorService = Executors.newFixedThreadPool(GEP.THREADS_PER_SPECIES-1);
+			ExecutorService executorService = Executors.newFixedThreadPool(GP.THREADS_PER_SPECIES-1);
 			try {	// Load the class and use it
 				listCallable.clear();
 				for(Program program : listProgramPopulation) {
@@ -304,10 +307,10 @@ public class Species implements Runnable {
 	
 	synchronized public void storeBestFitnessGlobal() {
 		final String PROGRAM_FILENAME_GLOBAL = new String("data" + File.separator + "GeneticProgram.java");
-		if(GEP.fitnessBestGlobal == null) {
-			GEP.fitnessBestGlobal = fitnessBest;
-		} else if(GEP.fitnessBestGlobal.compareTo(fitnessBest) > 0) {
-			GEP.fitnessBestGlobal = fitnessBest;
+		if(GP.fitnessBestGlobal == null) {
+			GP.fitnessBestGlobal = fitnessBest;
+		} else if(GP.fitnessBestGlobal.compareTo(fitnessBest) > 0) {
+			GP.fitnessBestGlobal = fitnessBest;
 			try {
 				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
 			} catch (IOException e) {
@@ -318,8 +321,44 @@ public class Species implements Runnable {
 	
 	public void downselectPopulation() {
 		int indexPackage = 0;
+		Iterator<Program> iteratorProgramPopulation;
 		listProgramParent.clear();
-		for(Program programPopulation : listProgramPopulation) {
+		
+		// save a set of most fit programs, without regards to generational fitness (MAX_PARENT-MAX_GENERATION_PRESERVE) 
+		// assumes that listProgramPopulation is already sorted according to fitness [Collections.sort(listProgramPopulation)]
+		iteratorProgramPopulation = listProgramPopulation.iterator();
+		while (iteratorProgramPopulation.hasNext()) {
+			Program programPopulation = iteratorProgramPopulation.next();
+			if(indexPackage>=(MAX_PARENT-MAX_GENERATION_PRESERVE)) {
+				break;
+			}
+			if(programPopulation.fitness.fit>=WORST_FIX_ACCEPTED || programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
+				iteratorProgramPopulation.remove();
+				continue;
+			}
+			boolean exists = false;
+			String stringSource = removeSpace(programPopulation.source);
+			for(Program programParent : listProgramParent) {
+				if(removeSpace(programParent.source).equalsIgnoreCase(stringSource)) {
+					exists = true;
+					break;
+				}
+			}
+			if(!exists) {
+				long generation = programPopulation.fitness.generation + 1;						// survived another generation
+				long generationalFitness = programPopulation.fitness.generationalFitness + 1;	// program is a top performer, so increase the generational fitness
+				Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, generation, generationalFitness, tests);
+				listProgramParent.add(programCopy);
+				indexPackage++;
+			}
+			iteratorProgramPopulation.remove();
+		}
+		
+		// preserve a set of programs based on historical fitness (MAX_GENERATION_PRESERVE)
+		Collections.sort(listProgramPopulation, new ProgramComparatorByGenerational());
+		iteratorProgramPopulation = listProgramPopulation.iterator();
+		while (iteratorProgramPopulation.hasNext()) {
+			Program programPopulation = iteratorProgramPopulation.next();
 			if(indexPackage>=MAX_PARENT) {
 				break;
 			}
@@ -335,7 +374,10 @@ public class Species implements Runnable {
 				}
 			}
 			if(!exists) {
-				listProgramParent.add(new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, tests));
+				long generation = programPopulation.fitness.generation + 1;						// survived another generation
+				long generationalFitness = programPopulation.fitness.generationalFitness - 1;	// program was preserved based on historical performance, so decrease the generational fitness
+				Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, generation, generationalFitness, tests);
+				listProgramParent.add(programCopy);
 				indexPackage++;
 			}
 		}

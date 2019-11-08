@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import minijava.parser.MiniJavaParser;
 
 public class Generator {
-	private static Random random = new Random(GEP.RANDOM_SEED);
+	private static Random random = new Random(GP.RANDOM_SEED);
 	
 	//'{' declaration* statement* '}'
 	public static String generateBlockContext(int maxNewCodeSegmentSize) {

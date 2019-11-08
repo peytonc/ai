@@ -12,7 +12,7 @@ public class Test {
 	public final List<Long> listTest;
 	public final List<Long> listAnswer;
 	
-	private static final Random RANDOM = new Random(GEP.RANDOM_SEED);
+	private static final Random RANDOM = new Random(GP.RANDOM_SEED);
 	private static final int MAX_TEST_VECTOR_SIZE = 1;
 	private static final Logger LOGGER = Logger.getLogger(Test.class.getName());
 	private static boolean firstCall = true;

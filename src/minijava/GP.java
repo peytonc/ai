@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-public class GEP {
+public class GP {
 	public static final String PROGRAM_FILENAME = new String("GeneticProgram.java");
 	public static final int MAX_SPECIES = 3;	// Number of species in environment
 	public static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
@@ -22,14 +22,14 @@ public class GEP {
 	public static final int RANDOM_SEED = 0;
 	
 	private static final String PROPERTIES_FILENAME = new String("config.properties");
-	private static final Logger LOGGER = Logger.getLogger(GEP.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
 	
 	public static Fitness fitnessBestGlobal = null;
 	private String sourceOrigin = null;
 	private Tests test = new Tests();
 	List<Species> listSpecies = new ArrayList<Species>(MAX_SPECIES);
 	
-	public GEP() {
+	public GP() {
 		try(InputStream inputStream = new FileInputStream(PROPERTIES_FILENAME)) {
 			LogManager.getLogManager().readConfiguration(inputStream);
 		} catch (IOException e) {
@@ -118,6 +118,6 @@ public class GEP {
 	}
 	
 	public static void main(String[] args) {
-		GEP gep = new GEP();
+		GP gp = new GP();
 	}
 }

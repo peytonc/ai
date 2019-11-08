@@ -2,6 +2,7 @@ package minijava;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import javax.tools.SimpleJavaFileObject;
 
@@ -32,9 +33,11 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	 * @param source
 	 *            the source code for the compilation unit represented by this file object
 	 */
-	Program(String source, int species, int ID, int sizeBeforeRestrict, int speedBeforeRestrict, Tests tests) {
+	Program(String source, int species, int ID, int sizeBeforeRestrict, int speedBeforeRestrict, long generation, long generationalFitness, Tests tests) {
 		super(URI.create("string:///" + PACKAGE_SPECIES + species + '/' + PACKAGE_ID + ID + '/' + PROGRAM_CLASS + Kind.SOURCE.extension), Kind.SOURCE);
 		this.source = new String(source);
+		fitness.generation = generation;
+		fitness.generationalFitness = generationalFitness;
 		fitness.size = source.length();
 		fitness.sizeBeforeRestrict = sizeBeforeRestrict;
 		fitness.speedBeforeRestrict = speedBeforeRestrict;
@@ -58,4 +61,20 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 		return fitness.compareTo(program.fitness);
 	}
 	
+}
+
+class ProgramComparatorByDifference implements Comparator<Program> {
+    public int compare(Program program1, Program program2) { 
+		FitnessComparatorByDifference fitnessComparatorByDifference = new FitnessComparatorByDifference();
+		int compare = fitnessComparatorByDifference.compare(program1.fitness, program2.fitness);
+		return compare;
+    }
+}
+
+class ProgramComparatorByGenerational implements Comparator<Program> {
+    public int compare(Program program1, Program program2) { 
+		FitnessComparatorByGenerational fitnessComparatorByGenerational = new FitnessComparatorByGenerational();
+		int compare = fitnessComparatorByGenerational.compare(program1.fitness, program2.fitness);
+		return compare;
+    }
 }
