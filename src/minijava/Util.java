@@ -10,7 +10,7 @@ public class Util {
 	public static final BigInteger I8 = new BigInteger("8");
     
 	public static long f(long functionIndex, long long1) {
-		final int maxTypes = 4;
+		final int maxTypes = 5;
 		int type = (int)functionIndex%maxTypes;
 		long returnValue = 0;
 		BigInteger bigInteger1;
@@ -26,12 +26,20 @@ public class Util {
 			    bigInteger1 = bigInteger1.abs();
 			    returnValue = bigInteger1.longValue();
 			    break;
-			case 2:	// Cantor pairing, w=floor((sqrt(8i+1)-1)/2)
+			case 2:	// is Prime?
+			    bigInteger1 = BigInteger.valueOf(long1);
+			    if(bigInteger1.isProbablePrime(10)) {
+			    	returnValue = 1;
+			    } else {
+		    		returnValue = 0;
+		    	}
+			    break;
+			case 3:	// Cantor pairing, w=floor((sqrt(8i+1)-1)/2)
 				bigInteger1 = BigInteger.valueOf(long1);
 				bigInteger1 = sqrt(bigInteger1.multiply(I8).add(I1)).subtract(I1).divide(I2);
 				returnValue = bigInteger1.longValue();
 			    break;	
-			case 3:	// Cantor pairing, t=(w*w+w)/2, w=floor((sqrt(8i+1)-1)/2)
+			case 4:	// Cantor pairing, t=(w*w+w)/2, w=floor((sqrt(8i+1)-1)/2)
 				bigInteger1 = BigInteger.valueOf(long1);
 				bigInteger1 = sqrt(bigInteger1.multiply(I8).add(I1)).subtract(I1).divide(I2);
 				bigInteger1 = bigInteger1.multiply(bigInteger1).add(bigInteger1).divide(I2);

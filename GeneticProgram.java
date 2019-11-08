@@ -52,21 +52,19 @@ public class GeneticProgram {
 			value01 = new Long(2);
 			while (!Thread.currentThread().isInterrupted() && (((value00 % value01) == 0) && (value01 <= value00))) {
 				value00 = new Long((value00 / value01));
-				value02 = new Long(value01);
 				if((value00 == 1)) {
-					value09 = new Long(value02);
+					value09 = new Long(value01);
 				}
 			}
 			value01 = new Long(1);
-			value08 = new Long(Util.f(2, value00));
+			value08 = new Long(Util.f(0, value00));
 			while (!Thread.currentThread().isInterrupted() && (value09 == 1)) {
 				value01 = new Long((value01 + 2));
 				while (!Thread.currentThread().isInterrupted() && (((value00 % value01) == 0) && (value01 <= value00))) {
 					value00 = new Long((value00 / value01));
-					value08 = new Long(Util.f(2, value00));
-					value02 = new Long(value01);
+					value08 = new Long(Util.f(0, value00));
 					if((value00 == 1)) {
-						value09 = new Long(value02);
+						value09 = new Long(value01);
 					}
 				}
 				if((value09 == 1)) {
@@ -75,15 +73,31 @@ public class GeneticProgram {
 					value05 = new Long((value08 * value08));
 					value06 = new Long((value05 % value00));
 					value07 = new Long(Util.f(0, value06));
-					if (((value07 * value07) == value06)) {
+					if(((value07 * value07) == value06)) {
 						value05 = new Long((value08 + value07));
 						value09 = new Long(Util.f(0, value00, value05));
+						if((value09 != 1)) {
+							value00 = new Long((value00 / value09));
+							condition00 = new Boolean((Util.f(2, value00) == 1));
+							condition09 = new Boolean((Util.f(2, value09) == 1));
+							if((condition00 && condition09)) {
+								if (value09 < value00) {
+									value09 = new Long(value00);
+								}
+							} else {
+								if(condition00) {
+									if (value09 < value00) {
+										value09 = new Long(value00);
+									}
+								}
+							}
+						}
 					}
-					if (((value09 == 1) && (10000 < value01))) {
-						if ((value02 == 1)) {
-							value09 = new Long((value08 - Util.f(0, value00)));
-						} else {
+					if (((value09 == 1) && (1000 < value01))) {
+						if ((Util.f(2, value00) == 1)) {
 							value09 = new Long(value00);
+						} else {
+							value09 = new Long(Util.f(0, value00));
 						}
 					}
 					value08 = new Long((value08 + 19));
