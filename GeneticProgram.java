@@ -81,12 +81,12 @@ public class GeneticProgram {
 							condition00 = new Boolean((Util.f(2, value00) == 1));
 							condition09 = new Boolean((Util.f(2, value09) == 1));
 							if((condition00 && condition09)) {
-								if (value09 < value00) {
+								if((value09 < value00)) {
 									value09 = new Long(value00);
 								}
 							} else {
 								if(condition00) {
-									if (value09 < value00) {
+									if((value09 < value00)) {
 										value09 = new Long(value00);
 									}
 								}
