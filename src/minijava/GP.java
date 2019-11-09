@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 
 public class GP {
 	public static final String PROGRAM_FILENAME = new String("GeneticProgram.java");
-	public static final int MAX_SPECIES = 1;	// Number of species in environment
+	public static final int MAX_SPECIES = 3;	// Number of species in environment
 	public static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	public static final int THREADS_PER_SPECIES = (int)Math.ceil((double)AVAILABLE_PROCESSORS/MAX_SPECIES)+1;
 	public static final int DAYS_PER_YEAR = 1000;

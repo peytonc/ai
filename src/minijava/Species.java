@@ -49,7 +49,8 @@ public class Species implements Runnable {
 	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
 	private Random random = new Random(GP.RANDOM_SEED);
 	private static final int MAX_NEW_CODE_SEGMENT_SIZE = 75;
-	private static final int MAX_GENERATION_PRESERVE = 2;
+	private static final int MAX_GENERATION_PRESERVE = 3;
+	private static final int MIN_GENERATIONAL_FITNESS = 3;	// minimum generational fitness before storage as bestfit
 	private List<Program> listProgramParent = new ArrayList<Program>(MAX_PARENT);
 	private List<Program> listProgramPopulation = new ArrayList<Program>(MAX_POPULATION);
 	private List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(MAX_POPULATION);
@@ -124,7 +125,7 @@ public class Species implements Runnable {
 		compilePopulation();
 		executePopulation();
 		evaluatePopulation();
-		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+		if(day%1000 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("BY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
 			//LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
 		}
@@ -276,7 +277,7 @@ public class Species implements Runnable {
 			stringBestSource = listProgramPopulation.get(0).source;
 			stringBestSourceCompact = removeSpace(stringBestSource);
 			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + listProgramPopulation.get(0).source);
-		} else if(fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
+		} else if(listProgramPopulation.get(0).fitness.generationalFitness>=MIN_GENERATIONAL_FITNESS && fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
 			stagnant = MAX_STAGNANT;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			try {
