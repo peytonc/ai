@@ -48,7 +48,6 @@ public class Species implements Runnable {
 	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
 	private Random random = new Random(GP.RANDOM_SEED);
 	private static final int MAX_NEW_CODE_SEGMENT_SIZE = 75;
-	private static final double WORST_FIX_ACCEPTED = 1.5;
 	private static final int MAX_GENERATION_PRESERVE = 2;
 	private List<Program> listProgramParent = new ArrayList<Program>(MAX_PARENT);
 	private List<Program> listProgramPopulation = new ArrayList<Program>(MAX_POPULATION);
@@ -124,7 +123,7 @@ public class Species implements Runnable {
 		compilePopulation();
 		executePopulation();
 		evaluatePopulation();
-		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+		if(day%1000 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("BY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
 			//LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
 		}
@@ -256,21 +255,11 @@ public class Species implements Runnable {
 	
 	public void evaluatePopulation() {
 		for(Program program : listProgramPopulation) {
-			List<Long> arrayListDifferences = Tests.getDifferenceAnswerAnswer(tests.listTests, program.vectors);
-			if(arrayListDifferences == null || arrayListDifferences.size()!=tests.listDifferencesBase.size()) {
+			Long difference = tests.getDifferences(program.vectors);
+			if(difference == null) {
 				program.fitness.difference = Long.MAX_VALUE;
-				program.fitness.fit = Double.MAX_VALUE;
 			} else {
-				long differenceSum = 0;
-				double fitSum = 0;
-				for(int index=0; index<arrayListDifferences.size(); index++) {
-					long difference = arrayListDifferences.get(index);
-					double fit = (double)difference / tests.listDifferencesBase.get(index);
-					differenceSum += difference;
-					fitSum += fit;
-				}
-				program.fitness.difference = differenceSum/arrayListDifferences.size();
-				program.fitness.fit = fitSum/arrayListDifferences.size();
+				program.fitness.difference = difference/program.vectors.size();
 			}
 		}
 	}
@@ -332,7 +321,7 @@ public class Species implements Runnable {
 			if(indexPackage>=(MAX_PARENT-MAX_GENERATION_PRESERVE)) {
 				break;
 			}
-			if(programPopulation.fitness.fit>=WORST_FIX_ACCEPTED || programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
+			if(programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
 				iteratorProgramPopulation.remove();
 				continue;
 			}
@@ -362,7 +351,7 @@ public class Species implements Runnable {
 			if(indexPackage>=MAX_PARENT) {
 				break;
 			}
-			if(programPopulation.fitness.fit>=WORST_FIX_ACCEPTED || programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
+			if(programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
 				continue;
 			}
 			boolean exists = false;

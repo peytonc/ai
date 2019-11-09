@@ -26,7 +26,7 @@ public class GP {
 	
 	public static Fitness fitnessBestGlobal = null;
 	private String sourceOrigin = null;
-	private Tests test = new Tests();
+	private Tests tests = new Tests();
 	List<Species> listSpecies = new ArrayList<Species>(MAX_SPECIES);
 	
 	public GP() {
@@ -42,7 +42,7 @@ public class GP {
 		}
 		sourceOrigin = Species.replacePackage(sourceOrigin, 0, 0);
 		for(int index=0; index<MAX_SPECIES; index++) {
-			listSpecies.add(new Species(index, sourceOrigin, test, DAYS_PER_YEAR));
+			listSpecies.add(new Species(index, sourceOrigin, tests, DAYS_PER_YEAR));
 		}
 		
 		int year = 0;
@@ -83,13 +83,13 @@ public class GP {
 			index = listSpecies.get(leastFitIndex).species;
 			listSpecies.get(leastFitIndex).extinction();
 			listSpecies.remove(leastFitIndex);
-			listSpecies.add(new Species(index, sourceOrigin, test, DAYS_PER_YEAR));
+			listSpecies.add(new Species(index, sourceOrigin, tests, DAYS_PER_YEAR));
 		}
 	}
 	
 	public void executeDay(int day) {
 		ExecutorService executorService = Executors.newFixedThreadPool(THREADS_PER_SPECIES);
-		test.createTests();
+		tests.createTests();
 		try {
 			for(Species species : listSpecies) {
 				species.initalizeDay(day);

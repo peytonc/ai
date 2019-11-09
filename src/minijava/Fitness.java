@@ -5,7 +5,6 @@ import java.util.Comparator;
 public class Fitness implements Comparable<Fitness> {
 	public long generation;
 	public long generationalFitness;
-	public double fit;
 	public long difference;
 	public long speed;
 	public int size;
@@ -16,7 +15,6 @@ public class Fitness implements Comparable<Fitness> {
 	public Fitness() {
 		generation = 0;
 		generationalFitness = 0;
-		fit = Double.MAX_VALUE;
 		difference = Long.MAX_VALUE;
 		speed = Integer.MAX_VALUE;
 		size = Integer.MAX_VALUE;
@@ -26,7 +24,7 @@ public class Fitness implements Comparable<Fitness> {
 	}
 	
 	public String toString() {
-		return "Fitness{" + "gen=" + generation + ",genFit=" + generationalFitness + ",diff=" + difference + ",fit=" + fit + ",speed=" + speed + ",size=" + size  + "}";
+		return "Fitness{" + "gen=" + generation + ",genFit=" + generationalFitness + ",diff=" + difference + ",speed=" + speed + ",size=" + size  + "}";
 	}
 	
 	@Override
@@ -50,14 +48,11 @@ class FitnessComparatorByDifference implements Comparator<Fitness> {
 		if(compare == 0) {
 			compare = Long.compare(fitness1.difference, fitness2.difference);
 			if(compare == 0) {
-				compare = Double.compare(fitness1.fit, fitness2.fit);
+				compare = Long.compare(fitness1.speed, fitness2.speed);
 				if(compare == 0) {
-					compare = Long.compare(fitness1.speed, fitness2.speed);
+					compare = Integer.compare(fitness1.size, fitness2.size);
 					if(compare == 0) {
-						compare = Integer.compare(fitness1.size, fitness2.size);
-						if(compare == 0) {
-							compare = Long.compare(fitness2.generationalFitness, fitness1.generationalFitness);		// flip order to obtain largest generationalFitness first
-						}
+						compare = Long.compare(fitness2.generationalFitness, fitness1.generationalFitness);		// flip order to obtain largest generationalFitness first
 					}
 				}
 			}
@@ -71,6 +66,8 @@ class FitnessComparatorByGenerational implements Comparator<Fitness> {
 		int compare = 0;
 		if(fitness1.speed==Integer.MAX_VALUE || fitness2.speed==Integer.MAX_VALUE) {
 			compare = Long.compare(fitness1.speed, fitness2.speed);
+		} else if(fitness1.difference==Long.MAX_VALUE || fitness2.difference==Long.MAX_VALUE) {
+			compare = Long.compare(fitness1.difference, fitness2.difference);
 		} else if(fitness1.size > fitness1.sizeBeforeRestrict || fitness2.size > fitness2.sizeBeforeRestrict) {
 			compare = Double.compare(fitness1.difference * (fitness1.size/fitness1.sizeBeforeRestrict), fitness2.difference * (fitness2.size/fitness2.sizeBeforeRestrict));
 		} else if(fitness1.speed > fitness1.speedBeforeRestrict || fitness2.speed > fitness2.speedBeforeRestrict) {
@@ -81,12 +78,9 @@ class FitnessComparatorByGenerational implements Comparator<Fitness> {
 			if(compare == 0) {
 				compare = Long.compare(fitness1.difference, fitness2.difference);
 				if(compare == 0) {
-					compare = Double.compare(fitness1.fit, fitness2.fit);
+					compare = Long.compare(fitness1.speed, fitness2.speed);
 					if(compare == 0) {
-						compare = Long.compare(fitness1.speed, fitness2.speed);
-						if(compare == 0) {
-							compare = Integer.compare(fitness1.size, fitness2.size);
-						}
+						compare = Integer.compare(fitness1.size, fitness2.size);
 					}
 				}
 			}
