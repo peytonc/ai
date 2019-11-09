@@ -25,7 +25,7 @@ public class Test {
 		if(listActuals == null || listAnswer.size()!=listActuals.size()) {
 			return null;
 		} else if(listAnswer.size()==listActuals.size()) {
-			BigInteger differenceTotal = BigInteger.valueOf(0);;
+			BigInteger differenceTotal = Constants.I0;
 			BigInteger difference;
 			Long actual;
 			for(int index=0; index<listAnswer.size(); index++) {
@@ -34,16 +34,15 @@ public class Test {
 					return null;
 				}
 				
-				boolean isMultipleOfComposite = actual % listTest.get(index) == 0;	// ignore actuals that are a multiple of test composite
+				boolean checkComposite = (actual>=2) && (actual%listTest.get(index) > 0);	// ignore actuals that are a multiple of test composite
 				BigInteger smallestDifference = BigInteger.valueOf(Long.MAX_VALUE);
 				for(Long primeFactor : listAnswer.get(index)) {
-					if(!isMultipleOfComposite && actual>=2 && actual%primeFactor == 0) {
-						smallestDifference = BigInteger.valueOf(0);	// actual is factor
+					if(checkComposite && actual%primeFactor == 0) {
+						smallestDifference = Constants.I0;	// actual is factor
 						break;
 					}
-					difference = BigInteger.valueOf(primeFactor - actual);
-					difference = difference.abs();
-					if(smallestDifference.compareTo(difference)<0) {
+					difference = BigInteger.valueOf(primeFactor - actual).abs();
+					if(smallestDifference.compareTo(difference)>0) {
 						smallestDifference = difference;
 					}
 				}

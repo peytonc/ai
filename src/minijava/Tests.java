@@ -25,13 +25,13 @@ public class Tests {
 		if(vectors == null) {
 			return null;
 		} else if(listTests.size()==vectors.size()) {
-			BigInteger differenceTotal = BigInteger.valueOf(0);
+			BigInteger differenceTotal = Constants.I0;
 			for(int index=0; index<listTests.size(); index++) {
 				BigInteger difference = listTests.get(index).getDifference(vectors.get(index));
 				if(difference == null) {
 					return null;
 				} else {
-					differenceTotal.add(difference);
+					differenceTotal = differenceTotal.add(difference);
 				}
 			}
 			return differenceTotal;

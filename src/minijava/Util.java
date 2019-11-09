@@ -96,7 +96,7 @@ public class Util {
         //Throw an exception for negative arguments
         if (diff<0) throw new IllegalArgumentException("Cannot compute square root of a negative integer!");
         //Return 0 in case m is 0
-        if (diff==0) return BigInteger.valueOf(0);
+        if (diff==0) return Constants.I0;
         BigDecimal two=new BigDecimal(Constants.I2);
         //Convert the parameter to a BigDecimal
         BigDecimal n=new BigDecimal(m);
