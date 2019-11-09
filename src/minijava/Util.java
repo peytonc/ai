@@ -5,10 +5,6 @@ import java.math.BigInteger;
 
 public class Util {
 
-	public static final BigInteger I1 = new BigInteger("1");
-	public static final BigInteger I2 = new BigInteger("2");
-	public static final BigInteger I8 = new BigInteger("8");
-    
 	public static long f(long functionIndex, long long1) {
 		final int maxTypes = 5;
 		int type = (int)functionIndex%maxTypes;
@@ -36,13 +32,13 @@ public class Util {
 			    break;
 			case 3:	// Cantor pairing, w=floor((sqrt(8i+1)-1)/2)
 				bigInteger1 = BigInteger.valueOf(long1);
-				bigInteger1 = sqrt(bigInteger1.multiply(I8).add(I1)).subtract(I1).divide(I2);
+				bigInteger1 = sqrt(bigInteger1.multiply(Constants.I8).add(Constants.I1)).subtract(Constants.I1).divide(Constants.I2);
 				returnValue = bigInteger1.longValue();
 			    break;	
 			case 4:	// Cantor pairing, t=(w*w+w)/2, w=floor((sqrt(8i+1)-1)/2)
 				bigInteger1 = BigInteger.valueOf(long1);
-				bigInteger1 = sqrt(bigInteger1.multiply(I8).add(I1)).subtract(I1).divide(I2);
-				bigInteger1 = bigInteger1.multiply(bigInteger1).add(bigInteger1).divide(I2);
+				bigInteger1 = sqrt(bigInteger1.multiply(Constants.I8).add(Constants.I1)).subtract(Constants.I1).divide(Constants.I2);
+				bigInteger1 = bigInteger1.multiply(bigInteger1).add(bigInteger1).divide(Constants.I2);
 				returnValue = bigInteger1.longValue();
 			    break;
 		}
@@ -101,7 +97,7 @@ public class Util {
         if (diff<0) throw new IllegalArgumentException("Cannot compute square root of a negative integer!");
         //Return 0 in case m is 0
         if (diff==0) return BigInteger.valueOf(0);
-        BigDecimal two=new BigDecimal(I2);
+        BigDecimal two=new BigDecimal(Constants.I2);
         //Convert the parameter to a BigDecimal
         BigDecimal n=new BigDecimal(m);
         //Begin with an initial guess-the square root will be half the size of m

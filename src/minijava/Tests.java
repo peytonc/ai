@@ -1,5 +1,6 @@
 package minijava;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,17 +21,17 @@ public class Tests {
 		}
 	}
 	
-	public Long getDifferences(ArrayList<ArrayList<Long>> vectors) {
+	public BigInteger getDifferences(ArrayList<ArrayList<Long>> vectors) {
 		if(vectors == null) {
 			return null;
 		} else if(listTests.size()==vectors.size()) {
-			Long differenceTotal = new Long(0);
+			BigInteger differenceTotal = BigInteger.valueOf(0);
 			for(int index=0; index<listTests.size(); index++) {
-				Long difference = listTests.get(index).getDifference(vectors.get(index));
+				BigInteger difference = listTests.get(index).getDifference(vectors.get(index));
 				if(difference == null) {
 					return null;
 				} else {
-					differenceTotal += difference;
+					differenceTotal.add(difference);
 				}
 			}
 			return differenceTotal;

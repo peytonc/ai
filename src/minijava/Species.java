@@ -2,6 +2,7 @@ package minijava;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -255,11 +256,11 @@ public class Species implements Runnable {
 	
 	public void evaluatePopulation() {
 		for(Program program : listProgramPopulation) {
-			Long difference = tests.getDifferences(program.vectors);
+			BigInteger difference = tests.getDifferences(program.vectors);
 			if(difference == null) {
-				program.fitness.difference = Long.MAX_VALUE;
+				program.fitness.difference = Constants.LONG_MAX_VALUE;
 			} else {
-				program.fitness.difference = difference/program.vectors.size();
+				program.fitness.difference = difference.divide(BigInteger.valueOf(program.vectors.size()));
 			}
 		}
 	}
@@ -321,7 +322,7 @@ public class Species implements Runnable {
 			if(indexPackage>=(MAX_PARENT-MAX_GENERATION_PRESERVE)) {
 				break;
 			}
-			if(programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
+			if(programPopulation.fitness.difference.compareTo(Constants.LONG_MAX_VALUE)>=0 || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
 				iteratorProgramPopulation.remove();
 				continue;
 			}
@@ -351,7 +352,7 @@ public class Species implements Runnable {
 			if(indexPackage>=MAX_PARENT) {
 				break;
 			}
-			if(programPopulation.fitness.difference==Long.MAX_VALUE || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
+			if(programPopulation.fitness.difference.compareTo(Constants.LONG_MAX_VALUE)>=0 || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
 				continue;
 			}
 			boolean exists = false;
