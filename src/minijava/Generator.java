@@ -1,6 +1,7 @@
 package minijava;
 
 import java.util.Random;
+import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -8,6 +9,7 @@ import minijava.parser.MiniJavaParser;
 
 public class Generator {
 	private static Random random = new Random(GP.RANDOM_SEED);
+	private static final Logger LOGGER = Logger.getLogger(Generator.class.getName());
 	
 	//'{' declaration* statement* '}'
 	public static String generateBlockContext(int maxNewCodeSegmentSize) {
@@ -25,15 +27,14 @@ public class Generator {
 	
 	/*    :   longArrayDeclaration
     |   longDeclaration
-    |   booleanArrayDeclaration
     |   booleanDeclaration
     */
 	public static String generateDeclarationContext(int maxNewCodeSegmentSize) {
 		String source;
-		final int maxDeclaration = 6;	// 4 types + 1 double declaration + 1 empty declaration
+		final int maxDeclaration = 5;	// 3 types + 1 double declaration + 1 empty declaration
 		int declaration = random.nextInt(maxDeclaration);
 		if(maxNewCodeSegmentSize<=0) {
-			declaration = 5;	// remove declaration
+			declaration = 4;	// remove declaration
 		}
 		switch(declaration) {
 			case 0:
@@ -41,10 +42,8 @@ public class Generator {
 			case 1:
 				return generateLongDeclarationContext(maxNewCodeSegmentSize);
 			case 2:
-				return generateBooleanArrayDeclarationContext(maxNewCodeSegmentSize);
-			case 3:
 				return generateBooleanDeclarationContext(maxNewCodeSegmentSize);
-			case 4:
+			case 3:
 				maxNewCodeSegmentSize--;	// decrement to avoid possible infinite loop
 				source = generateDeclarationContext(maxNewCodeSegmentSize);
 				maxNewCodeSegmentSize -= source.length();
@@ -52,9 +51,10 @@ public class Generator {
 					source = source + " " + generateDeclarationContext(maxNewCodeSegmentSize);
 				}
 				return source;
-			case 5:
+			case 4:
 				return " ";
 			default:
+				LOGGER.severe("Defective code in generateDeclarationContext)");
 				return null;
 		}
 	}
@@ -81,17 +81,6 @@ public class Generator {
 		return stringBuilder.toString();
 	}
 	
-	//'ArrayList<Boolean>' BOOLEANARRAYNAME '= new ArrayList<Boolean>(size);'
-	public static String generateBooleanArrayDeclarationContext(int maxNewCodeSegmentSize) {
-		StringBuilder stringBuilder = new StringBuilder();
-		if(maxNewCodeSegmentSize>0) {
-			stringBuilder.append("ArrayList<Boolean> ");
-			stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "BOOLEANARRAYNAME"));
-			stringBuilder.append("= new ArrayList<Boolean>(size); ");
-		}
-		return stringBuilder.toString();
-	}
-	
 	//'Boolean' BOOLEANNAME '= new Boolean(false);'
 	public static String generateBooleanDeclarationContext(int maxNewCodeSegmentSize) {
 		StringBuilder stringBuilder = new StringBuilder();
@@ -107,21 +96,20 @@ public class Generator {
     |   'while(!Thread.currentThread().isInterrupted()&&' expressionBoolean ')' block
     |	LONGARRAYNAME '.set(new Long(' expressionNumeric ').intValue()%size, new Long(' expressionNumeric '));'
     |   LONGNAME '=' 'new Long(' expressionNumeric ');'
-    |	BOOLEANARRAYNAME '.set(new Long(' expressionNumeric ').intValue()%size, new Boolean(' expressionBoolean '));'
     |   BOOLEANNAME '=' 'new Boolean(' expressionBoolean ');'
     */
 	public static String generateStatementContext(int maxNewCodeSegmentSize, MiniJavaParser miniJavaParser, ParseTree parseTree) {
 		StringBuilder stringBuilder = new StringBuilder();
-		int maxStatement = 7;	// 6 types + 1 empty declaration
+		int maxStatement = 6;	// 5 types + 1 empty declaration
 		int variant = 0;
 		String sourceStatement = null;
 		if(parseTree != null && random.nextBoolean()) {
 			sourceStatement = getCode(miniJavaParser, parseTree);	// mutate with existing expression
-			maxStatement = 10;	// 6 types + 1 empty declaration + 1 prepend statement + 1 append statement + 1 statement duplication
+			maxStatement = 9;	// 5 types + 1 empty declaration + 1 prepend statement + 1 append statement + 1 statement duplication
 		}
 		int statement = random.nextInt(maxStatement);
 		if(maxNewCodeSegmentSize<=0) {
-			statement = 6;	// remove declaration
+			statement = 5;		// remove declaration
 		}
 		switch(statement) {
 			case 0:
@@ -186,30 +174,23 @@ public class Generator {
 				stringBuilder.append(");");
 				return stringBuilder.toString();
 			case 4:
-				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "BOOLEANARRAYNAME"));
-				stringBuilder.append(".set(new Long(");
-				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-				stringBuilder.append(").intValue()%size, new Boolean(");
-				stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-				stringBuilder.append("));");
-				return stringBuilder.toString();
-			case 5:
 				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "BOOLEANNAME"));
 				stringBuilder.append("= new Boolean(");
 				stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append(");");
 				return stringBuilder.toString();
-			case 6:
+			case 5:
 				return " ";
-			case 7:
+			case 6:
 				// allow sourceStatement.length() without effect on maxNewCodeSegmentSize
 				return sourceStatement + " " + generateStatementContext(maxNewCodeSegmentSize, null, null);
-			case 8:
+			case 7:
 				// allow sourceStatement.length() without effect on maxNewCodeSegmentSize
 				return generateStatementContext(maxNewCodeSegmentSize, null, null) + " " +  sourceStatement;
-			case 9:
+			case 8:
 				return sourceStatement + " " +  sourceStatement;
 			default:
+				LOGGER.severe("Defective code in generateStatementContext)");
 				return null;
 		}
 	}
@@ -487,13 +468,13 @@ public class Generator {
 				stringBuilder.append(")");
 				return stringBuilder.toString();
 			default:
+				LOGGER.severe("Defective code in generateExpressionNumericContext)");
 				return null;
 		}
 	}
 	
 	/*    :   BOOLEAN
     |   BOOLEANNAME
-    |   booleanArrayValue
     |   '(' '!' expressionBoolean ')'
     |   expressionNumeric '<' expressionNumeric
     |   expressionNumeric '<=' expressionNumeric
@@ -506,13 +487,13 @@ public class Generator {
     */
 	public static String generateExpressionBooleanContext(int maxNewCodeSegmentSize, MiniJavaParser miniJavaParser, ParseTree parseTree) {
 		StringBuilder stringBuilder = new StringBuilder();
-		final int maxExpression = 13;	// 13 types
+		final int maxExpression = 12;	// 12 types
 		int variant = 0;
 		String sourceExpression = null;
 		int expression = random.nextInt(maxExpression);
 		maxNewCodeSegmentSize /= 2;	// reduce expression size by half, as rules grow exponentially
 		if(maxNewCodeSegmentSize<0) {
-			expression = random.nextInt(4);	// limit to first 4 types
+			expression = random.nextInt(3);	// limit to first 3 types
 		}
 		if(parseTree != null && random.nextBoolean()) {
 			sourceExpression = getCode(miniJavaParser, parseTree);	// mutate with existing expression
@@ -525,42 +506,39 @@ public class Generator {
 				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "BOOLEANNAME"));
 				return stringBuilder.toString();
 			case 2:
-				stringBuilder.append(generateBooleanArrayValueContext(maxNewCodeSegmentSize));
-				return stringBuilder.toString();
-			case 3:
 				stringBuilder.append("(!");
 				stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
-			case 4:
+			case 3:
 				stringBuilder.append("(");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append("<");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
-			case 5:
+			case 4:
 				stringBuilder.append("(");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append("<=");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
-			case 6:
+			case 5:
 				stringBuilder.append("(");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append("==");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
-			case 7:
+			case 6:
 				stringBuilder.append("(");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append("!=");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append(")");
 				return stringBuilder.toString();
-			case 8:
+			case 7:
 				stringBuilder.append("(");
 				if(sourceExpression != null) {
 					variant = random.nextInt(2);
@@ -574,6 +552,25 @@ public class Generator {
 					case 1:
 						stringBuilder.append(sourceExpression);
 						stringBuilder.append("==");
+						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
+						break;
+				}
+				stringBuilder.append(")");
+				return stringBuilder.toString();
+			case 8:
+				stringBuilder.append("(");
+				if(sourceExpression != null) {
+					variant = random.nextInt(2);
+				}
+				switch(variant) {
+					case 0:
+						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
+						stringBuilder.append("!=");
+						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
+						break;
+					case 1:
+						stringBuilder.append(sourceExpression);
+						stringBuilder.append("!=");
 						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 						break;
 				}
@@ -587,12 +584,12 @@ public class Generator {
 				switch(variant) {
 					case 0:
 						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-						stringBuilder.append("!=");
+						stringBuilder.append("&&");
 						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 						break;
 					case 1:
 						stringBuilder.append(sourceExpression);
-						stringBuilder.append("!=");
+						stringBuilder.append("&&");
 						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 						break;
 				}
@@ -606,37 +603,18 @@ public class Generator {
 				switch(variant) {
 					case 0:
 						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-						stringBuilder.append("&&");
+						stringBuilder.append("||");
 						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 						break;
 					case 1:
 						stringBuilder.append(sourceExpression);
-						stringBuilder.append("&&");
+						stringBuilder.append("||");
 						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 						break;
 				}
 				stringBuilder.append(")");
 				return stringBuilder.toString();
 			case 11:
-				stringBuilder.append("(");
-				if(sourceExpression != null) {
-					variant = random.nextInt(2);
-				}
-				switch(variant) {
-					case 0:
-						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-						stringBuilder.append("||");
-						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-						break;
-					case 1:
-						stringBuilder.append(sourceExpression);
-						stringBuilder.append("||");
-						stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-						break;
-				}
-				stringBuilder.append(")");
-				return stringBuilder.toString();
-			case 12:
 				stringBuilder.append("(");
 				if(sourceExpression != null) {
 					variant = random.nextInt(2);
@@ -656,6 +634,7 @@ public class Generator {
 				stringBuilder.append(")");
 				return stringBuilder.toString();
 			default:
+				LOGGER.severe("Defective code in generateExpressionBooleanContext)");
 				return null;
 		}
 	}
@@ -670,19 +649,8 @@ public class Generator {
 		return stringBuilder.toString();
 	}
 	
-	//BOOLEANARRAYNAME '.get(new Long(' expressionNumeric ').intValue()%size)'
-	public static String generateBooleanArrayValueContext(int maxNewCodeSegmentSize) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "BOOLEANARRAYNAME"));
-		stringBuilder.append(".get(new Long(");
-		stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-		stringBuilder.append(").intValue()%size)");
-		return stringBuilder.toString();
-	}
-	
 	//LONGARRAYNAME	'values' DIGIT DIGIT
 	//LONGNAME	'value' DIGIT DIGIT
-	//BOOLEANARRAYNAME	'conditions' DIGIT DIGIT
 	//BOOLEANNAME	'condition' DIGIT DIGIT
 	//BOOLEAN	'false' | 'true'
 	//NUMBER	'0' | DIGITNOZERO DIGIT*
@@ -697,12 +665,6 @@ public class Generator {
 				return stringBuilder.toString();
 			case "LONGNAME":
 				stringBuilder.append("value");
-				//stringBuilder.append(random.nextInt(10));
-				stringBuilder.append(0);
-				stringBuilder.append(random.nextInt(10));
-				return stringBuilder.toString();
-			case "BOOLEANARRAYNAME":
-				stringBuilder.append("conditions");
 				//stringBuilder.append(random.nextInt(10));
 				stringBuilder.append(0);
 				stringBuilder.append(random.nextInt(10));

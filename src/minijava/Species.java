@@ -43,7 +43,7 @@ public class Species implements Runnable {
 	private static final int MAX_STAGNANT = 4;	// number of years a species can live without progress on bestfit
 	private static final int MAX_PARENT = 5;	// Size of parent pool
 	private static final int MAX_CHILDREN = 3;	// Number of children each parent produces
-	private static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
+	public static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
 	private static final int MUTATE_FACTOR = 4;	// CROSSOVER=1, MUTATE=MUTATE_FACTOR, CROSSOVER to MUTATE ratio is 1/MUTATE_FACTOR
 	private static final JavaCompiler JAVA_COMPILER = ToolProvider.getSystemJavaCompiler();
 	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
@@ -125,7 +125,7 @@ public class Species implements Runnable {
 		compilePopulation();
 		executePopulation();
 		evaluatePopulation();
-		if(day%1000 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("BY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
 			//LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
 		}
@@ -456,8 +456,6 @@ public class Species implements Runnable {
 				return Generator.generateLongArrayDeclarationContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "minijava.parser.MiniJavaParser$LongDeclarationContext":
 				return Generator.generateLongDeclarationContext(MAX_NEW_CODE_SEGMENT_SIZE);
-			case "minijava.parser.MiniJavaParser$BooleanArrayDeclarationContext":
-				return Generator.generateBooleanArrayDeclarationContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "minijava.parser.MiniJavaParser$BooleanDeclarationContext":
 				return Generator.generateBooleanDeclarationContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "minijava.parser.MiniJavaParser$StatementContext":
@@ -468,8 +466,6 @@ public class Species implements Runnable {
 				return Generator.generateExpressionBooleanContext(MAX_NEW_CODE_SEGMENT_SIZE, miniJavaParser, parseTree);
 			case "minijava.parser.MiniJavaParser$LongArrayValueContext":
 				return Generator.generateLongArrayValueContext(MAX_NEW_CODE_SEGMENT_SIZE);
-			case "minijava.parser.MiniJavaParser$BooleanArrayValueContext":
-				return Generator.generateBooleanArrayValueContext(MAX_NEW_CODE_SEGMENT_SIZE);
 			case "org.antlr.v4.runtime.tree.TerminalNodeImpl":
 				TerminalNode terminalNode = (TerminalNode)parseTree;
 				return Generator.generateTerminalNode(MAX_NEW_CODE_SEGMENT_SIZE, miniJavaParser, parseTree, MiniJavaParser.VOCABULARY.getSymbolicName(terminalNode.getSymbol().getType()));

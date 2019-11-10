@@ -98,7 +98,7 @@ public class GP {
 			executorService.shutdown();
 			long timeStart = System.nanoTime();
 			// Species ExecutorService is within this ExecutorService. Don't shutdownNow here as it hangs a Species forever
-			while(!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+			while(!executorService.awaitTermination(Species.MAX_EXECUTE_MILLISECONDS*Species.MAX_POPULATION, TimeUnit.MILLISECONDS)) {
 				timeStart = System.nanoTime();
 				LOGGER.warning("Runaway thread for " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart) + "ms");
 			}

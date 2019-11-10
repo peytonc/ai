@@ -26,16 +26,6 @@ public class GeneticProgram {
 		Long value07 = new Long(0);
 		Long value08 = new Long(0);
 		Long value09 = new Long(0);
-		ArrayList<Boolean> conditions00 = new ArrayList<Boolean>(size);
-		ArrayList<Boolean> conditions01 = new ArrayList<Boolean>(size);
-		ArrayList<Boolean> conditions02 = new ArrayList<Boolean>(size);
-		ArrayList<Boolean> conditions03 = new ArrayList<Boolean>(size);
-		ArrayList<Boolean> conditions04 = new ArrayList<Boolean>(size);
-		ArrayList<Boolean> conditions05 = new ArrayList<Boolean>(size);
-		ArrayList<Boolean> conditions06 = new ArrayList<Boolean>(size);
-		ArrayList<Boolean> conditions07 = new ArrayList<Boolean>(size);
-		ArrayList<Boolean> conditions08 = new ArrayList<Boolean>(size);
-		ArrayList<Boolean> conditions09 = new ArrayList<Boolean>(size);
 		Boolean condition00 = new Boolean(false);
 		Boolean condition01 = new Boolean(false);
 		Boolean condition02 = new Boolean(false);

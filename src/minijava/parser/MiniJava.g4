@@ -29,7 +29,6 @@ block
 declaration
     :   longArrayDeclaration
     |   longDeclaration
-    |   booleanArrayDeclaration
     |   booleanDeclaration
     ;
 
@@ -38,7 +37,6 @@ statement
     |   'while' '(' '!' 'Thread' '.' 'currentThread' '(' ')' '.' 'isInterrupted' '(' ')' '&&' expressionBoolean ')' block
 	|	LONGARRAYNAME '.' 'set' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ',' 'new' 'Long' '(' expressionNumeric ')' ')' ';'
     |   LONGNAME '=' 'new' 'Long' '(' expressionNumeric ')' ';'
-    |	BOOLEANARRAYNAME '.' 'set' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ',' 'new' 'Boolean' '(' expressionBoolean ')' ')' ';'
     |   BOOLEANNAME '=' 'new' 'Boolean' '(' expressionBoolean ')' ';'
     ;
 
@@ -64,7 +62,6 @@ expressionNumeric
 expressionBoolean
     :   BOOLEAN
     |   BOOLEANNAME
-    |   booleanArrayValue
     |   '(' '!' expressionBoolean ')'
     |   '(' expressionNumeric '<' expressionNumeric ')'
     |   '(' expressionNumeric '<=' expressionNumeric ')'
@@ -89,14 +86,6 @@ longDeclaration
     :   'Long' LONGNAME '=' 'new' 'Long' '(' NUMBER ')' ';'
     ;
 
-booleanArrayDeclaration
-	:   'ArrayList' '<' 'Boolean' '>' BOOLEANARRAYNAME '=' 'new' 'ArrayList' '<' 'Boolean' '>' '(' 'size' ')' ';'
-    ;
-
-booleanArrayValue
-	:   BOOLEANARRAYNAME '.' 'get' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ')'
-    ;
-
 booleanDeclaration
     :   'Boolean' BOOLEANNAME '=' 'new' 'Boolean' '(' BOOLEAN ')' ';'
     ;
@@ -114,10 +103,6 @@ LONGARRAYNAME
 
 LONGNAME
     :   'value' DIGIT DIGIT
-    ;
-
-BOOLEANARRAYNAME
-    :   'conditions' DIGIT DIGIT
     ;
 
 BOOLEANNAME

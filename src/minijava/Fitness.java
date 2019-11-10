@@ -42,19 +42,27 @@ public class Fitness implements Comparable<Fitness> {
 class FitnessComparatorByDifference implements Comparator<Fitness> {
     public int compare(Fitness fitness1, Fitness fitness2) { 
 		int compare = 0;
+		
 		if(fitness1.speed==Integer.MAX_VALUE || fitness2.speed==Integer.MAX_VALUE) {
 			compare = Long.compare(fitness1.speed, fitness2.speed);
-		} else if(fitness1.size > fitness1.sizeBeforeRestrict || fitness2.size > fitness2.sizeBeforeRestrict) {
-			BigInteger difference1 = fitness1.difference.multiply(BigInteger.valueOf(fitness1.size/fitness1.sizeBeforeRestrict));
-			BigInteger difference2 = fitness2.difference.multiply(BigInteger.valueOf(fitness2.size/fitness2.sizeBeforeRestrict));
-			compare = difference1.compareTo(difference2);
-		} else if(fitness1.speed > fitness1.speedBeforeRestrict || fitness2.speed > fitness2.speedBeforeRestrict) {
-			BigInteger difference1 = fitness1.difference.multiply(BigInteger.valueOf(fitness1.speed/fitness1.speedBeforeRestrict));
-			BigInteger difference2 = fitness2.difference.multiply(BigInteger.valueOf(fitness2.speed/fitness2.speedBeforeRestrict));
-			compare = difference1.compareTo(difference2);
 		}
 		if(compare == 0) {
-			compare = fitness1.difference.compareTo(fitness2.difference);
+			BigInteger difference1 = fitness1.difference;
+			if(fitness1.speed > fitness1.speedBeforeRestrict) {
+				difference1 = difference1.multiply(BigInteger.valueOf(fitness1.speed/fitness1.speedBeforeRestrict));
+			}
+			if(fitness1.size > fitness1.sizeBeforeRestrict) {
+				difference1 = difference1.multiply(BigInteger.valueOf(fitness1.size/fitness1.sizeBeforeRestrict));
+			} 
+			
+			BigInteger difference2 = fitness2.difference;
+			if(fitness2.speed > fitness2.speedBeforeRestrict) {
+				difference2 = difference2.multiply(BigInteger.valueOf(fitness2.speed/fitness2.speedBeforeRestrict));
+			}
+			if(fitness2.size > fitness2.sizeBeforeRestrict) {
+				difference2 = difference2.multiply(BigInteger.valueOf(fitness2.size/fitness2.sizeBeforeRestrict));
+			} 
+			compare = difference1.compareTo(difference2);
 			if(compare == 0) {
 				compare = Long.compare(fitness1.speed, fitness2.speed);
 				if(compare == 0) {
@@ -76,19 +84,26 @@ class FitnessComparatorByGenerational implements Comparator<Fitness> {
 			compare = Long.compare(fitness1.speed, fitness2.speed);
 		} else if(fitness1.difference.compareTo(Constants.LONG_MAX_VALUE)>=0 || fitness2.difference.compareTo(Constants.LONG_MAX_VALUE)>=0) {
 			compare = fitness1.difference.compareTo(fitness2.difference);
-		} else if(fitness1.size > fitness1.sizeBeforeRestrict || fitness2.size > fitness2.sizeBeforeRestrict) {
-			BigInteger difference1 = fitness1.difference.multiply(BigInteger.valueOf(fitness1.size/fitness1.sizeBeforeRestrict));
-			BigInteger difference2 = fitness2.difference.multiply(BigInteger.valueOf(fitness2.size/fitness2.sizeBeforeRestrict));
-			compare = difference1.compareTo(difference2);
-		} else if(fitness1.speed > fitness1.speedBeforeRestrict || fitness2.speed > fitness2.speedBeforeRestrict) {
-			BigInteger difference1 = fitness1.difference.multiply(BigInteger.valueOf(fitness1.speed/fitness1.speedBeforeRestrict));
-			BigInteger difference2 = fitness2.difference.multiply(BigInteger.valueOf(fitness2.speed/fitness2.speedBeforeRestrict));
-			compare = difference1.compareTo(difference2);
-		}
+		} 
 		if(compare == 0) {
 			compare = Long.compare(fitness2.generationalFitness, fitness1.generationalFitness);		// flip order to obtain largest generationalFitness first
 			if(compare == 0) {
-				compare = fitness1.difference.compareTo(fitness2.difference);
+				BigInteger difference1 = fitness1.difference;
+				if(fitness1.speed > fitness1.speedBeforeRestrict) {
+					difference1 = difference1.multiply(BigInteger.valueOf(fitness1.speed/fitness1.speedBeforeRestrict));
+				}
+				if(fitness1.size > fitness1.sizeBeforeRestrict) {
+					difference1 = difference1.multiply(BigInteger.valueOf(fitness1.size/fitness1.sizeBeforeRestrict));
+				} 
+				
+				BigInteger difference2 = fitness2.difference;
+				if(fitness2.speed > fitness2.speedBeforeRestrict) {
+					difference2 = difference2.multiply(BigInteger.valueOf(fitness2.speed/fitness2.speedBeforeRestrict));
+				}
+				if(fitness2.size > fitness2.sizeBeforeRestrict) {
+					difference2 = difference2.multiply(BigInteger.valueOf(fitness2.size/fitness2.sizeBeforeRestrict));
+				} 
+				compare = difference1.compareTo(difference2);
 				if(compare == 0) {
 					compare = Long.compare(fitness1.speed, fitness2.speed);
 					if(compare == 0) {
