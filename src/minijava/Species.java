@@ -146,7 +146,7 @@ public class Species implements Runnable {
 		String source;
 		listProgramPopulation.clear();
 		if(listProgramParent.isEmpty()) {
-			// create new program using best source. increase generational fitness because program is historically best
+			// create new program using best source. increase generational fitness because program was historically best
 			Program program = new Program(stringBestSource, species, 0, sizeBeforeRestrict, speedBeforeRestrict, MIN_GENERATIONAL_FITNESS, MIN_GENERATIONAL_FITNESS, tests);
 			listProgramParent.add(program);
 			LOGGER.info("RESTARTEDY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + listProgramParent.get(0).source);
