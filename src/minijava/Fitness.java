@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.Comparator;
 
 public class Fitness implements Comparable<Fitness> {
+	public int correct;
 	public long generation;
 	public long generationalFitness;
 	public BigInteger difference;
@@ -27,7 +28,7 @@ public class Fitness implements Comparable<Fitness> {
 	}
 	
 	public String toString() {
-		return "Fitness{" + "gen=" + generation + ",genFit=" + generationalFitness + ",diff=" + difference + ",speed=" + speed + ",size=" + size  + "}";
+		return "Fitness{" + "gen=" + generation + ",genFit=" + generationalFitness + ",diff=" + difference + ",correct=" + correct + ",speed=" + speed + ",size=" + size  + "}";
 	}
 	
 	@Override

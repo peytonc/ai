@@ -125,7 +125,7 @@ public class Species implements Runnable {
 		compilePopulation();
 		executePopulation();
 		evaluatePopulation();
-		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+		if(day%1000 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("BY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
 			//LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
 		}
@@ -259,11 +259,15 @@ public class Species implements Runnable {
 	
 	public void evaluatePopulation() {
 		for(Program program : listProgramPopulation) {
-			BigInteger difference = tests.getDifferences(program.vectors);
-			if(difference == null) {
+			BigInteger differenceAndCorrect[] = tests.getDifferences(program.vectors);
+			if(differenceAndCorrect == null) {
 				program.fitness.difference = Constants.LONG_MAX_VALUE;
+				program.fitness.correct = 0;
 			} else {
-				program.fitness.difference = difference.divide(BigInteger.valueOf(program.vectors.size()));
+				program.fitness.correct = differenceAndCorrect[1].intValue();
+				program.fitness.difference = differenceAndCorrect[0].divide(BigInteger.valueOf(program.vectors.size()));
+				// decrease difference by ratio of wrong answers to total answers
+				program.fitness.difference = program.fitness.difference.multiply(Tests.MAX_TEST_VECTORS_BIG_INTEGER.subtract(differenceAndCorrect[1])).divide(Tests.MAX_TEST_VECTORS_BIG_INTEGER);
 			}
 		}
 	}
