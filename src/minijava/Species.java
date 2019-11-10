@@ -63,8 +63,8 @@ public class Species implements Runnable {
 	private static int speedBeforeRestrictMin = 0;
 	private static int speedBeforeRestrictMax = 0;
 	private static int speedBeforeRestrict = 0;
-	private static final double RESTRICT_MIN_PERCENT = 0.95;
-	private static final double RESTRICT_MAX_PERCENT = 1.25;
+	private static final double RESTRICT_MIN_PERCENT = 0.975;	// use small seasonal differences (i.e. RESTRICT_MAX_PERCENT-RESTRICT_MIN_PERCENT < 0.05)
+	private static final double RESTRICT_MAX_PERCENT = 1.025;
 	private Tests tests = null;
 	
 	private int daysPerYear;
@@ -125,7 +125,7 @@ public class Species implements Runnable {
 		compilePopulation();
 		executePopulation();
 		evaluatePopulation();
-		if(day%1000 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("BY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
 			//LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
 		}
