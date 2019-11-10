@@ -146,7 +146,9 @@ public class Species implements Runnable {
 		String source;
 		listProgramPopulation.clear();
 		if(listProgramParent.isEmpty()) {
-			listProgramParent.add(new Program(stringBestSource, species, 0, sizeBeforeRestrict, speedBeforeRestrict, 0, 0, tests));
+			// create new program using best source. increase generational fitness because program is historically best
+			Program program = new Program(stringBestSource, species, 0, sizeBeforeRestrict, speedBeforeRestrict, MIN_GENERATIONAL_FITNESS, MIN_GENERATIONAL_FITNESS, tests);
+			listProgramParent.add(program);
 			LOGGER.info("RESTARTEDY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + listProgramParent.get(0).source);
 		}
 		//make ANTLR parsers for parents, used by crossover
