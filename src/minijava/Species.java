@@ -135,7 +135,7 @@ public class Species implements Runnable {
 			LOGGER.info("NULLY" + year + "D" + day + "S" + species);
 		}
 		storeBestFitness();
-		if(listProgramPopulation.isEmpty()) {
+		if(listProgramPopulation.isEmpty() && stagnantDays>0) {
 			stagnantDays--;		// under rare conditions, don't reset parent population because entire offspring population can die off. so preserve for MAX_STAGNANT_DAYS
 		} else {
 			stagnantDays = MAX_STAGNANT_DAYS;
