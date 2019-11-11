@@ -37,10 +37,11 @@ public class Species implements Runnable {
 	public Fitness fitnessBest = null;
 	public static final int MAX_EXECUTE_MILLISECONDS = 2000;
 	public static final int MAX_EXECUTE_MILLISECONDS_95PERCENT = (int) Math.floor(0.95*MAX_EXECUTE_MILLISECONDS);
-	public int stagnant = MAX_STAGNANT;
+	public int stagnant = MAX_STAGNANT_YEARS;
 	public int species;
 	
-	private static final int MAX_STAGNANT = 4;	// number of years a species can live without progress on bestfit
+	private static final int MAX_STAGNANT_DAYS = 3;		// number of days a species continue without a child population surviving
+	private static final int MAX_STAGNANT_YEARS = 4;	// number of years a species can live without progress on bestfit
 	private static final int MAX_PARENT = 5;	// Size of parent pool
 	private static final int MAX_CHILDREN = 3;	// Number of children each parent produces
 	public static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
@@ -57,12 +58,14 @@ public class Species implements Runnable {
 	private String stringBestSourceCompact;
 	private String stringBestSource;
 	private int sizeSourceLength;
-	private static int sizeBeforeRestrictMin = 0;
-	private static int sizeBeforeRestrictMax = 0;
-	private static int sizeBeforeRestrict = 0;
-	private static int speedBeforeRestrictMin = 0;
-	private static int speedBeforeRestrictMax = 0;
-	private static int speedBeforeRestrict = 0;
+	private int sizeBeforeRestrictMin = 0;
+	private int sizeBeforeRestrictMax = 0;
+	private int sizeBeforeRestrict = 0;
+	private int speedBeforeRestrictMin = 0;
+	private int speedBeforeRestrictMax = 0;
+	private int speedBeforeRestrict = 0;
+	private int stagnantDays = 0;
+	
 	private static final double RESTRICT_MIN_PERCENT = 0.975;	// use small seasonal differences (i.e. RESTRICT_MAX_PERCENT-RESTRICT_MIN_PERCENT < 0.05)
 	private static final double RESTRICT_MAX_PERCENT = 1.025;
 	private Tests tests = null;
@@ -125,12 +128,19 @@ public class Species implements Runnable {
 		compilePopulation();
 		executePopulation();
 		evaluatePopulation();
-		if(day%1000 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("BY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
-			//LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
+			LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
+		} else {
+			LOGGER.info("NULLY" + year + "D" + day + "S" + species);
 		}
 		storeBestFitness();
-		downselectPopulation();
+		if(listProgramPopulation.isEmpty()) {
+			stagnantDays--;		// under rare conditions, don't reset parent population because entire offspring population can die off. so preserve for MAX_STAGNANT_DAYS
+		} else {
+			stagnantDays = MAX_STAGNANT_DAYS;
+			downselectPopulation();
+		}
 	}
 	
 	public void createEnviroment() {
@@ -146,6 +156,7 @@ public class Species implements Runnable {
 		String source;
 		listProgramPopulation.clear();
 		if(listProgramParent.isEmpty()) {
+			stagnantDays = MAX_STAGNANT_DAYS;
 			// create new program using best source. increase generational fitness because program was historically best
 			Program program = new Program(stringBestSource, species, 0, sizeBeforeRestrict, speedBeforeRestrict, MIN_GENERATIONAL_FITNESS, MIN_GENERATIONAL_FITNESS, tests);
 			listProgramParent.add(program);
@@ -277,13 +288,13 @@ public class Species implements Runnable {
 		}
 		Collections.sort(listProgramPopulation);
 		if(fitnessBest == null) {
-			stagnant = MAX_STAGNANT;
+			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			stringBestSource = listProgramPopulation.get(0).source;
 			stringBestSourceCompact = removeSpace(stringBestSource);
 			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + listProgramPopulation.get(0).source);
 		} else if(listProgramPopulation.get(0).fitness.generationalFitness>=MIN_GENERATIONAL_FITNESS && fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
-			stagnant = MAX_STAGNANT;
+			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			try {
 				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + listProgramPopulation.get(0).source);

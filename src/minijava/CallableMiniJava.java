@@ -6,22 +6,18 @@ import java.util.concurrent.TimeUnit;
 
 public class CallableMiniJava implements Runnable {
 	private Program program = null;
+	private Class<?> cls = null;
+	Method method = null;
 	
 	public CallableMiniJava(Program program) {
-		this.program = program;
-	}
-	
-	@Override
-	public void run() {
 		if(program.vectors != null) {
-			Class<?> cls = null;
+			this.program = program;
 			try {
 				cls = program.programClassLoader.loadClass(Program.PACKAGE_SPECIES + program.species + "." + Program.PACKAGE_ID + program.ID + "." + Program.PROGRAM_CLASS);
 			} catch (ClassNotFoundException e1) {
 				program.vectors = null;
 				e1.printStackTrace();
 			}
-			Method method = null;
 			try {
 				method = cls.getMethod("compute", ArrayList.class);
 			} catch (NoSuchMethodException e1) {
@@ -30,6 +26,12 @@ public class CallableMiniJava implements Runnable {
 			} catch (SecurityException e1) {
 				e1.printStackTrace();
 			}
+		}
+	}
+	
+	@Override
+	public void run() {
+		if(method != null) {
 			long timeStart = 0;
 			try {
 				boolean isInterrupted = false;
@@ -53,7 +55,7 @@ public class CallableMiniJava implements Runnable {
 					program.fitness.isComplete = true;
 				}
 			} catch(Exception e) {
-				System.out.println("CallableMiniJavaCallableMiniJavaCallableMiniJava");
+				System.out.println("CallableMiniJava");
 				program.vectors = null;
 				e.printStackTrace();
 			}
