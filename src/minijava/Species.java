@@ -131,12 +131,11 @@ public class Species implements Runnable {
 		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			LOGGER.info("BY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
 			LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
-		} else {
-			LOGGER.info("NULLY" + year + "D" + day + "S" + species);
 		}
 		storeBestFitness();
 		if(listProgramPopulation.isEmpty() && stagnantDays>0) {
 			stagnantDays--;		// under rare conditions, don't reset parent population because entire offspring population can die off. so preserve for MAX_STAGNANT_DAYS
+			LOGGER.info("PRESERVATIONY" + year + "D" + day + "S" + species);
 		} else {
 			stagnantDays = MAX_STAGNANT_DAYS;
 			downselectPopulation();
