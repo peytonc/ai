@@ -63,10 +63,10 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	
 }
 
-class ProgramComparatorByDifference implements Comparator<Program> {
+class ProgramComparatorByFit implements Comparator<Program> {
     public int compare(Program program1, Program program2) { 
-		FitnessComparatorByDifference fitnessComparatorByDifference = new FitnessComparatorByDifference();
-		int compare = fitnessComparatorByDifference.compare(program1.fitness, program2.fitness);
+		FitnessComparatorByFit fitnessComparatorByFit = new FitnessComparatorByFit();
+		int compare = fitnessComparatorByFit.compare(program1.fitness, program2.fitness);
 		return compare;
     }
 }

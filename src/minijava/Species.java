@@ -266,8 +266,7 @@ public class Species implements Runnable {
 			} else {
 				program.fitness.correct = differenceAndCorrect[1].intValue();
 				program.fitness.difference = differenceAndCorrect[0].divide(BigInteger.valueOf(program.vectors.size()));
-				// decrease difference by ratio of wrong answers to total answers
-				program.fitness.difference = program.fitness.difference.multiply(Tests.MAX_TEST_VECTORS_BIG_INTEGER.subtract(differenceAndCorrect[1])).divide(Tests.MAX_TEST_VECTORS_BIG_INTEGER);
+				program.fitness.calculateFitness();
 			}
 		}
 	}
