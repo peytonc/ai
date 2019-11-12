@@ -42,8 +42,8 @@ public class Species implements Runnable {
 	
 	private static final int MAX_STAGNANT_DAYS = 3;		// number of days a species continue without a child population surviving
 	private static final int MAX_STAGNANT_YEARS = 4;	// number of years a species can live without progress on bestfit
-	private static final int MAX_PARENT = 5;	// Size of parent pool
-	private static final int MAX_CHILDREN = 3;	// Number of children each parent produces
+	private static final int MAX_PARENT = 6;	// Size of parent pool
+	private static final int MAX_CHILDREN = 2;	// Number of children each parent produces
 	public static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
 	private static final int MUTATE_FACTOR = 4;	// CROSSOVER=1, MUTATE=MUTATE_FACTOR, CROSSOVER to MUTATE ratio is 1/MUTATE_FACTOR
 	private static final JavaCompiler JAVA_COMPILER = ToolProvider.getSystemJavaCompiler();
@@ -74,6 +74,10 @@ public class Species implements Runnable {
 	private final String PROGRAM_FILENAME;
 	private int year;
 	private int day;
+	
+	
+	// DELETE THIS
+	private int junkIteration = 0;
 	
 	public Species(int species, String sourceOrigin, Tests tests, int daysPerYear) {
 		this.species = species;
@@ -130,12 +134,15 @@ public class Species implements Runnable {
 		evaluatePopulation();
 		storeBestFitness();
 		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
-			LOGGER.info("BY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + listProgramPopulation.get(0).fitness.toString() + listProgramPopulation.get(0).source);
-			LOGGER.info("WY" + year + "D" + day + "S" + listProgramPopulation.get(listProgramPopulation.size()-1).species + "ID" + listProgramPopulation.get(listProgramPopulation.size()-1).ID + " " + listProgramPopulation.get(listProgramPopulation.size()-1).fitness.toString() + listProgramPopulation.get(listProgramPopulation.size()-1).source);
+			int count =0;
+			for(Program program : listProgramPopulation) {
+				LOGGER.info(year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				count++;
+			}
 		}
 		if(listProgramPopulation.isEmpty() && stagnantDays>0) {
 			stagnantDays--;		// under rare conditions, don't reset parent population because entire offspring population can die off. so preserve for MAX_STAGNANT_DAYS
-			LOGGER.info("PRESERVATIONY" + year + "D" + day + "S" + species);
+			LOGGER.info(year + "\t" + day + "\t" + -1 + "\t" + species);
 		} else {
 			stagnantDays = MAX_STAGNANT_DAYS;
 			downselectPopulation();
@@ -145,7 +152,8 @@ public class Species implements Runnable {
 	public void createEnviroment() {
 		// model environment resource (specifically program size) as Summer-Winter-Summer or sizeBeforeRestrictMax-sizeBeforeRestrictMin-sizeBeforeRestrictMax
 		double percent = (double)(day%daysPerYear)/daysPerYear;
-		double cosineWithOffset = (Math.cos(percent*2*Math.PI)+1)/2;
+		//double percent = (double)(day%10)/10;	// TODO DELETE
+		double cosineWithOffset = (Math.cos(percent*2*Math.PI)+1)/2;	// range in [0,1]
 		sizeBeforeRestrict = (int)(sizeBeforeRestrictMin + cosineWithOffset*(sizeBeforeRestrictMax-sizeBeforeRestrictMin));
 		speedBeforeRestrict = (int)(speedBeforeRestrictMin + cosineWithOffset*(speedBeforeRestrictMax-speedBeforeRestrictMin));
 	}
