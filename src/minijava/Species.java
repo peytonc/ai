@@ -50,7 +50,7 @@ public class Species implements Runnable {
 	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
 	private Random random = new Random(GP.RANDOM_SEED);
 	private static final int MAX_NEW_CODE_SEGMENT_SIZE = 75;
-	private static final int MAX_GENERATION_PRESERVE = 3;
+	private static final int MAX_GENERATION_PRESERVE = 2;	// keep MAX_GENERATION_PRESERVE <= floor(MAX_PARENT/2)
 	private static final int MIN_GENERATIONAL_FITNESS = 3;	// minimum generational fitness before storage as bestfit
 	private List<Program> listProgramParent = new ArrayList<Program>(MAX_PARENT);
 	private List<Program> listProgramPopulation = new ArrayList<Program>(MAX_POPULATION);
@@ -352,7 +352,7 @@ public class Species implements Runnable {
 			}
 			if(!exists) {
 				long generation = programPopulation.fitness.generation + 1;						// survived another generation
-				long generationalFitness = programPopulation.fitness.generationalFitness + 1;	// program is a top performer, so increase the generational fitness
+				long generationalFitness = programPopulation.fitness.generationalFitness + 2;	// program is a top performer, so increase the generational fitness
 				Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, sizeBeforeRestrict, speedBeforeRestrict, generation, generationalFitness, tests);
 				listProgramParent.add(programCopy);
 				indexPackage++;
