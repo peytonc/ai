@@ -61,8 +61,8 @@ public class Species implements Runnable {
 	private int sizeBeforeRestrictMin = 0;
 	private int sizeBeforeRestrictMax = 0;
 	private int sizeBeforeRestrict = 0;
-	private int speedBeforeRestrictMin = 0;
-	private int speedBeforeRestrictMax = 0;
+	private int speedBeforeRestrictMin = (int)(RESTRICT_MIN_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
+	private int speedBeforeRestrictMax = (int)(RESTRICT_MAX_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
 	private int speedBeforeRestrict = 0;
 	private int stagnantDays = 0;
 	
@@ -75,10 +75,7 @@ public class Species implements Runnable {
 	private int year;
 	private int day;
 	
-	
-	// DELETE THIS
-	private int junkIteration = 0;
-	
+
 	public Species(int species, String sourceOrigin, Tests tests, int daysPerYear) {
 		this.species = species;
 		this.tests = tests;
@@ -102,8 +99,6 @@ public class Species implements Runnable {
 		this.year = year;
 		sizeBeforeRestrictMin = (int)(RESTRICT_MIN_PERCENT * sizeSourceLength);
 		sizeBeforeRestrictMax = (int)(RESTRICT_MAX_PERCENT * sizeSourceLength);
-		speedBeforeRestrictMin = (int)(RESTRICT_MIN_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
-		speedBeforeRestrictMax = (int)(RESTRICT_MAX_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
 		stagnant--;
 	}
 	
@@ -282,8 +277,8 @@ public class Species implements Runnable {
 				program.fitness.difference = Constants.LONG_MAX_VALUE;
 				program.fitness.correct = 0;
 			} else {
-				program.fitness.correct = differenceAndCorrect[1].intValue();
 				program.fitness.difference = differenceAndCorrect[0].divide(BigInteger.valueOf(program.vectors.size()));
+				program.fitness.correct = differenceAndCorrect[1].intValue();
 				program.fitness.calculateFitness();
 			}
 		}

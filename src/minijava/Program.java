@@ -17,7 +17,7 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	public static final String PACKAGE_SPECIES = new String("species");
 	public static final String PACKAGE_ID = new String("id");
 	public String source;
-	public Fitness fitness = new Fitness();
+	public Fitness fitness = null;
 	public ArrayList<ArrayList<Long>> vectors;
 	public int species;
 	public int ID;
@@ -36,6 +36,7 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	Program(String source, int species, int ID, int sizeBeforeRestrict, int speedBeforeRestrict, long generation, long generationalFitness, Tests tests) {
 		super(URI.create("string:///" + PACKAGE_SPECIES + species + '/' + PACKAGE_ID + ID + '/' + PROGRAM_CLASS + Kind.SOURCE.extension), Kind.SOURCE);
 		this.source = new String(source);
+		fitness = new Fitness();
 		fitness.generation = generation;
 		fitness.generationalFitness = generationalFitness;
 		fitness.size = source.length();

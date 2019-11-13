@@ -25,8 +25,8 @@ public class Fitness implements Comparable<Fitness> {
 		difference = Constants.LONG_MAX_VALUE;
 		speed = Integer.MAX_VALUE;
 		size = Integer.MAX_VALUE;
-		sizeBeforeRestrict = 0;
-		speedBeforeRestrict = 0;
+		sizeBeforeRestrict = 1;		// avoid divide by 0
+		speedBeforeRestrict = 1;	// avoid divide by 0
 		isComplete = false;
 	}
 	
@@ -35,12 +35,7 @@ public class Fitness implements Comparable<Fitness> {
 		if(speed > speedBeforeRestrict) {
 			// if speed exceeds restriction then punish fitness (by increasing value)
 			// first use multiplication because (integer/integer) is non-continuous and a bad multiplier near [1,2]
-			//fit = fit.multiply(BigInteger.valueOf(speed)).divide(BigInteger.valueOf(speedBeforeRestrict));
-			BigInteger bspeed = BigInteger.valueOf(speed);
-			BigInteger bfit = fit.multiply(bspeed);
-			BigInteger bspeedBeforeRestrict = BigInteger.valueOf(speedBeforeRestrict);
-			BigInteger bfit2 = bfit.divide(bspeedBeforeRestrict);
-			fit = bfit2;
+			fit = fit.multiply(BigInteger.valueOf(speed)).divide(BigInteger.valueOf(speedBeforeRestrict));
 		}
 		if(size > sizeBeforeRestrict) {
 			// if size exceeds restriction then punish fitness (by increasing value)
