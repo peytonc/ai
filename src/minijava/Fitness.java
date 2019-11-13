@@ -35,7 +35,12 @@ public class Fitness implements Comparable<Fitness> {
 		if(speed > speedBeforeRestrict) {
 			// if speed exceeds restriction then punish fitness (by increasing value)
 			// first use multiplication because (integer/integer) is non-continuous and a bad multiplier near [1,2]
-			fit = fit.multiply(BigInteger.valueOf(speed)).divide(BigInteger.valueOf(speedBeforeRestrict));
+			//fit = fit.multiply(BigInteger.valueOf(speed)).divide(BigInteger.valueOf(speedBeforeRestrict));
+			BigInteger bspeed = BigInteger.valueOf(speed);
+			BigInteger bfit = fit.multiply(bspeed);
+			BigInteger bspeedBeforeRestrict = BigInteger.valueOf(speedBeforeRestrict);
+			BigInteger bfit2 = bfit.divide(bspeedBeforeRestrict);
+			fit = bfit2;
 		}
 		if(size > sizeBeforeRestrict) {
 			// if size exceeds restriction then punish fitness (by increasing value)
