@@ -3,6 +3,7 @@ package minijava;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -20,14 +21,27 @@ public class GP {
 	public static final int THREADS_PER_SPECIES = (int)Math.ceil((double)AVAILABLE_PROCESSORS/MAX_SPECIES)+1;
 	public static final int DAYS_PER_YEAR = 1000;
 	public static final int RANDOM_SEED = 0;
+	public static final int MAX_EXECUTE_MILLISECONDS = 2000;
+	public static final int MAX_EXECUTE_MILLISECONDS_95PERCENT = (int) Math.floor(0.95*MAX_EXECUTE_MILLISECONDS);
+	public static final double RESTRICT_MIN_PERCENT = 0.975;	// use small seasonal differences (i.e. RESTRICT_MAX_PERCENT-RESTRICT_MIN_PERCENT < 0.05)
+	public static final double RESTRICT_MAX_PERCENT = 1.025;
 	
 	private static final String PROPERTIES_FILENAME = new String("config.properties");
 	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
 	
 	public static Fitness fitnessBestGlobal = null;
-	private String sourceOrigin = null;
+	private String stringBestSource = null;
 	private Tests tests = new Tests();
 	List<Species> listSpecies = new ArrayList<Species>(MAX_SPECIES);
+	public int sizeBeforeRestrictMin = 0;
+	public int sizeBeforeRestrictMax = 0;
+	public static int sizeBeforeRestrict = 0;
+	public static BigInteger sizeBeforeRestrictBigInteger = Constants.I0;
+	private int speedBeforeRestrictMin = (int)(RESTRICT_MIN_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
+	private int speedBeforeRestrictMax = (int)(RESTRICT_MAX_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
+	public static int speedBeforeRestrict = 0;
+	public static BigInteger speedBeforeRestrictBigInteger = Constants.I0;
+	public static int sizeSourceLength;
 	
 	public GP() {
 		try(InputStream inputStream = new FileInputStream(PROPERTIES_FILENAME)) {
@@ -36,13 +50,15 @@ public class GP {
 			e.printStackTrace();
 		}
 		try {
-			sourceOrigin = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
+			stringBestSource = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		sourceOrigin = Species.replacePackage(sourceOrigin, 0, 0);
+		stringBestSource = Species.replacePackage(stringBestSource, 0, 0);
+		stringBestSource = Species.removeSpace(stringBestSource);
+		sizeSourceLength = stringBestSource.length();
 		for(int index=0; index<MAX_SPECIES; index++) {
-			listSpecies.add(new Species(index, sourceOrigin, tests, DAYS_PER_YEAR));
+			listSpecies.add(new Species(index, stringBestSource, tests));
 		}
 		
 		int year = 0;
@@ -57,6 +73,8 @@ public class GP {
 	}
 	
 	public void initalizeYear(int year) {
+		sizeBeforeRestrictMin = (int)(RESTRICT_MIN_PERCENT * sizeSourceLength);
+		sizeBeforeRestrictMax = (int)(RESTRICT_MAX_PERCENT * sizeSourceLength);
 		for(Species species : listSpecies) {
 			species.initalizeYear(year);
 		}
@@ -83,13 +101,14 @@ public class GP {
 			index = listSpecies.get(leastFitIndex).species;
 			listSpecies.get(leastFitIndex).extinction();
 			listSpecies.remove(leastFitIndex);
-			listSpecies.add(new Species(index, sourceOrigin, tests, DAYS_PER_YEAR));
+			listSpecies.add(new Species(index, stringBestSource, tests));
 		}
 	}
 	
 	public void executeDay(int day) {
 		ExecutorService executorService = Executors.newFixedThreadPool(THREADS_PER_SPECIES);
 		tests.createTests();
+		createEnviroment(day);
 		try {
 			for(Species species : listSpecies) {
 				species.initalizeDay(day);
@@ -98,13 +117,26 @@ public class GP {
 			executorService.shutdown();
 			long timeStart = System.nanoTime();
 			// Species ExecutorService is within this ExecutorService. Don't shutdownNow here as it hangs a Species forever
-			while(!executorService.awaitTermination(Species.MAX_EXECUTE_MILLISECONDS*Species.MAX_POPULATION, TimeUnit.MILLISECONDS)) {
+			while(!executorService.awaitTermination(MAX_EXECUTE_MILLISECONDS*Species.MAX_POPULATION, TimeUnit.MILLISECONDS)) {
 				timeStart = System.nanoTime();
 				LOGGER.warning("Runaway thread for " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart) + "ms");
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 			LOGGER.severe("Exception on terminate");
+		}
+	}
+	
+	public void createEnviroment(int day) {
+		// model environment resource (specifically program size) as Summer-Winter-Summer or sizeBeforeRestrictMax-sizeBeforeRestrictMin-sizeBeforeRestrictMax
+		double percent = (double)(day%DAYS_PER_YEAR)/DAYS_PER_YEAR;
+		double cosineWithOffset = (Math.cos(percent*2*Math.PI)+1)/2;	// range in [0,1]
+		sizeBeforeRestrict = (int)(sizeBeforeRestrictMin + cosineWithOffset*(sizeBeforeRestrictMax-sizeBeforeRestrictMin));
+		speedBeforeRestrict = (int)(speedBeforeRestrictMin + cosineWithOffset*(speedBeforeRestrictMax-speedBeforeRestrictMin));
+		if (sizeSourceLength < stringBestSource.length()) {	
+			sizeSourceLength++;		// smooth convergence for fitness function
+		} else if (sizeSourceLength > stringBestSource.length()) {
+			sizeSourceLength--;
 		}
 	}
 	

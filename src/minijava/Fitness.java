@@ -11,8 +11,6 @@ public class Fitness implements Comparable<Fitness> {
 	public BigInteger difference;
 	public long speed;
 	public int size;
-	public int sizeBeforeRestrict;
-	public int speedBeforeRestrict;
 	public boolean isComplete;
 	
 	
@@ -25,22 +23,20 @@ public class Fitness implements Comparable<Fitness> {
 		difference = Constants.LONG_MAX_VALUE;
 		speed = Integer.MAX_VALUE;
 		size = Integer.MAX_VALUE;
-		sizeBeforeRestrict = 1;		// avoid divide by 0
-		speedBeforeRestrict = 1;	// avoid divide by 0
 		isComplete = false;
 	}
 	
 	public void calculateFitness() {
 		fit = difference;
-		if(speed > speedBeforeRestrict) {
+		if(speed > GP.speedBeforeRestrict) {
 			// if speed exceeds restriction then punish fitness (by increasing value)
 			// first use multiplication because (integer/integer) is non-continuous and a bad multiplier near [1,2]
-			fit = fit.multiply(BigInteger.valueOf(speed)).divide(BigInteger.valueOf(speedBeforeRestrict));
+			fit = fit.multiply(BigInteger.valueOf(speed)).divide(GP.speedBeforeRestrictBigInteger);
 		}
-		if(size > sizeBeforeRestrict) {
+		if(size > GP.sizeBeforeRestrict) {
 			// if size exceeds restriction then punish fitness (by increasing value)
 			// first use multiplication because (integer/integer) is non-continuous and a bad multiplier near [1,2]
-			fit = fit.multiply(BigInteger.valueOf(size)).divide(BigInteger.valueOf(sizeBeforeRestrict));
+			fit = fit.multiply(BigInteger.valueOf(size)).divide(GP.sizeBeforeRestrictBigInteger);
 		}
 		if(correct > 0) {
 			// if correct answers were found then reward fitness (by reducing value) by wrong/total
