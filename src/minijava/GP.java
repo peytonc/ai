@@ -59,7 +59,7 @@ public class GP {
 	}
 	
 	public void initalizeYear(int year) {
-		Environment.getEnvironment().createDay(sizeSourceLength);
+		Environment.getEnvironment().createYear(sizeSourceLength);
 		for(Species species : listSpecies) {
 			species.initalizeYear(year);
 		}
