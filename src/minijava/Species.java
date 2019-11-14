@@ -108,13 +108,13 @@ public class Species implements Runnable {
 		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			int count =0;
 			for(Program program : listProgramPopulation) {
-				LOGGER.info(year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				LOGGER.info("\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
 				count++;
 			}
 		}
 		if(listProgramPopulation.isEmpty() && stagnantDays>0) {
 			stagnantDays--;		// under rare conditions, don't reset parent population because entire offspring population can die off. so preserve for MAX_STAGNANT_DAYS
-			LOGGER.info(year + "\t" + day + "\t" + -1 + "\t" + species);
+			LOGGER.info("\t" + year + "\t" + day + "\t" + -1 + "\t" + species);
 		} else {
 			stagnantDays = MAX_STAGNANT_DAYS;
 			downselectPopulation();
@@ -364,7 +364,7 @@ public class Species implements Runnable {
 	}
 	
 	public static String removeSpace(String source) {
-		return source.replaceAll("\\s+","");
+		return source.replaceAll("\\s+"," ");
 	}
 	
 	private String createProgram(Program program1, Program program2, String source) {

@@ -132,7 +132,9 @@ public class GP {
 		double percent = (double)(day%DAYS_PER_YEAR)/DAYS_PER_YEAR;
 		double cosineWithOffset = (Math.cos(percent*2*Math.PI)+1)/2;	// range in [0,1]
 		sizeBeforeRestrict = (int)(sizeBeforeRestrictMin + cosineWithOffset*(sizeBeforeRestrictMax-sizeBeforeRestrictMin));
+		sizeBeforeRestrictBigInteger = BigInteger.valueOf(sizeBeforeRestrict);
 		speedBeforeRestrict = (int)(speedBeforeRestrictMin + cosineWithOffset*(speedBeforeRestrictMax-speedBeforeRestrictMin));
+		speedBeforeRestrictBigInteger = BigInteger.valueOf(speedBeforeRestrict);
 		if (sizeSourceLength < stringBestSource.length()) {	
 			sizeSourceLength++;		// smooth convergence for fitness function
 		} else if (sizeSourceLength > stringBestSource.length()) {
