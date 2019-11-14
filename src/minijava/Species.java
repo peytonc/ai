@@ -55,17 +55,14 @@ public class Species implements Runnable {
 	private List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(MAX_POPULATION);
 	private String stringBestSource;
 	private int stagnantDays = 0;
-
-	private Tests tests = null;
 	
 	private final String PROGRAM_FILENAME;
 	private int year;
 	private int day;
 	
 
-	public Species(int species, String sourceOrigin, Tests tests) {
+	public Species(int species, String sourceOrigin) {
 		this.species = species;
-		this.tests = tests;
 		PROGRAM_FILENAME = new String("data" + File.separator + "GeneticProgram" + species + ".java");
 		try {
 			stringBestSource = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
@@ -128,7 +125,7 @@ public class Species implements Runnable {
 		if(listProgramParent.isEmpty()) {
 			stagnantDays = MAX_STAGNANT_DAYS;
 			// create new program using best source. increase generational fitness because program was historically best
-			Program program = new Program(stringBestSource, species, 0, MIN_GENERATIONAL_FITNESS, MIN_GENERATIONAL_FITNESS, tests);
+			Program program = new Program(stringBestSource, species, 0, MIN_GENERATIONAL_FITNESS, MIN_GENERATIONAL_FITNESS);
 			listProgramParent.add(program);
 			LOGGER.info("RESTARTEDY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + listProgramParent.get(0).source);
 		}
@@ -137,7 +134,7 @@ public class Species implements Runnable {
 			long generation = program.fitness.generation;
 			long generationalFitness = program.fitness.generationalFitness;
 			source = replacePackage(program.source, species, indexPackage);
-			Program programParent = new Program(source, species, indexPackage, generation, generationalFitness, tests);
+			Program programParent = new Program(source, species, indexPackage, generation, generationalFitness);
 			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(CharStreams.fromString(programParent.source));
 			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
 			programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR only allows one call to program() before EOF error?
@@ -156,7 +153,7 @@ public class Species implements Runnable {
 				}
 				source = createProgram(program, program2, program.source);
 				source = replacePackage(source, species, indexPackage);
-				listProgramPopulation.add(new Program(source, species, indexPackage, 0, 0, tests));	// add child to population
+				listProgramPopulation.add(new Program(source, species, indexPackage, 0, 0));	// add child to population
 				indexPackage++;
 			}
 		}
@@ -240,7 +237,7 @@ public class Species implements Runnable {
 	
 	public void evaluatePopulation() {
 		for(Program program : listProgramPopulation) {
-			BigInteger differenceAndCorrect[] = tests.getDifferences(program.vectors);
+			BigInteger differenceAndCorrect[] = Tests.getTests().getDifferences(program.vectors);
 			if(differenceAndCorrect == null) {
 				program.fitness.difference = Constants.LONG_MAX_VALUE;
 				program.fitness.correct = 0;
@@ -323,7 +320,7 @@ public class Species implements Runnable {
 			if(!exists) {
 				long generation = programPopulation.fitness.generation + 1;						// survived another generation
 				long generationalFitness = programPopulation.fitness.generationalFitness + 2;	// program is a top performer, so increase the generational fitness
-				Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, generation, generationalFitness, tests);
+				Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, generation, generationalFitness);
 				listProgramParent.add(programCopy);
 				indexPackage++;
 			}
@@ -352,7 +349,7 @@ public class Species implements Runnable {
 			if(!exists) {
 				long generation = programPopulation.fitness.generation + 1;						// survived another generation
 				long generationalFitness = programPopulation.fitness.generationalFitness - 1;	// program was preserved based on historical performance, so decrease the generational fitness
-				Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, generation, generationalFitness, tests);
+				Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, generation, generationalFitness);
 				listProgramParent.add(programCopy);
 				indexPackage++;
 			}

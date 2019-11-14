@@ -25,13 +25,12 @@ public class GP {
 	public static final int MAX_EXECUTE_MILLISECONDS_95PERCENT = (int) Math.floor(0.95*MAX_EXECUTE_MILLISECONDS);
 	public static final double RESTRICT_MIN_PERCENT = 0.975;	// use small seasonal differences (i.e. RESTRICT_MAX_PERCENT-RESTRICT_MIN_PERCENT < 0.05)
 	public static final double RESTRICT_MAX_PERCENT = 1.025;
-	
 	private static final String PROPERTIES_FILENAME = new String("config.properties");
 	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
 	
 	public static Fitness fitnessBestGlobal = null;
-	private String stringBestSource = null;
-	private Tests tests = new Tests();
+	private static String stringBestSource = null;
+	public static int sizeSourceLength;
 	List<Species> listSpecies = new ArrayList<Species>(MAX_SPECIES);
 	public int sizeBeforeRestrictMin = 0;
 	public int sizeBeforeRestrictMax = 0;
@@ -41,7 +40,7 @@ public class GP {
 	private int speedBeforeRestrictMax = (int)(RESTRICT_MAX_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
 	public static int speedBeforeRestrict = 0;
 	public static BigInteger speedBeforeRestrictBigInteger = Constants.I0;
-	public static int sizeSourceLength;
+	
 	
 	public GP() {
 		try(InputStream inputStream = new FileInputStream(PROPERTIES_FILENAME)) {
@@ -58,7 +57,8 @@ public class GP {
 		stringBestSource = Species.removeSpace(stringBestSource);
 		sizeSourceLength = stringBestSource.length();
 		for(int index=0; index<MAX_SPECIES; index++) {
-			listSpecies.add(new Species(index, stringBestSource, tests));
+			Species species = new Species(index, stringBestSource);
+			listSpecies.add(species);
 		}
 		
 		int year = 0;
@@ -101,13 +101,14 @@ public class GP {
 			index = listSpecies.get(leastFitIndex).species;
 			listSpecies.get(leastFitIndex).extinction();
 			listSpecies.remove(leastFitIndex);
-			listSpecies.add(new Species(index, stringBestSource, tests));
+			Species species = new Species(index, stringBestSource);	// create a new species as replacement to old
+			listSpecies.add(species);
 		}
 	}
 	
 	public void executeDay(int day) {
 		ExecutorService executorService = Executors.newFixedThreadPool(THREADS_PER_SPECIES);
-		tests.createTests();
+		Tests.getTests().createTests();
 		createEnviroment(day);
 		try {
 			for(Species species : listSpecies) {
@@ -130,7 +131,7 @@ public class GP {
 	public void createEnviroment(int day) {
 		// model environment resource (specifically program size) as Summer-Winter-Summer or sizeBeforeRestrictMax-sizeBeforeRestrictMin-sizeBeforeRestrictMax
 		double percent = (double)(day%DAYS_PER_YEAR)/DAYS_PER_YEAR;
-		double cosineWithOffset = (Math.cos(percent*2*Math.PI)+1)/2;	// range in [0,1]
+		double cosineWithOffset = (Math.cos(percent*2.0*Math.PI)+1.0)/2.0;	// range in [0,1]
 		sizeBeforeRestrict = (int)(sizeBeforeRestrictMin + cosineWithOffset*(sizeBeforeRestrictMax-sizeBeforeRestrictMin));
 		sizeBeforeRestrictBigInteger = BigInteger.valueOf(sizeBeforeRestrict);
 		speedBeforeRestrict = (int)(speedBeforeRestrictMin + cosineWithOffset*(speedBeforeRestrictMax-speedBeforeRestrictMin));

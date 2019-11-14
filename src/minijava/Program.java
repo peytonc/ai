@@ -33,7 +33,7 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	 * @param source
 	 *            the source code for the compilation unit represented by this file object
 	 */
-	Program(String source, int species, int ID, long generation, long generationalFitness, Tests tests) {
+	Program(String source, int species, int ID, long generation, long generationalFitness) {
 		super(URI.create("string:///" + PACKAGE_SPECIES + species + '/' + PACKAGE_ID + ID + '/' + PROGRAM_CLASS + Kind.SOURCE.extension), Kind.SOURCE);
 		this.source = new String(source);
 		fitness = new Fitness();
@@ -42,9 +42,9 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 		fitness.size = source.length();
 		this.species = species;
 		this.ID = ID;
-		vectors = new ArrayList<ArrayList<Long>>(tests.listTests.size());
-		for(int index=0; index<tests.listTests.size(); index++) {
-			ArrayList<Long> arrayList = new ArrayList<Long>(tests.listTests.get(index).listTest);
+		vectors = new ArrayList<ArrayList<Long>>(Tests.MAX_TEST_VECTORS);
+		for(Test test : Tests.getTests().listTests) {
+			ArrayList<Long> arrayList = new ArrayList<Long>(test.listTest);
 			vectors.add(arrayList);
 		}
 		programClassLoader = new ProgramClassLoader(ClassLoader.getSystemClassLoader());

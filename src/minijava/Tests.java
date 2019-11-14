@@ -4,14 +4,17 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Tests {
-	public List<Test> listTests;
-	
+public final class Tests {
+	private static final Tests tests = new Tests();
 	public static final int MAX_TEST_VECTORS = 500;
 	public static final BigInteger MAX_TEST_VECTORS_BIG_INTEGER = BigInteger.valueOf(MAX_TEST_VECTORS);
+	public List<Test> listTests;
 	
-	public Tests() {
-		
+	private Tests() {
+	}
+	
+	public static Tests getTests() {
+        return tests; 
 	}
 	
 	public void createTests() {
@@ -29,7 +32,7 @@ public class Tests {
 			BigInteger returnValue[] = new BigInteger[2];
 			BigInteger differenceTotal = Constants.I0;
 			BigInteger correct = Constants.I0;
-			for(int index=0; index<listTests.size(); index++) {
+			for(int index=0; index<MAX_TEST_VECTORS; index++) {
 				BigInteger difference = listTests.get(index).getDifference(vectors.get(index));
 				if(difference == null) {
 					return null;
