@@ -28,15 +28,15 @@ public class Fitness implements Comparable<Fitness> {
 	
 	public void calculateFitness() {
 		fit = difference;
-		if(speed > GP.speedBeforeRestrict) {
+		if(speed > Environment.getEnvironment().speedBeforeRestrict) {
 			// if speed exceeds restriction then punish fitness (by increasing value)
 			// first use multiplication because (integer/integer) is non-continuous and a bad multiplier near [1,2]
-			fit = fit.multiply(BigInteger.valueOf(speed)).divide(GP.speedBeforeRestrictBigInteger);
+			fit = fit.multiply(BigInteger.valueOf(speed)).divide(Environment.getEnvironment().speedBeforeRestrictBigInteger);
 		}
-		if(size > GP.sizeBeforeRestrict) {
+		if(size > Environment.getEnvironment().sizeBeforeRestrict) {
 			// if size exceeds restriction then punish fitness (by increasing value)
 			// first use multiplication because (integer/integer) is non-continuous and a bad multiplier near [1,2]
-			fit = fit.multiply(BigInteger.valueOf(size)).divide(GP.sizeBeforeRestrictBigInteger);
+			fit = fit.multiply(BigInteger.valueOf(size)).divide(Environment.getEnvironment().sizeBeforeRestrictBigInteger);
 		}
 		if(correct > 0) {
 			// if correct answers were found then reward fitness (by reducing value) by wrong/total

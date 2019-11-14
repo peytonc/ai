@@ -6,6 +6,7 @@ import java.util.List;
 
 public final class Tests {
 	private static final Tests tests = new Tests();
+	
 	public static final int MAX_TEST_VECTORS = 500;
 	public static final BigInteger MAX_TEST_VECTORS_BIG_INTEGER = BigInteger.valueOf(MAX_TEST_VECTORS);
 	public List<Test> listTests;

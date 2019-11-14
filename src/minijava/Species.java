@@ -207,11 +207,11 @@ public class Species implements Runnable {
 					executorService.execute(callableMiniJava);
 				}
 				executorService.shutdown();
-				if(!executorService.awaitTermination(GP.MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
+				if(!executorService.awaitTermination(Environment.MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
 					executorService.shutdownNow();
-					int milliseconds = GP.MAX_EXECUTE_MILLISECONDS;
-					while(!executorService.awaitTermination(GP.MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
-						milliseconds += GP.MAX_EXECUTE_MILLISECONDS;
+					int milliseconds = Environment.MAX_EXECUTE_MILLISECONDS;
+					while(!executorService.awaitTermination(Environment.MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
+						milliseconds += Environment.MAX_EXECUTE_MILLISECONDS;
 						LOGGER.warning("Runaway species #" + species + " for " + milliseconds + " milliseconds");
 					}
 				}
@@ -220,7 +220,7 @@ public class Species implements Runnable {
 					Program program = iteratorProgram.next();
 			        if(program.vectors == null) {	// remove program when vectors is null
 			        	iteratorProgram.remove();
-			        } else if(program.fitness.speed > GP.MAX_EXECUTE_MILLISECONDS_95PERCENT) {	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
+			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
 			        	iteratorProgram.remove();
@@ -391,9 +391,9 @@ public class Species implements Runnable {
 			List<ParseTree> listParseTree2 = new ArrayList<ParseTree>();
 			getParseTreeNonLiteral(listParseTree2, program2.blockContext);
 			List<ParseTree> listParseTreeCandidate = new ArrayList<ParseTree>();
-			if(length < GP.sizeBeforeRestrict) {
+			if(length < Environment.getEnvironment().sizeBeforeRestrict) {
 				for(ParseTree parseTree2 : listParseTree2) {	// add all equivalent class types
-					if(length + parseTree2.getText().length() < GP.sizeBeforeRestrict) {
+					if(length + parseTree2.getText().length() < Environment.getEnvironment().sizeBeforeRestrict) {
 						if(!parseTree2.getClass().getName().equals("minijava.parser.MiniJavaParser$BlockContext")) {	// don't add blocks, as it results in equivalent program
 							if(parseTree2.getClass().getName().equals(parseTree1.getClass().getName())) {
 								if (parseTree2.getClass().getName().equals("org.antlr.v4.runtime.tree.TerminalNodeImpl")) {	// TerminalNodeImpl has multiple sub-types
