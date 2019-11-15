@@ -47,7 +47,8 @@ public class Fitness implements Comparable<Fitness> {
 	}
 	
 	public String toString() {
-		return "Fitness{" + "gen=" + generation + ",genFit=" + generationalFitness + ",fit=" + fit + ",diff=" + difference + ",correct=" + correct + ",speed=" + speed + ",size=" + size  + "}";
+		//return "Fitness{" + "gen=" + generation + ",genFit=" + generationalFitness + ",fit=" + fit + ",diff=" + difference + ",correct=" + correct + ",speed=" + speed + ",size=" + size  + "}";
+		return generation + "\t" + generationalFitness + "\t" + fit + "\t" + difference + "\t" + correct + "\t" + speed + "\t" + size;
 	}
 	
 	@Override

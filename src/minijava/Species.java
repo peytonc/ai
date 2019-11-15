@@ -104,8 +104,9 @@ public class Species implements Runnable {
 		storeBestFitness();
 		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			int count =0;
+			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
 			for(Program program : listProgramPopulation) {
-				LOGGER.info("\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				LOGGER.info("\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
 				count++;
 			}
 		}
