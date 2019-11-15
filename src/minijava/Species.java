@@ -38,7 +38,6 @@ public class Species implements Runnable {
 	public int stagnant = MAX_STAGNANT_YEARS;
 	public int species;
 	
-	private static final int MAX_STAGNANT_DAYS = 3;		// number of days a species continue without a child population surviving
 	private static final int MAX_STAGNANT_YEARS = 4;	// number of years a species can live without progress on bestfit
 	private static final int MAX_PARENT = 6;	// Size of parent pool
 	private static final int MAX_CHILDREN = 2;	// Number of children each parent produces
@@ -54,7 +53,6 @@ public class Species implements Runnable {
 	private List<Program> listProgramPopulation = new ArrayList<Program>(MAX_POPULATION);
 	private List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(MAX_POPULATION);
 	private String stringBestSource;
-	private int stagnantDays = 0;
 	
 	private final String PROGRAM_FILENAME;
 	private int year;
@@ -98,24 +96,68 @@ public class Species implements Runnable {
 	@Override
 	public void run() {
 		createPopulation();
+		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+			int count =0;
+			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+			for(Program program : listProgramPopulation) {
+				LOGGER.info("\tcreatePopulation\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				count++;
+				break;
+			}
+		}
 		compilePopulation();
+		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+			int count =0;
+			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+			for(Program program : listProgramPopulation) {
+				LOGGER.info("\tcompilePopulation\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				count++;
+				break;
+			}
+		}
 		executePopulation();
+		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+			int count =0;
+			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+			for(Program program : listProgramPopulation) {
+				LOGGER.info("\texecutePopulation\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				count++;
+				break;
+			}
+		}
 		evaluatePopulation();
+		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+			int count =0;
+			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+			for(Program program : listProgramPopulation) {
+				LOGGER.info("\tevaluatePopulation\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				count++;
+				break;
+			}
+		}
 		storeBestFitness();
 		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			int count =0;
 			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
 			for(Program program : listProgramPopulation) {
-				LOGGER.info("\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				LOGGER.info("\tstoreBestFitness\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
 				count++;
+				break;
 			}
 		}
-		if(listProgramPopulation.isEmpty() && stagnantDays>0) {
-			stagnantDays--;		// under rare conditions, don't reset parent population because entire offspring population can die off. so preserve for MAX_STAGNANT_DAYS
+		if(listProgramPopulation.isEmpty()) {
 			LOGGER.info("\t" + year + "\t" + day + "\t" + -1 + "\t" + species);
 		} else {
-			stagnantDays = MAX_STAGNANT_DAYS;
 			downselectPopulation();
+		}
+		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+			int count =0;
+			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+			for(Program program : listProgramPopulation) {
+				LOGGER.info("\tdownselectPopulation\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				count++;
+				break;
+			}
 		}
 	}
 
@@ -124,7 +166,6 @@ public class Species implements Runnable {
 		String source;
 		listProgramPopulation.clear();
 		if(listProgramParent.isEmpty()) {
-			stagnantDays = MAX_STAGNANT_DAYS;
 			// create new program using best source. increase generational fitness because program was historically best
 			Program program = new Program(stringBestSource, species, 0, MIN_GENERATIONAL_FITNESS, MIN_GENERATIONAL_FITNESS);
 			listProgramParent.add(program);
