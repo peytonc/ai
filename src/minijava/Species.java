@@ -96,15 +96,6 @@ public class Species implements Runnable {
 	@Override
 	public void run() {
 		createPopulation();
-		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
-			int count =0;
-			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
-			for(Program program : listProgramPopulation) {
-				LOGGER.info("\tcreatePopulation\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
-				count++;
-				break;
-			}
-		}
 		compilePopulation();
 		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
 			int count =0;
@@ -136,28 +127,10 @@ public class Species implements Runnable {
 			}
 		}
 		storeBestFitness();
-		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
-			int count =0;
-			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
-			for(Program program : listProgramPopulation) {
-				LOGGER.info("\tstoreBestFitness\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
-				count++;
-				break;
-			}
-		}
 		if(listProgramPopulation.isEmpty()) {
 			LOGGER.info("\t" + year + "\t" + day + "\t" + -1 + "\t" + species);
 		} else {
 			downselectPopulation();
-		}
-		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
-			int count =0;
-			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
-			for(Program program : listProgramPopulation) {
-				LOGGER.info("\tdownselectPopulation\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
-				count++;
-				break;
-			}
 		}
 	}
 
@@ -261,12 +234,14 @@ public class Species implements Runnable {
 				for (Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); iteratorProgram.hasNext();) {
 					Program program = iteratorProgram.next();
 			        if(program.vectors == null) {	// remove program when vectors is null
+			        	LOGGER.info("\tprogram.vectors\t" + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
+			        	LOGGER.info("\tMAX_EXECUTE_MILLISECONDS_95PERCENT\t" + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
-			        	iteratorProgram.remove();
 			        	listProgramPopulationCompleted.add(program);
+			        	iteratorProgram.remove();
 			        }
 			    }
 			} catch (InterruptedException e) {
