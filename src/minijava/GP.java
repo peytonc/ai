@@ -3,6 +3,8 @@ package minijava;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ public class GP {
 	private static final String PROPERTIES_FILENAME = new String("config.properties");
 	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
 	
+	public static final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 	public static Fitness fitnessBestGlobal = null;
 	private static String stringBestSource = null;
 	public static int sizeSourceLength;
@@ -29,6 +32,13 @@ public class GP {
 	
 	
 	public GP() {
+		try {
+			threadMXBean.setThreadCpuTimeEnabled(true);
+		} catch (UnsupportedOperationException | SecurityException e) {
+			LOGGER.severe("OS and JVM must support CPU time as defined by ThreadMXBean");
+			return;
+		}
+		
 		try(InputStream inputStream = new FileInputStream(PROPERTIES_FILENAME)) {
 			LogManager.getLogManager().readConfiguration(inputStream);
 		} catch (IOException e) {

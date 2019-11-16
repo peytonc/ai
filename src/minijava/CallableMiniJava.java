@@ -3,11 +3,14 @@ package minijava;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class CallableMiniJava implements Runnable {
 	private Program program = null;
 	private Class<?> cls = null;
-	Method method = null;
+	private Method method = null;
+	
+	private static final Logger LOGGER = Logger.getLogger(CallableMiniJava.class.getName());
 	
 	public CallableMiniJava(Program program) {
 		if(program.vectors != null) {
@@ -32,17 +35,18 @@ public class CallableMiniJava implements Runnable {
 	@Override
 	public void run() {
 		if(method != null) {
+			Thread thread = Thread.currentThread();
 			long timeStart = 0;
 			try {
 				boolean isInterrupted = false;
 				int index = 0;
 				for(; index<program.vectors.size(); index++) {
-					if(Thread.currentThread().isInterrupted()) {
+					if(thread.isInterrupted()) {
 						isInterrupted = true;
 						break;
 					} else {
 						if(timeStart == 0) {
-							timeStart = System.nanoTime();
+							timeStart = GP.threadMXBean.getThreadCpuTime(thread.getId());
 						}
 						method.invoke(null, program.vectors.get(index));
 						if(program.vectors.get(index)==null || program.vectors.get(index).isEmpty()) {
@@ -62,7 +66,13 @@ public class CallableMiniJava implements Runnable {
 			if(timeStart == 0) {
 				program.fitness.speed = 0;
 			} else {
-				program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart) + 1;	// add +1 to show process ran
+				long timeStop = GP.threadMXBean.getThreadCpuTime(thread.getId());
+				if(timeStart == -1 || timeStop == -1) {
+					program.fitness.speed = Integer.MAX_VALUE;
+					LOGGER.severe("OS and JVM must support CPU time as defined by ThreadMXBean");
+				} else {
+					program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(timeStop - timeStart) + 1;	// add +1 to show process ran
+				}
 			}
 		}
 	}
