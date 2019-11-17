@@ -66,6 +66,7 @@ public class GP {
 				executeDay(day);
 			}
 			year++;
+			System.gc();
 		} while(!isSolved());
 	}
 	
