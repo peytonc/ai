@@ -53,7 +53,6 @@ public class Species implements Runnable {
 	private static final int MIN_GENERATIONAL_FITNESS = 3;	// minimum generational fitness before storage as bestfit
 	private List<Program> listProgramParent = new ArrayList<Program>(MAX_PARENT);
 	private List<Program> listProgramPopulation = new ArrayList<Program>(MAX_POPULATION);
-	private List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(MAX_POPULATION);
 	private String stringBestSource;
 	
 	private final String PROGRAM_FILENAME;
@@ -189,6 +188,7 @@ public class Species implements Runnable {
 	}
 	
 	public void executePopulation() {
+		List<CallableMiniJava> listCallable = new ArrayList<CallableMiniJava>(MAX_POPULATION);
 		List<Program> listProgramPopulationCompleted = new ArrayList<Program>(MAX_POPULATION);
 		
 		do {	// run all program until completed or eliminated from population
@@ -196,11 +196,7 @@ public class Species implements Runnable {
 			try {	// Load the class and use it
 				listCallable.clear();
 				for(Program program : listProgramPopulation) {
-					if(program.vectors != null) {
-						listCallable.add(new CallableMiniJava(program));
-					} else {
-						LOGGER.severe("TODO ERROR WORK HERE TODO ERROR WORK HERE TODO ERROR WORK HERE TODO ERROR WORK HERE TODO ERROR WORK HERE ");
-					}
+					listCallable.add(new CallableMiniJava(program));
 				}
 				for(CallableMiniJava callableMiniJava : listCallable) {
 					executorService.execute(callableMiniJava);
@@ -242,11 +238,12 @@ public class Species implements Runnable {
 	}
 	
 	public void evaluatePopulation() {
-		for(Program program : listProgramPopulation) {
+		for (Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); iteratorProgram.hasNext();) {
+			Program program = iteratorProgram.next();
 			BigInteger differenceAndCorrect[] = Tests.getTests().getDifferences(program.vectors);
 			if(differenceAndCorrect == null) {
-				program.fitness.difference = Constants.LONG_MAX_VALUE;
-				program.fitness.correct = 0;
+				program.programClassLoader.mapProgramClass.clear();
+				iteratorProgram.remove();
 			} else {
 				program.fitness.difference = differenceAndCorrect[0].divide(BigInteger.valueOf(program.vectors.size()));
 				program.fitness.correct = differenceAndCorrect[1].intValue();
