@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import minijava.comparator.FitnessComparators;
+
 public class GP {
 	public static final String PROGRAM_FILENAME = new String("GeneticProgram.java");
 	public static final int MAX_SPECIES = 1;	// Number of species in environment
@@ -87,7 +89,7 @@ public class GP {
 				if(fitnessLeastFit == null) {
 					leastFitIndex = index;
 					fitnessLeastFit = species.fitnessBest;
-				} else if(fitnessLeastFit.compareTo(species.fitnessBest) < 0) {
+				} else if(FitnessComparators.BY_FIT.compare(fitnessLeastFit, species.fitnessBest) < 0) {
 					leastFitIndex = index;
 					fitnessLeastFit = species.fitnessBest;
 				}

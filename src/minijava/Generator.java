@@ -139,6 +139,9 @@ public class Generator {
 							stringBuilder.append("}");
 						}
 						return stringBuilder.toString();
+					default:
+						LOGGER.severe("Defective code in generateStatementContext)");
+						return null;
 				}
 			case 1:
 				if(sourceStatement != null) {
@@ -158,6 +161,9 @@ public class Generator {
 						stringBuilder.append(sourceStatement);
 						stringBuilder.append("}");
 						return stringBuilder.toString();
+					default:
+						LOGGER.severe("Defective code in generateStatementContext)");
+						return null;
 				}
 			case 2:
 				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGARRAYNAME"));

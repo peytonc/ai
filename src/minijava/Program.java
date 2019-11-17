@@ -6,13 +6,14 @@ import java.util.Comparator;
 
 import javax.tools.SimpleJavaFileObject;
 
+import minijava.comparator.FitnessComparators;
 import minijava.parser.MiniJavaParser;
 import minijava.parser.MiniJavaParser.BlockContext;
 
 /**
  * A file object used to represent source coming from a string.
  */
-public class Program extends SimpleJavaFileObject implements Comparable<Program> {
+public class Program extends SimpleJavaFileObject {
 	public static final String PROGRAM_CLASS = new String("GeneticProgram");
 	public static final String PACKAGE_SPECIES = new String("species");
 	public static final String PACKAGE_ID = new String("id");
@@ -54,26 +55,4 @@ public class Program extends SimpleJavaFileObject implements Comparable<Program>
 	public CharSequence getCharContent(boolean ignoreEncodingErrors) {
 		return source;
 	}
-	
-	@Override
-	public int compareTo(Program program) {
-		return fitness.compareTo(program.fitness);
-	}
-	
-}
-
-class ProgramComparatorByFit implements Comparator<Program> {
-    public int compare(Program program1, Program program2) { 
-		FitnessComparatorByFit fitnessComparatorByFit = new FitnessComparatorByFit();
-		int compare = fitnessComparatorByFit.compare(program1.fitness, program2.fitness);
-		return compare;
-    }
-}
-
-class ProgramComparatorByGenerational implements Comparator<Program> {
-    public int compare(Program program1, Program program2) { 
-		FitnessComparatorByGenerational fitnessComparatorByGenerational = new FitnessComparatorByGenerational();
-		int compare = fitnessComparatorByGenerational.compare(program1.fitness, program2.fitness);
-		return compare;
-    }
 }

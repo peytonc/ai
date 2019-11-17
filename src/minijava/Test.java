@@ -7,7 +7,7 @@ import java.util.Random;
 
 public class Test {
 	public List<Long> listTest;
-	public List<ArrayList<Long>> listAnswer;
+	public ArrayList<ArrayList<Long>> listAnswer;
 	
 	private static final Random RANDOM = new Random(GP.RANDOM_SEED);
 	private static final int MAX_TEST_VECTOR_SIZE = 1;

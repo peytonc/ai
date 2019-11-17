@@ -30,6 +30,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import minijava.comparator.FitnessComparators;
+import minijava.comparator.ProgramComparators;
 import minijava.parser.MiniJavaLexer;
 import minijava.parser.MiniJavaParser;
 
@@ -252,13 +254,14 @@ public class Species implements Runnable {
 		if(listProgramPopulation==null || listProgramPopulation.isEmpty()) {
 			return;
 		}
-		Collections.sort(listProgramPopulation);
+		Collections.sort(listProgramPopulation, ProgramComparators.BY_FIT);
 		if(fitnessBest == null) {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			stringBestSource = listProgramPopulation.get(0).source;
 			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + listProgramPopulation.get(0).source);
-		} else if(listProgramPopulation.get(0).fitness.generationalFitness>=MIN_GENERATIONAL_FITNESS && fitnessBest.compareTo(listProgramPopulation.get(0).fitness) > 0) {
+		} else if(listProgramPopulation.get(0).fitness.generationalFitness>=MIN_GENERATIONAL_FITNESS 
+				&& FitnessComparators.BY_FIT.compare(fitnessBest, listProgramPopulation.get(0).fitness) > 0) {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			try {
@@ -280,7 +283,7 @@ public class Species implements Runnable {
 		final String PROGRAM_FILENAME_GLOBAL = new String("data" + File.separator + "GeneticProgram.java");
 		if(GP.fitnessBestGlobal == null) {
 			GP.fitnessBestGlobal = fitnessBest;
-		} else if(GP.fitnessBestGlobal.compareTo(fitnessBest) > 0) {
+		} else if(FitnessComparators.BY_FIT.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
 			GP.fitnessBestGlobal = fitnessBest;
 			try {
 				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
@@ -327,7 +330,7 @@ public class Species implements Runnable {
 		}
 		
 		// preserve a set of programs based on historical fitness (MAX_GENERATION_PRESERVE)
-		Collections.sort(listProgramPopulation, new ProgramComparatorByGenerational());
+		Collections.sort(listProgramPopulation, ProgramComparators.BY_GENERATIONAL);
 		iteratorProgramPopulation = listProgramPopulation.iterator();
 		while (iteratorProgramPopulation.hasNext()) {
 			Program programPopulation = iteratorProgramPopulation.next();
