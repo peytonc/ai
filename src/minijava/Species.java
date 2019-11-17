@@ -177,6 +177,13 @@ public class Species implements Runnable {
 					program.programClassLoader.mapProgramClass.clear();
 					program.programClassLoader.mapProgramClass = null;
 					program.programClassLoader = null;
+					program.blockContext = null;
+					program.fitness = null;
+					program.ID = -1;
+					program.miniJavaParser = null;
+					program.source = null;
+					program.species = -1;
+					program.vectors = null;
 					program = null;
 					iteratorProgram.remove();
 					for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
@@ -220,13 +227,27 @@ public class Species implements Runnable {
 			        	program.programClassLoader.mapProgramClass.clear();
 			        	program.programClassLoader.mapProgramClass = null;
 						program.programClassLoader = null;
+						program.blockContext = null;
+						program.fitness = null;
+						program.ID = -1;
+						program.miniJavaParser = null;
+						program.source = null;
+						program.species = -1;
+						program.vectors = null;
 						program = null;
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
-			        	//LOGGER.info("\tMAX_EXECUTE_MILLISECONDS_95PERCENT\t" + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+			        	LOGGER.info("\tMAX_EXECUTE_MILLISECONDS_95PERCENT\t" + "\t" + program.species + "\t" + program.ID + "\t" + program.fitness.toString() + "\t" + program.source);
 			        	program.programClassLoader.mapProgramClass.clear();
 			        	program.programClassLoader.mapProgramClass = null;
 						program.programClassLoader = null;
+						program.blockContext = null;
+						program.fitness = null;
+						program.ID = -1;
+						program.miniJavaParser = null;
+						program.source = null;
+						program.species = -1;
+						program.vectors = null;
 						program = null;
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
@@ -254,6 +275,13 @@ public class Species implements Runnable {
 				program.programClassLoader.mapProgramClass.clear();
 				program.programClassLoader.mapProgramClass = null;
 				program.programClassLoader = null;
+				program.blockContext = null;
+				program.fitness = null;
+				program.ID = -1;
+				program.miniJavaParser = null;
+				program.source = null;
+				program.species = -1;
+				program.vectors = null;
 				program = null;
 				iteratorProgram.remove();
 			} else {
