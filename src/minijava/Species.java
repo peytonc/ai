@@ -175,6 +175,9 @@ public class Species implements Runnable {
 				//Compile and check for program errors, random code may have compile errors
 				if (!compilerTask.call()) {
 					program.programClassLoader.mapProgramClass.clear();
+					program.programClassLoader.mapProgramClass = null;
+					program.programClassLoader = null;
+					program = null;
 					iteratorProgram.remove();
 					for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
 						LOGGER.severe(diagnostic.getMessage(null));
@@ -194,7 +197,6 @@ public class Species implements Runnable {
 		do {	// run all program until completed or eliminated from population
 			ExecutorService executorService = Executors.newFixedThreadPool(GP.THREADS_PER_SPECIES-1);
 			try {	// Load the class and use it
-				listCallable.clear();
 				for(Program program : listProgramPopulation) {
 					listCallable.add(new CallableMiniJava(program));
 				}
@@ -216,10 +218,16 @@ public class Species implements Runnable {
 			        if(program.vectors == null) {	// remove program when vectors is null
 			        	//LOGGER.info("\tprogram.vectors\t" + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
 			        	program.programClassLoader.mapProgramClass.clear();
+			        	program.programClassLoader.mapProgramClass = null;
+						program.programClassLoader = null;
+						program = null;
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
 			        	//LOGGER.info("\tMAX_EXECUTE_MILLISECONDS_95PERCENT\t" + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
 			        	program.programClassLoader.mapProgramClass.clear();
+			        	program.programClassLoader.mapProgramClass = null;
+						program.programClassLoader = null;
+						program = null;
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
 			        	listProgramPopulationCompleted.add(program);
@@ -230,6 +238,7 @@ public class Species implements Runnable {
 				e.printStackTrace();
 				LOGGER.severe("Exception on species #" + species);
 			}
+			listCallable.clear();
 		} while (!listProgramPopulation.isEmpty());
 		listProgramPopulation = listProgramPopulationCompleted;
 		for(Program program : listProgramPopulation) {
@@ -243,6 +252,9 @@ public class Species implements Runnable {
 			BigInteger differenceAndCorrect[] = Tests.getTests().getDifferences(program.vectors);
 			if(differenceAndCorrect == null) {
 				program.programClassLoader.mapProgramClass.clear();
+				program.programClassLoader.mapProgramClass = null;
+				program.programClassLoader = null;
+				program = null;
 				iteratorProgram.remove();
 			} else {
 				program.fitness.difference = differenceAndCorrect[0].divide(BigInteger.valueOf(program.vectors.size()));
