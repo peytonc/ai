@@ -174,13 +174,14 @@ public class Species implements Runnable {
 				CompilationTask compilerTask = JAVA_COMPILER.getTask(null, programForwardingJavaFileManager, diagnostics, null, null, javaFileObject);
 				Boolean success = compilerTask.call();
 				for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+					program.programClassLoader.mapProgramClass.clear();
 					program.vectors = null;
 					LOGGER.severe(diagnostic.getMessage(null));
 			    }
 				if (!success) {	//Compile and check for program errors, random code may have compile errors
-					if(diagnostics.getDiagnostics().size() != 0) {
-						program.vectors = null;
-					}
+					program.programClassLoader.mapProgramClass.clear();
+					LOGGER.severe(diagnostics.getDiagnostics().toString());
+					program.vectors = null;
 				    
 				}
 			} catch (IOException e) {
@@ -219,9 +220,11 @@ public class Species implements Runnable {
 					Program program = iteratorProgram.next();
 			        if(program.vectors == null) {	// remove program when vectors is null
 			        	//LOGGER.info("\tprogram.vectors\t" + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+			        	program.programClassLoader.mapProgramClass.clear();
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
 			        	//LOGGER.info("\tMAX_EXECUTE_MILLISECONDS_95PERCENT\t" + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+			        	program.programClassLoader.mapProgramClass.clear();
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
 			        	listProgramPopulationCompleted.add(program);
@@ -234,6 +237,9 @@ public class Species implements Runnable {
 			}
 		} while (!listProgramPopulation.isEmpty());
 		listProgramPopulation = listProgramPopulationCompleted;
+		for(Program program : listProgramPopulation) {
+			program.programClassLoader.mapProgramClass.clear();
+		}
 	}
 	
 	public void evaluatePopulation() {
