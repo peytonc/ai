@@ -59,7 +59,9 @@ public class GP {
 			Species species = new Species(index, stringBestSource);
 			listSpecies.add(species);
 		}
-		
+	}
+	
+	public void simulate() {
 		int year = 0;
 		do {
 			initalizeYear(year);
@@ -143,5 +145,6 @@ public class GP {
 	
 	public static void main(String[] args) {
 		GP gp = new GP();
+		gp.simulate();
 	}
 }

@@ -162,7 +162,7 @@ public class Species implements Runnable {
 		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
 		for(Program program : listProgramPopulation) {
 			try (StandardJavaFileManager standardJavaFileManager = JAVA_COMPILER.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
-				Iterable<? extends JavaFileObject> javaFileObject = Arrays.asList(program);
+				Iterable<Program> javaFileObject = Arrays.asList(program);
 				ProgramClassSimpleJavaFileObject programClassSimpleJavaFileObject = null;
 				try {
 					programClassSimpleJavaFileObject = new ProgramClassSimpleJavaFileObject(Program.PACKAGE_SPECIES + species + "." + Program.PACKAGE_ID + program.ID + "." + Program.PROGRAM_CLASS);

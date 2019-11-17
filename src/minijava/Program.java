@@ -2,11 +2,9 @@ package minijava;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Comparator;
 
 import javax.tools.SimpleJavaFileObject;
 
-import minijava.comparator.FitnessComparators;
 import minijava.parser.MiniJavaParser;
 import minijava.parser.MiniJavaParser.BlockContext;
 
