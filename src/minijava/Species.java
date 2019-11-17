@@ -160,29 +160,26 @@ public class Species implements Runnable {
 	
 	public void compilePopulation() { 
 		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-		for(Program program : listProgramPopulation) {
+		for (Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); iteratorProgram.hasNext();) {
+			Program program = iteratorProgram.next();
 			try (StandardJavaFileManager standardJavaFileManager = JAVA_COMPILER.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
 				Iterable<Program> javaFileObject = Arrays.asList(program);
 				ProgramClassSimpleJavaFileObject programClassSimpleJavaFileObject = null;
 				try {
 					programClassSimpleJavaFileObject = new ProgramClassSimpleJavaFileObject(Program.PACKAGE_SPECIES + species + "." + Program.PACKAGE_ID + program.ID + "." + Program.PROGRAM_CLASS);
 				} catch (Exception e) {
-					program.vectors = null;
+					iteratorProgram.remove();
 					e.printStackTrace();
 				}
 				ProgramForwardingJavaFileManager programForwardingJavaFileManager = new ProgramForwardingJavaFileManager(standardJavaFileManager, programClassSimpleJavaFileObject, program.programClassLoader);
 				CompilationTask compilerTask = JAVA_COMPILER.getTask(null, programForwardingJavaFileManager, diagnostics, null, null, javaFileObject);
-				Boolean success = compilerTask.call();
-				for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+				//Compile and check for program errors, random code may have compile errors
+				if (!compilerTask.call()) {
 					program.programClassLoader.mapProgramClass.clear();
-					program.vectors = null;
-					LOGGER.severe(diagnostic.getMessage(null));
-			    }
-				if (!success) {	//Compile and check for program errors, random code may have compile errors
-					program.programClassLoader.mapProgramClass.clear();
-					LOGGER.severe(diagnostics.getDiagnostics().toString());
-					program.vectors = null;
-				    
+					iteratorProgram.remove();
+					for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+						LOGGER.severe(diagnostic.getMessage(null));
+				    }
 				}
 			} catch (IOException e) {
 				LOGGER.severe("Must use JDK (Java bin directory must contain javac)");
@@ -201,6 +198,8 @@ public class Species implements Runnable {
 				for(Program program : listProgramPopulation) {
 					if(program.vectors != null) {
 						listCallable.add(new CallableMiniJava(program));
+					} else {
+						LOGGER.severe("TODO ERROR WORK HERE TODO ERROR WORK HERE TODO ERROR WORK HERE TODO ERROR WORK HERE TODO ERROR WORK HERE ");
 					}
 				}
 				for(CallableMiniJava callableMiniJava : listCallable) {
