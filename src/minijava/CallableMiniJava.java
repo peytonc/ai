@@ -36,6 +36,7 @@ public class CallableMiniJava implements Runnable {
 	public void run() {
 		if(method != null) {
 			Thread thread = Thread.currentThread();
+			thread.setPriority(Thread.MIN_PRIORITY);	// CallableMiniJava gets the lowest priority and is often computing results (minimum priority to avoid GP and Species starvation)
 			long timeStart = 0;
 			try {
 				boolean isInterrupted = false;

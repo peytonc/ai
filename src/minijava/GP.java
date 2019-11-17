@@ -32,6 +32,7 @@ public class GP {
 	
 	
 	public GP() {
+		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);	// GP has the highest priority and is almost always sleeping (highest priority to interrupt Species and CallableMiniJava)
 		try {
 			threadMXBean.setThreadCpuTimeEnabled(true);
 		} catch (UnsupportedOperationException | SecurityException e) {

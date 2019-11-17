@@ -95,6 +95,7 @@ public class Species implements Runnable {
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setPriority(Thread.NORM_PRIORITY);	// Species has a normal priority and is often sleeping (normal priority to interrupt CallableMiniJava)
 		createPopulation();
 		compilePopulation();
 		executePopulation();
