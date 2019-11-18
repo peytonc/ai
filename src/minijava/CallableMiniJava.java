@@ -37,18 +37,14 @@ public class CallableMiniJava implements Runnable {
 		if(method != null) {
 			Thread thread = Thread.currentThread();
 			thread.setPriority(Thread.MIN_PRIORITY);	// CallableMiniJava gets the lowest priority and is often computing results (minimum priority to avoid GP and Species starvation)
-			long timeStart = 0;
+			long timeStart = GP.threadMXBean.getThreadCpuTime(thread.getId());
 			try {
-				boolean isInterrupted = false;
 				int index = 0;
 				for(; index<program.vectors.size(); index++) {
 					if(thread.isInterrupted()) {
-						isInterrupted = true;
+						program.fitness.isInterrupted = true;
 						break;
 					} else {
-						if(timeStart == 0) {
-							timeStart = GP.threadMXBean.getThreadCpuTime(thread.getId());
-						}
 						method.invoke(null, program.vectors.get(index));
 						if(program.vectors.get(index)==null || program.vectors.get(index).isEmpty()) {
 							program.vectors = null;
@@ -56,7 +52,7 @@ public class CallableMiniJava implements Runnable {
 						}
 					}
 				}
-				if(!isInterrupted && program.vectors != null && index==program.vectors.size()) {
+				if(!program.fitness.isInterrupted && program.vectors != null && index==program.vectors.size()) {
 					program.fitness.isComplete = true;
 				}
 			} catch(Exception e) {

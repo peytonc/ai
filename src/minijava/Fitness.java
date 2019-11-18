@@ -12,6 +12,7 @@ public class Fitness {
 	public long speed;
 	public int size;
 	public boolean isComplete;
+	public boolean isInterrupted;
 	
 	public ArrayList<ArrayList<Long>> vectors; 
 
@@ -25,6 +26,7 @@ public class Fitness {
 		speed = Integer.MAX_VALUE;
 		size = Integer.MAX_VALUE;
 		isComplete = false;
+		isInterrupted = false;
 	}
 	
 	public void calculateFitness() {
