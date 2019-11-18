@@ -37,8 +37,8 @@ public class CallableMiniJava implements Runnable {
 		if(method != null) {
 			Thread thread = Thread.currentThread();
 			thread.setPriority(Thread.MIN_PRIORITY);	// CallableMiniJava gets the lowest priority and is often computing results (minimum priority to avoid GP and Species starvation)
-			//long timeStart = GP.threadMXBean.getThreadCpuTime(thread.getId());
-			long timeStart = GP.threadMXBean.getThreadUserTime(thread.getId());
+			long timeStart = GP.threadMXBean.getThreadCpuTime(thread.getId());
+			long timeStartU = GP.threadMXBean.getThreadUserTime(thread.getId());
 			try {
 				int index = 0;
 				for(; index<program.vectors.size(); index++) {
@@ -64,12 +64,14 @@ public class CallableMiniJava implements Runnable {
 			if(timeStart == 0) {
 				program.fitness.speed = 0;
 			} else {
-				//long timeStop = GP.threadMXBean.getThreadCpuTime(thread.getId());
-				long timeStop = GP.threadMXBean.getThreadUserTime(thread.getId());
+				long timeStop = GP.threadMXBean.getThreadCpuTime(thread.getId());
+				long timeStopU = GP.threadMXBean.getThreadUserTime(thread.getId());
 				if(timeStart == -1 || timeStop == -1) {
 					program.fitness.speed = Integer.MAX_VALUE;
 					LOGGER.severe("OS and JVM must support CPU time as defined by ThreadMXBean");
 				} else {
+					LOGGER.info("\tCallableMiniJava\t" + "\t" + program.species + "\t" + program.ID + "\t" + timeStart + "\t" + timeStartU + "\t" + timeStop + "\t" + timeStopU 
+							+ "\t" + program.fitness.toString() + "\t" + program.source);
 					program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(timeStop - timeStart) + 1;	// add +1 to show process ran
 				}
 			}
