@@ -236,7 +236,8 @@ public class Species implements Runnable {
 						program.vectors = null;
 						program = null;
 			        	iteratorProgram.remove();
-			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
+			        } else if(program.fitness.isInterrupted && program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {
+			        	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
 			        	LOGGER.info("\tMAX_EXECUTE_MILLISECONDS_95PERCENT\t" + "\t" + program.species + "\t" + program.ID + "\t" + program.fitness.toString() + "\t" + program.source);
 			        	program.programClassLoader.mapProgramClass.clear();
 			        	program.programClassLoader.mapProgramClass = null;
