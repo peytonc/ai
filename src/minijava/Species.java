@@ -174,17 +174,6 @@ public class Species implements Runnable {
 				CompilationTask compilerTask = JAVA_COMPILER.getTask(null, programForwardingJavaFileManager, diagnostics, null, null, javaFileObject);
 				//Compile and check for program errors, random code may have compile errors
 				if (!compilerTask.call()) {
-					program.programClassLoader.mapProgramClass.clear();
-					program.programClassLoader.mapProgramClass = null;
-					program.programClassLoader = null;
-					program.blockContext = null;
-					program.fitness = null;
-					program.ID = -1;
-					program.miniJavaParser = null;
-					program.source = null;
-					program.species = -1;
-					program.vectors = null;
-					program = null;
 					iteratorProgram.remove();
 					for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
 						LOGGER.severe(diagnostic.getMessage(null));
@@ -224,32 +213,10 @@ public class Species implements Runnable {
 					Program program = iteratorProgram.next();
 			        if(program.vectors == null) {	// remove program when vectors is null
 			        	//LOGGER.info("\tprogram.vectors\t" + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
-			        	program.programClassLoader.mapProgramClass.clear();
-			        	program.programClassLoader.mapProgramClass = null;
-						program.programClassLoader = null;
-						program.blockContext = null;
-						program.fitness = null;
-						program.ID = -1;
-						program.miniJavaParser = null;
-						program.source = null;
-						program.species = -1;
-						program.vectors = null;
-						program = null;
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isInterrupted && program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {
 			        	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
 			        	LOGGER.info("\tMAX_EXECUTE_MILLISECONDS_95PERCENT\t" + "\t" + program.species + "\t" + program.ID + "\t" + program.fitness.toString() + "\t" + program.source);
-			        	program.programClassLoader.mapProgramClass.clear();
-			        	program.programClassLoader.mapProgramClass = null;
-						program.programClassLoader = null;
-						program.blockContext = null;
-						program.fitness = null;
-						program.ID = -1;
-						program.miniJavaParser = null;
-						program.source = null;
-						program.species = -1;
-						program.vectors = null;
-						program = null;
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
 			        	listProgramPopulationCompleted.add(program);
@@ -263,9 +230,6 @@ public class Species implements Runnable {
 			listCallable.clear();
 		} while (!listProgramPopulation.isEmpty());
 		listProgramPopulation = listProgramPopulationCompleted;
-		for(Program program : listProgramPopulation) {
-			program.programClassLoader.mapProgramClass.clear();
-		}
 	}
 	
 	public void evaluatePopulation() {
@@ -273,17 +237,6 @@ public class Species implements Runnable {
 			Program program = iteratorProgram.next();
 			BigInteger differenceAndCorrect[] = Tests.getTests().getDifferences(program.vectors);
 			if(differenceAndCorrect == null) {
-				program.programClassLoader.mapProgramClass.clear();
-				program.programClassLoader.mapProgramClass = null;
-				program.programClassLoader = null;
-				program.blockContext = null;
-				program.fitness = null;
-				program.ID = -1;
-				program.miniJavaParser = null;
-				program.source = null;
-				program.species = -1;
-				program.vectors = null;
-				program = null;
 				iteratorProgram.remove();
 			} else {
 				program.fitness.difference = differenceAndCorrect[0].divide(BigInteger.valueOf(program.vectors.size()));
