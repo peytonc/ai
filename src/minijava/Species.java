@@ -40,16 +40,19 @@ public class Species implements Runnable {
 	public int stagnant = MAX_STAGNANT_YEARS;
 	public int species;
 	
-	private static final int MAX_STAGNANT_YEARS = 4;	// number of years a species can live without progress on bestfit
-	private static final int MAX_PARENT = 6;	// Size of parent pool
+	private static final int MAX_PARENT_BY_FIT = 2;				// Size of parent pool reserved for BY_FIT
+	private static final int MAX_PARENT_BY_DIFFERENCE = 2;		// Size of parent pool reserved for BY_DIFFERENCE
+	private static final int MAX_PARENT_BY_GENERATIONAL = 2;	// Size of parent pool reserved for BY_GENERATIONAL
+	private static final int maxParentByCategory[] = {MAX_PARENT_BY_FIT, MAX_PARENT_BY_DIFFERENCE, MAX_PARENT_BY_GENERATIONAL};		// must match program/fitness categories
+	private static final int MAX_PARENT = MAX_PARENT_BY_FIT + MAX_PARENT_BY_DIFFERENCE + MAX_PARENT_BY_GENERATIONAL;	// Total size of parent pool
 	private static final int MAX_CHILDREN = 2;	// Number of children each parent produces
 	public static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
+	private static final int MAX_STAGNANT_YEARS = 4;	// number of years a species can live without progress on bestfit
 	private static final int MUTATE_FACTOR = 4;	// CROSSOVER=1, MUTATE=MUTATE_FACTOR, CROSSOVER to MUTATE ratio is 1/MUTATE_FACTOR
 	private static final JavaCompiler JAVA_COMPILER = ToolProvider.getSystemJavaCompiler();
 	private static final Logger LOGGER = Logger.getLogger(Species.class.getName());
 	private Random random = new Random(GP.RANDOM_SEED);
 	private static final int MAX_NEW_CODE_SEGMENT_SIZE = 75;
-	private static final int MAX_GENERATION_PRESERVE = 2;	// keep MAX_GENERATION_PRESERVE <= floor(MAX_PARENT/2)
 	private static final int MIN_GENERATIONAL_FITNESS = 3;	// minimum generational fitness before storage as bestfit
 	private List<Program> listProgramParent = new ArrayList<Program>(MAX_PARENT);
 	private List<Program> listProgramPopulation = new ArrayList<Program>(MAX_POPULATION);
@@ -73,6 +76,9 @@ public class Species implements Runnable {
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
+		}
+		if(maxParentByCategory.length != ProgramComparators.MAX_CATEGORIES) {
+			LOGGER.severe("maxParentByCategory.length != ProgramComparators.MAX_CATEGORIES");
 		}
 	}
 	
@@ -214,7 +220,7 @@ public class Species implements Runnable {
 			        if(program.vectors == null) {
 			        	// remove program when vectors is null
 			        	iteratorProgram.remove();
-			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {
+			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_90PERCENT) {
 			        	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
@@ -294,61 +300,42 @@ public class Species implements Runnable {
 		Iterator<Program> iteratorProgramPopulation;
 		listProgramParent.clear();
 		
-		// save a set of most fit programs, without regards to generational fitness (MAX_PARENT-MAX_GENERATION_PRESERVE) 
-		// assumes that listProgramPopulation is already sorted according to fitness [Collections.sort(listProgramPopulation)]
-		iteratorProgramPopulation = listProgramPopulation.iterator();
-		while (iteratorProgramPopulation.hasNext()) {
-			Program programPopulation = iteratorProgramPopulation.next();
-			if(indexPackage>=(MAX_PARENT-MAX_GENERATION_PRESERVE)) {
-				break;
-			}
-			if(programPopulation.fitness.difference.compareTo(Constants.LONG_MAX_VALUE)>=0 || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
+		// save the best set of programs (per each fitness category)
+		for (int category=0; category<maxParentByCategory.length && !listProgramPopulation.isEmpty(); category++) {
+			int sizeOfCurrentCategory = 0;
+			Collections.sort(listProgramPopulation, ProgramComparators.getProgramComparators().category.get(category));
+			iteratorProgramPopulation = listProgramPopulation.iterator();
+			while (iteratorProgramPopulation.hasNext()) {
+				Program programPopulation = iteratorProgramPopulation.next();
+				if(sizeOfCurrentCategory>=maxParentByCategory[category]) {
+					break;
+				}
+				if(programPopulation.fitness.difference.compareTo(Constants.LONG_MAX_VALUE)>=0 || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
+					iteratorProgramPopulation.remove();
+					continue;
+				}
+				boolean exists = false;
+				String stringSource = removeSpace(programPopulation.source);
+				for(Program programParent : listProgramParent) {
+					if(removeSpace(programParent.source).equalsIgnoreCase(stringSource)) {
+						exists = true;
+						break;
+					}
+				}
+				if(!exists) {
+					long generation = programPopulation.fitness.generation + 1;						// survived another generation
+					long generationalFitness = 0;
+					if(category==0 || category==1) {		
+						generationalFitness = programPopulation.fitness.generationalFitness + 1;	// program is a top performer, so increase the generational fitness
+					} else {
+						generationalFitness = programPopulation.fitness.generationalFitness - 1;	// program was preserved based on historical performance, so decrease the generational fitness
+					}
+					Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, generation, generationalFitness);
+					listProgramParent.add(programCopy);
+					sizeOfCurrentCategory++;
+					indexPackage++;
+				}
 				iteratorProgramPopulation.remove();
-				continue;
-			}
-			boolean exists = false;
-			String stringSource = removeSpace(programPopulation.source);
-			for(Program programParent : listProgramParent) {
-				if(removeSpace(programParent.source).equalsIgnoreCase(stringSource)) {
-					exists = true;
-					break;
-				}
-			}
-			if(!exists) {
-				long generation = programPopulation.fitness.generation + 1;						// survived another generation
-				long generationalFitness = programPopulation.fitness.generationalFitness + 2;	// program is a top performer, so increase the generational fitness
-				Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, generation, generationalFitness);
-				listProgramParent.add(programCopy);
-				indexPackage++;
-			}
-			iteratorProgramPopulation.remove();
-		}
-		
-		// preserve a set of programs based on historical fitness (MAX_GENERATION_PRESERVE)
-		Collections.sort(listProgramPopulation, ProgramComparators.BY_GENERATIONAL);
-		iteratorProgramPopulation = listProgramPopulation.iterator();
-		while (iteratorProgramPopulation.hasNext()) {
-			Program programPopulation = iteratorProgramPopulation.next();
-			if(indexPackage>=MAX_PARENT) {
-				break;
-			}
-			if(programPopulation.fitness.difference.compareTo(Constants.LONG_MAX_VALUE)>=0 || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
-				continue;
-			}
-			boolean exists = false;
-			String stringSource = removeSpace(programPopulation.source);
-			for(Program programParent : listProgramParent) {
-				if(removeSpace(programParent.source).equalsIgnoreCase(stringSource)) {
-					exists = true;
-					break;
-				}
-			}
-			if(!exists) {
-				long generation = programPopulation.fitness.generation + 1;						// survived another generation
-				long generationalFitness = programPopulation.fitness.generationalFitness - 1;	// program was preserved based on historical performance, so decrease the generational fitness
-				Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, generation, generationalFitness);
-				listProgramParent.add(programCopy);
-				indexPackage++;
 			}
 		}
 	}

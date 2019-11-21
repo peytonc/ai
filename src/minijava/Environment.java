@@ -9,7 +9,7 @@ public final class Environment {
 	public static final double RESTRICT_MIN_PERCENT = 0.975;	// use small seasonal differences (i.e. RESTRICT_MAX_PERCENT-RESTRICT_MIN_PERCENT < 0.05)
 	public static final double RESTRICT_MAX_PERCENT = 1.025;
 	public static final int MAX_EXECUTE_MILLISECONDS = 2000;
-	public static final int MAX_EXECUTE_MILLISECONDS_95PERCENT = (int) Math.floor(0.95*MAX_EXECUTE_MILLISECONDS);
+	public static final int MAX_EXECUTE_MILLISECONDS_90PERCENT = (int) Math.floor(0.90*MAX_EXECUTE_MILLISECONDS);
 	
 	public int sizeBeforeRestrictMin = 0;
 	public int sizeBeforeRestrictMax = 0;

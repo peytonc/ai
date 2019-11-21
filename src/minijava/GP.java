@@ -16,6 +16,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import minijava.comparator.FitnessComparators;
+import minijava.comparator.ProgramComparators;
 
 public class GP {
 	public static final String PROGRAM_FILENAME = new String("GeneticProgram.java");
@@ -59,6 +60,7 @@ public class GP {
 			Species species = new Species(index, stringBestSource);
 			listSpecies.add(species);
 		}
+		ProgramComparators.getProgramComparators().createProgramComparators();
 	}
 	
 	public void simulate() {
