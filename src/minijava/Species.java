@@ -107,19 +107,15 @@ public class Species implements Runnable {
 		compilePopulation();
 		executePopulation();
 		evaluatePopulation();
-		if(day%1 == 0 && listProgramPopulation!=null && !listProgramPopulation.isEmpty()) {
+		storeBestFitness();
+		downselectPopulation();
+		if(day%1 == 0 && listProgramParent!=null && !listProgramParent.isEmpty()) {
 			int count =0;
 			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
-			for(Program program : listProgramPopulation) {
+			for(Program program : listProgramParent) {
 				LOGGER.info("\tevaluatePopulation\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
 				count++;
 			}
-		}
-		storeBestFitness();
-		if(listProgramPopulation.isEmpty()) {
-			LOGGER.info("\t" + year + "\t" + day + "\t" + -1 + "\t" + species);
-		} else {
-			downselectPopulation();
 		}
 	}
 
@@ -221,7 +217,7 @@ public class Species implements Runnable {
 			        	// remove program when vectors is null
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_90PERCENT) {
-			        	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
+			        	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_90PERCENT
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
 			        	listProgramPopulationCompleted.add(program);
@@ -331,6 +327,12 @@ public class Species implements Runnable {
 						generationalFitness = programPopulation.fitness.generationalFitness - 1;	// program was preserved based on historical performance, so decrease the generational fitness
 					}
 					Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, generation, generationalFitness);
+					//copy fitness for analysis logging
+					programCopy.fitness.correct = programPopulation.fitness.correct;
+					programCopy.fitness.difference = programPopulation.fitness.difference;
+					programCopy.fitness.fit = programPopulation.fitness.fit;
+					programCopy.fitness.size = programPopulation.fitness.size;
+					programCopy.fitness.speed = programPopulation.fitness.speed;
 					listProgramParent.add(programCopy);
 					sizeOfCurrentCategory++;
 					indexPackage++;
