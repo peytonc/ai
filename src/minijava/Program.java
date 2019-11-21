@@ -24,14 +24,7 @@ public class Program extends SimpleJavaFileObject {
 	public MiniJavaParser miniJavaParser = null;
 	public BlockContext blockContext = null;
 	
-	/**
-	 * Constructs a new JavaSourceFromString.
-	 * 
-	 * @param className
-	 *            the name of the compilation unit represented by this file object
-	 * @param source
-	 *            the source code for the compilation unit represented by this file object
-	 */
+
 	Program(String source, int species, int ID, long generation, long generationalFitness) {
 		super(URI.create("string:///" + PACKAGE_SPECIES + species + '/' + PACKAGE_ID + ID + '/' + PROGRAM_CLASS + Kind.SOURCE.extension), Kind.SOURCE);
 		this.source = new String(source);

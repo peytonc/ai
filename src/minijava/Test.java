@@ -66,7 +66,7 @@ public class Test {
 				composite = composite.multiply(primeNumber);
 				listPrimeFactors.add(primeNumber.longValue());
 			}
-			listTest.add(new Long(composite.longValue()));
+			listTest.add(composite.longValue());
 			listAnswer.add(listPrimeFactors);
 		}
 	}

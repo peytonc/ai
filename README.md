@@ -4,15 +4,25 @@ The project is a genetic program (GP) that automatically generates source code i
 
 The GP creates an population (or set) of pseudo-random source codes from a population of parent source code; by way of mutation and crossover. Source code fitness is determined by correctness or closeness to solving a specific problem, code size, code speed, and no compile/runtime error/warnings. The most fit of this population becomes the parents of the next generation of codes. And the process repeats. This approach uses concepts from compiler construction and genetic programming.
 
-Each generation of the GP life cycle is as follows:
+The GP life cycle is a follows:
 ```java
-createEnviroment();
-createTests();
+do {
+	initalizeYear(year);
+	extinction();
+	for(int day=0; day<Environment.DAYS_PER_YEAR; day++) {
+		executeDay(day);
+	}
+	year++;
+} while(!isSolved());
+```
+
+Each day of a species is as follows:
+```java
 createPopulation();
 compilePopulation();
 executePopulation();
 evaluatePopulation();
-storeBestFit();
+storeBestFitness();
 downselectPopulation();
 ```
 
@@ -25,8 +35,11 @@ downselectPopulation();
 5. mkdir log
 6. mkdir data
 7. mkdir bin
-8. javac -d bin -sourcepath src -cp lib/antlr-4.7.2-complete.jar src/minijava/GP.java src/minijava/Util.java
+8. javac -Xlint -d bin -sourcepath src -cp lib/antlr-4.7.2-complete.jar src/minijava/GP.java src/minijava/Util.java
 9. java -cp bin:lib/antlr-4.7.2-complete.jar minijava.GP
+
+# Bugs/Issues #
+1. Must use latest version of OpenJDK per https://stackoverflow.com/questions/58927052/is-java-vm-defective-or-why-does-repeated-use-of-compilationtask-and-reflections
 
 # Resources #
 

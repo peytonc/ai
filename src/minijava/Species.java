@@ -46,7 +46,7 @@ public class Species implements Runnable {
 	public static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
 	private static final int MUTATE_FACTOR = 4;	// CROSSOVER=1, MUTATE=MUTATE_FACTOR, CROSSOVER to MUTATE ratio is 1/MUTATE_FACTOR
 	private static final JavaCompiler JAVA_COMPILER = ToolProvider.getSystemJavaCompiler();
-	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(Species.class.getName());
 	private Random random = new Random(GP.RANDOM_SEED);
 	private static final int MAX_NEW_CODE_SEGMENT_SIZE = 75;
 	private static final int MAX_GENERATION_PRESERVE = 2;	// keep MAX_GENERATION_PRESERVE <= floor(MAX_PARENT/2)
@@ -211,12 +211,11 @@ public class Species implements Runnable {
 				
 				for (Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); iteratorProgram.hasNext();) {
 					Program program = iteratorProgram.next();
-			        if(program.vectors == null) {	// remove program when vectors is null
-			        	//LOGGER.info("\tprogram.vectors\t" + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+			        if(program.vectors == null) {
+			        	// remove program when vectors is null
 			        	iteratorProgram.remove();
-			        } else if(program.fitness.isInterrupted && program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {
+			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_95PERCENT) {
 			        	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_95PERCENT
-			        	LOGGER.info("\tMAX_EXECUTE_MILLISECONDS_95PERCENT\t" + "\t" + program.species + "\t" + program.ID + "\t" + program.fitness.toString() + "\t" + program.source);
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
 			        	listProgramPopulationCompleted.add(program);

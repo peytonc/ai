@@ -2,6 +2,7 @@ package minijava;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 public class Util {
 
@@ -107,10 +108,10 @@ public class Util {
         //This is the first guess-it will be too high
         BigDecimal r=new BigDecimal(new BigInteger(1,barray));
         //Next approximation is computed by taking r-f(r)/f'(r)
-        r=r.subtract(r.multiply(r).subtract(n).divide(r.multiply(two),BigDecimal.ROUND_UP));
+        r=r.subtract(r.multiply(r).subtract(n).divide(r.multiply(two),RoundingMode.UP));
         //As long as our new approximation squared exceeds m, we continue to approximate
         while (r.multiply(r).compareTo(n)>0) {
-           r=r.subtract(r.multiply(r).subtract(n).divide(r.multiply(two),BigDecimal.ROUND_UP));
+           r=r.subtract(r.multiply(r).subtract(n).divide(r.multiply(two),RoundingMode.UP));
         }
         return r.toBigInteger();
       }
