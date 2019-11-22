@@ -93,7 +93,7 @@ public class GP {
 				if(fitnessLeastFit == null) {
 					leastFitIndex = index;
 					fitnessLeastFit = species.fitnessBest;
-				} else if(FitnessComparators.BY_FIT.compare(fitnessLeastFit, species.fitnessBest) < 0) {
+				} else if(FitnessComparators.BY_CORRECT.compare(fitnessLeastFit, species.fitnessBest) < 0) {
 					leastFitIndex = index;
 					fitnessLeastFit = species.fitnessBest;
 				}

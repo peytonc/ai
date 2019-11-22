@@ -236,13 +236,10 @@ public class Species implements Runnable {
 	public void evaluatePopulation() {
 		for (Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); iteratorProgram.hasNext();) {
 			Program program = iteratorProgram.next();
-			BigInteger differenceAndCorrect[] = Tests.getTests().getDifferences(program.vectors);
-			if(differenceAndCorrect == null) {
-				iteratorProgram.remove();
+			if(Tests.getTests().getDifferences(program.vectors, program.fitness)) {
+				program.fitness.updateScaled();
 			} else {
-				program.fitness.difference = differenceAndCorrect[0].divide(BigInteger.valueOf(program.vectors.size()));
-				program.fitness.correct = differenceAndCorrect[1].intValue();
-				program.fitness.calculateFitness();
+				iteratorProgram.remove();
 			}
 		}
 	}
@@ -251,14 +248,14 @@ public class Species implements Runnable {
 		if(listProgramPopulation==null || listProgramPopulation.isEmpty()) {
 			return;
 		}
-		Collections.sort(listProgramPopulation, ProgramComparators.BY_FIT);
+		Collections.sort(listProgramPopulation, ProgramComparators.BY_CORRECT);
 		if(fitnessBest == null) {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			stringBestSource = listProgramPopulation.get(0).source;
 			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + listProgramPopulation.get(0).source);
 		} else if(listProgramPopulation.get(0).fitness.generationalFitness>=MIN_GENERATIONAL_FITNESS 
-				&& FitnessComparators.BY_FIT.compare(fitnessBest, listProgramPopulation.get(0).fitness) > 0) {
+				&& FitnessComparators.BY_CORRECT.compare(fitnessBest, listProgramPopulation.get(0).fitness) > 0) {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			try {
@@ -280,7 +277,7 @@ public class Species implements Runnable {
 		final String PROGRAM_FILENAME_GLOBAL = new String("data" + File.separator + "GeneticProgram.java");
 		if(GP.fitnessBestGlobal == null) {
 			GP.fitnessBestGlobal = fitnessBest;
-		} else if(FitnessComparators.BY_FIT.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
+		} else if(FitnessComparators.BY_CORRECT.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
 			GP.fitnessBestGlobal = fitnessBest;
 			try {
 				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
@@ -330,7 +327,6 @@ public class Species implements Runnable {
 					//copy fitness for analysis logging
 					programCopy.fitness.correct = programPopulation.fitness.correct;
 					programCopy.fitness.difference = programPopulation.fitness.difference;
-					programCopy.fitness.fit = programPopulation.fitness.fit;
 					programCopy.fitness.size = programPopulation.fitness.size;
 					programCopy.fitness.speed = programPopulation.fitness.speed;
 					listProgramParent.add(programCopy);

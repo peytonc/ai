@@ -3,48 +3,49 @@ package minijava;
 import java.math.BigInteger;
 
 public class Fitness {
-	public int correct;
-	public BigInteger fit;
 	public long generation;
 	public long generationalFitness;
-	public BigInteger difference;
 	public long speed;
 	public int size;
 	public boolean isComplete;
+	public int correct;
+	public int correctScaled;
+	public BigInteger difference;
+	public BigInteger differenceScaled;
+	public long numeratorScaled;
+	public long denominatorScaled;
 
 	public Fitness() {
-		correct = 0;
-		fit = Constants.LONG_MAX_VALUE;
 		generation = 0;
 		generationalFitness = 0;
-		difference = Constants.LONG_MAX_VALUE;
 		speed = Integer.MAX_VALUE;
 		size = Integer.MAX_VALUE;
 		isComplete = false;
+		correct = 0;
+		correctScaled = 0;
+		difference = Constants.LONG_MAX_VALUE;
+		differenceScaled = Constants.LONG_MAX_VALUE;
+		numeratorScaled = 1;
+		denominatorScaled = 1;
 	}
 	
-	public void calculateFitness() {
-		fit = difference;
+	public void updateScaled() {
 		if(speed > Environment.getEnvironment().speedBeforeRestrict) {
 			// if speed exceeds restriction then punish fitness (by increasing value)
-			// first use multiplication because (integer/integer) is non-continuous and a bad multiplier near [1,2]
-			fit = fit.multiply(BigInteger.valueOf(speed)).divide(Environment.getEnvironment().speedBeforeRestrictBigInteger);
+			numeratorScaled *= speed;
+			denominatorScaled *= Environment.getEnvironment().speedBeforeRestrict;
 		}
 		if(size > Environment.getEnvironment().sizeBeforeRestrict) {
 			// if size exceeds restriction then punish fitness (by increasing value)
-			// first use multiplication because (integer/integer) is non-continuous and a bad multiplier near [1,2]
-			fit = fit.multiply(BigInteger.valueOf(size)).divide(Environment.getEnvironment().sizeBeforeRestrictBigInteger);
+			numeratorScaled *= size;
+			denominatorScaled *= Environment.getEnvironment().sizeBeforeRestrict;
 		}
-		if(correct > 0) {
-			// if correct answers were found then reward fitness (by reducing value) by wrong/total
-			BigInteger wrong = Tests.MAX_TEST_VECTORS_BIG_INTEGER.subtract(BigInteger.valueOf(correct));
-			// first use multiplication because (integer/integer) is non-continuous and a bad multiplier near [1,2]
-			fit = fit.multiply(wrong).divide(Tests.MAX_TEST_VECTORS_BIG_INTEGER);
-		}
+		correctScaled = (int)(correct*denominatorScaled/numeratorScaled);	// flip numerator and denominator to punish fitness, because numeratorScaled>denominatorScaled
+		differenceScaled = difference.multiply(BigInteger.valueOf(numeratorScaled)).divide(BigInteger.valueOf(denominatorScaled));
 	}
 	
 	public String toString() {
-		//return "Fitness{" + "gen=" + generation + ",genFit=" + generationalFitness + ",fit=" + fit + ",diff=" + difference + ",correct=" + correct + ",speed=" + speed + ",size=" + size  + "}";
-		return generation + "\t" + generationalFitness + "\t" + fit + "\t" + difference + "\t" + correct + "\t" + speed + "\t" + size;
+		//return "Fitness{" + "gen=" + generation + ",genFit=" + generationalFitness + ",diff=" + difference + ",correct=" + correct + ",speed=" + speed + ",size=" + size  + "}";
+		return generation + "\t" + generationalFitness + "\t" + difference + "\t" + correct + "\t" + speed + "\t" + size;
 	}
 }

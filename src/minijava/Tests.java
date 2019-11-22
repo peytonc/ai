@@ -26,29 +26,28 @@ public final class Tests {
 		}
 	}
 	
-	public BigInteger[] getDifferences(ArrayList<ArrayList<Long>> vectors) {
+	public boolean getDifferences(ArrayList<ArrayList<Long>> vectors, Fitness fitness) {
 		if(vectors == null) {
-			return null;
+			return false;
 		} else if(listTests.size()==vectors.size()) {
-			BigInteger returnValue[] = new BigInteger[2];
 			BigInteger differenceTotal = Constants.I0;
-			BigInteger correct = Constants.I0;
+			int correct = 0;
 			for(int index=0; index<MAX_TEST_VECTORS; index++) {
 				BigInteger difference = listTests.get(index).getDifference(vectors.get(index));
 				if(difference == null) {
-					return null;
+					return false;
 				} else {
 					differenceTotal = differenceTotal.add(difference);
 					if(difference.compareTo(Constants.I0) == 0) {
-						correct = correct.add(Constants.I1);
+						correct++;
 					}
 				}
 			}
-			returnValue[0] = differenceTotal;
-			returnValue[1] = correct;
-			return returnValue;
+			fitness.difference = differenceTotal;
+			fitness.correct = correct;
+			return true;
 		} else {
-			return null;
+			return false;
 		}
 	}
 }

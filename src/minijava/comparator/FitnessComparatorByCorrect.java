@@ -4,12 +4,12 @@ import java.util.Comparator;
 
 import minijava.Fitness;
 
-public class FitnessComparatorByDifference implements Comparator<Fitness> {
+public class FitnessComparatorByCorrect implements Comparator<Fitness> {
     public int compare(Fitness fitness1, Fitness fitness2) { 
 		int compare = 0;
-		compare = fitness1.differenceScaled.compareTo(fitness2.differenceScaled);
+		compare = Integer.compare(fitness2.correctScaled, fitness1.correctScaled);		// flip order to obtain largest correct first
 		if(compare == 0) {
-			compare = Integer.compare(fitness2.correctScaled, fitness1.correctScaled);		// flip order to obtain largest correct first
+			compare = fitness1.differenceScaled.compareTo(fitness2.differenceScaled);
 			if(compare == 0) {
 				compare = Long.compare(fitness1.speed, fitness2.speed);
 				if(compare == 0) {

@@ -1,7 +1,5 @@
 package minijava;
 
-import java.math.BigInteger;
-
 public final class Environment {
 	private static final Environment environment = new Environment();
 
@@ -14,11 +12,9 @@ public final class Environment {
 	public int sizeBeforeRestrictMin = 0;
 	public int sizeBeforeRestrictMax = 0;
 	public int sizeBeforeRestrict = 0;
-	public BigInteger sizeBeforeRestrictBigInteger = Constants.I0;
 	private int speedBeforeRestrictMin = (int)(RESTRICT_MIN_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
 	private int speedBeforeRestrictMax = (int)(RESTRICT_MAX_PERCENT * MAX_EXECUTE_MILLISECONDS/2.0);
 	public int speedBeforeRestrict = 0;
-	public BigInteger speedBeforeRestrictBigInteger = Constants.I0;
 	
 	private Environment() {
 	}
@@ -32,9 +28,7 @@ public final class Environment {
 		double percent = (double)(day%DAYS_PER_YEAR)/DAYS_PER_YEAR;
 		double cosineWithOffset = (Math.cos(percent*2.0*Math.PI)+1.0)/2.0;	// range in [0,1]
 		sizeBeforeRestrict = (int)(sizeBeforeRestrictMin + cosineWithOffset*(sizeBeforeRestrictMax-sizeBeforeRestrictMin));
-		sizeBeforeRestrictBigInteger = BigInteger.valueOf(sizeBeforeRestrict);
 		speedBeforeRestrict = (int)(speedBeforeRestrictMin + cosineWithOffset*(speedBeforeRestrictMax-speedBeforeRestrictMin));
-		speedBeforeRestrictBigInteger = BigInteger.valueOf(speedBeforeRestrict);
 	}
 	
 	public void createYear(int sizeSourceLength) {
