@@ -70,33 +70,33 @@ public class Generator {
 		return stringBuilder.toString();
 	}
 	
-	//'Long' LONGNAME '= new Long(0);'
+	//'Long' LONGNAME '= Long.valueOf(0);'
 	public static String generateLongDeclarationContext(int maxNewCodeSegmentSize) {
 		StringBuilder stringBuilder = new StringBuilder();
 		if(maxNewCodeSegmentSize>0) {
 			stringBuilder.append("Long ");
 			stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGNAME"));
-			stringBuilder.append("= new Long(0); ");
+			stringBuilder.append("= Long.valueOf(0); ");
 		}
 		return stringBuilder.toString();
 	}
 	
-	//'Boolean' BOOLEANNAME '= new Boolean(false);'
+	//'Boolean' BOOLEANNAME '= Boolean.valueOf(false);'
 	public static String generateBooleanDeclarationContext(int maxNewCodeSegmentSize) {
 		StringBuilder stringBuilder = new StringBuilder();
 		if(maxNewCodeSegmentSize>0) {
 			stringBuilder.append("Boolean ");
 			stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "BOOLEANNAME"));
-			stringBuilder.append("= new Boolean(false); ");
+			stringBuilder.append("= Boolean.valueOf(false); ");
 		}
 		return stringBuilder.toString();
 	}
 	
 	/*    :   'if(' expressionBoolean ')' block 'else' block
     |   'while(!Thread.currentThread().isInterrupted()&&' expressionBoolean ')' block
-    |	LONGARRAYNAME '.set(new Long(' expressionNumeric ').intValue()%size, new Long(' expressionNumeric '));'
-    |   LONGNAME '=' 'new Long(' expressionNumeric ');'
-    |   BOOLEANNAME '=' 'new Boolean(' expressionBoolean ');'
+    |	LONGARRAYNAME '.set(Long.valueOf(' expressionNumeric ').intValue()%size, Long.valueOf(' expressionNumeric '));'
+    |   LONGNAME '=' 'Long.valueOf(' expressionNumeric ');'
+    |   BOOLEANNAME '=' 'Boolean.valueOf(' expressionBoolean ');'
     */
 	public static String generateStatementContext(int maxNewCodeSegmentSize, MiniJavaParser miniJavaParser, ParseTree parseTree) {
 		StringBuilder stringBuilder = new StringBuilder();
@@ -167,21 +167,21 @@ public class Generator {
 				}
 			case 2:
 				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGARRAYNAME"));
-				stringBuilder.append(".set(new Long(");
+				stringBuilder.append(".set(Long.valueOf(");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
-				stringBuilder.append(").intValue()%size, new Long(");
+				stringBuilder.append(").intValue()%size, Long.valueOf(");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append("));");
 				return stringBuilder.toString();
 			case 3:
 				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGNAME"));
-				stringBuilder.append("= new Long(");
+				stringBuilder.append("= Long.valueOf(");
 				stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append(");");
 				return stringBuilder.toString();
 			case 4:
 				stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "BOOLEANNAME"));
-				stringBuilder.append("= new Boolean(");
+				stringBuilder.append("= Boolean.valueOf(");
 				stringBuilder.append(generateExpressionBooleanContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 				stringBuilder.append(");");
 				return stringBuilder.toString();
@@ -645,11 +645,11 @@ public class Generator {
 		}
 	}
 	
-	//LONGARRAYNAME '.get(new Long(' expressionNumeric ').intValue()%size)'
+	//LONGARRAYNAME '.get(Long.valueOf(' expressionNumeric ').intValue()%size)'
 	public static String generateLongArrayValueContext(int maxNewCodeSegmentSize) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(generateTerminalNode(maxNewCodeSegmentSize-stringBuilder.length(), null, null, "LONGARRAYNAME"));
-		stringBuilder.append(".get(new Long(");
+		stringBuilder.append(".get(Long.valueOf(");
 		stringBuilder.append(generateExpressionNumericContext(maxNewCodeSegmentSize-stringBuilder.length(), null, null));
 		stringBuilder.append(").intValue()%size)");
 		return stringBuilder.toString();

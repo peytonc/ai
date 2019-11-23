@@ -35,9 +35,9 @@ declaration
 statement
     :   'if' '(' expressionBoolean ')' block ('else' block)?
     |   'while' '(' '!' 'Thread' '.' 'currentThread' '(' ')' '.' 'isInterrupted' '(' ')' '&&' expressionBoolean ')' block
-	|	LONGARRAYNAME '.' 'set' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ',' 'new' 'Long' '(' expressionNumeric ')' ')' ';'
-    |   LONGNAME '=' 'new' 'Long' '(' expressionNumeric ')' ';'
-    |   BOOLEANNAME '=' 'new' 'Boolean' '(' expressionBoolean ')' ';'
+	|	LONGARRAYNAME '.' 'set' '(' 'Long' '.' 'valueOf' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ',' 'Long' '.' 'valueOf' '(' expressionNumeric ')' ')' ';'
+    |   LONGNAME '=' 'Long' '.' 'valueOf' '(' expressionNumeric ')' ';'
+    |   BOOLEANNAME '=' 'Boolean' '.' 'valueOf' '(' expressionBoolean ')' ';'
     ;
 
 expressionNumeric
@@ -79,15 +79,15 @@ longArrayDeclaration
 	;
 
 longArrayValue
-	:   LONGARRAYNAME '.' 'get' '(' 'new' 'Long' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ')'
+	:   LONGARRAYNAME '.' 'get' '(' 'Long' '.' 'valueOf' '(' expressionNumeric ')' '.' 'intValue' '(' ')' '%' 'size' ')'
 	;
 
 longDeclaration
-    :   'Long' LONGNAME '=' 'new' 'Long' '(' NUMBER ')' ';'
+    :   'Long' LONGNAME '=' 'Long' '.' 'valueOf' '(' NUMBER ')' ';'
     ;
 
 booleanDeclaration
-    :   'Boolean' BOOLEANNAME '=' 'new' 'Boolean' '(' BOOLEAN ')' ';'
+    :   'Boolean' BOOLEANNAME '=' 'Boolean' '.' 'valueOf' '(' BOOLEAN ')' ';'
     ;
     
 PACKAGENAME
