@@ -39,59 +39,16 @@ public class GeneticProgram {
 		try {
 			value09 = Long.valueOf(1);
 			value00 = Long.valueOf(values00.get(Long.valueOf(0).intValue() % size));
-			value01 = Long.valueOf(2);
-			while (!Thread.currentThread().isInterrupted() && (((value00 % value01) == 0) && (value01 <= value00))) {
-				value00 = Long.valueOf((value00 / value01));
-				if((value00 == 1)) {
-					value09 = Long.valueOf(value01);
-				}
-			}
-			value01 = Long.valueOf(1);
-			value08 = Long.valueOf(Util.f(0, value00));
+			value06 = Long.valueOf((value00 + value00));
+			value02 = Long.valueOf(Util.f(0, value00));
 			while (!Thread.currentThread().isInterrupted() && (value09 == 1)) {
-				value01 = Long.valueOf((value01 + 2));
-				while (!Thread.currentThread().isInterrupted() && (((value00 % value01) == 0) && (value01 <= value00))) {
-					value00 = Long.valueOf((value00 / value01));
-					value08 = Long.valueOf(Util.f(0, value00));
-					if((value00 == 1)) {
-						value09 = Long.valueOf(value01);
-					}
+				value01 = Long.valueOf((value01 - value06));
+				value05 = Long.valueOf((value08 + 203898));
+				value09 = Long.valueOf(Util.f(0, value00, value05));
+				if ((3998 < value01)) {
+					value09 = Long.valueOf((((-11997) & (-value08 * 24)) + value02));
 				}
-				if((value09 == 1)) {
-					value05 = Long.valueOf((value08 * value08));
-					condition06 = Boolean.valueOf(false);
-					value05 = Long.valueOf((value08 * value08));
-					value06 = Long.valueOf((value05 % value00));
-					value07 = Long.valueOf(Util.f(0, value06));
-					if(((value07 * value07) == value06)) {
-						value05 = Long.valueOf((value08 + value07));
-						value09 = Long.valueOf(Util.f(0, value00, value05));
-						if((value09 != 1)) {
-							value00 = Long.valueOf((value00 / value09));
-							condition00 = Boolean.valueOf((Util.f(2, value00) == 1));
-							condition09 = Boolean.valueOf((Util.f(2, value09) == 1));
-							if((condition00 && condition09)) {
-								if((value09 < value00)) {
-									value09 = Long.valueOf(value00);
-								}
-							} else {
-								if(condition00) {
-									if((value09 < value00)) {
-										value09 = Long.valueOf(value00);
-									}
-								}
-							}
-						}
-					}
-					if (((value09 == 1) && (1000 < value01))) {
-						if ((Util.f(2, value00) == 1)) {
-							value09 = Long.valueOf(value00);
-						} else {
-							value09 = Long.valueOf(Util.f(0, value00));
-						}
-					}
-					value08 = Long.valueOf((value08 + 19));
-				}
+				value08 = Long.valueOf((value08 + 12));
 			}
 			values00.set(Long.valueOf(0).intValue() % size, Long.valueOf(value09));
 		} catch (Exception e) {
