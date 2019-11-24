@@ -46,7 +46,7 @@ public class GeneticProgram {
 				value05 = Long.valueOf((value08 + 203898));
 				value09 = Long.valueOf(Util.f(0, value00, value05));
 				if ((3998 < value01)) {
-					value09 = Long.valueOf((((-11997) & (-value08 * 24)) + value02));
+					value09 = Long.valueOf((((-11997) & ((-value08) * 24)) + value02));
 				}
 				value08 = Long.valueOf((value08 + 12));
 			}
