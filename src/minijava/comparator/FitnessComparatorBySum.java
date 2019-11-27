@@ -4,10 +4,10 @@ import java.util.Comparator;
 
 import minijava.Fitness;
 
-public class FitnessComparatorByDifference implements Comparator<Fitness> {
+public class FitnessComparatorBySum implements Comparator<Fitness> {
     public int compare(Fitness fitness1, Fitness fitness2) { 
 		int compare = 0;
-		compare = fitness1.differenceScaled.compareTo(fitness2.differenceScaled);
+		compare = fitness1.sumScaled.compareTo(fitness2.sumScaled);
 		if(compare == 0) {
 			compare = Integer.compare(fitness2.correctScaled, fitness1.correctScaled);		// flip order to obtain largest correct first
 			if(compare == 0) {
@@ -15,7 +15,7 @@ public class FitnessComparatorByDifference implements Comparator<Fitness> {
 				if(compare == 0) {
 					compare = Integer.compare(fitness1.size, fitness2.size);
 					if(compare == 0) {
-						compare = Long.compare(fitness2.generationalFitness, fitness1.generationalFitness);		// flip order to obtain largest generationalFitness first
+						compare = fitness1.confidenceIntervalUpperScaled.compareTo(fitness2.confidenceIntervalUpperScaled);
 					}
 				}
 			}

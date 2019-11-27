@@ -138,7 +138,7 @@ public class GP {
 	
 	public boolean isSolved() {
 		for(Species species : listSpecies) {
-			if(species.fitnessBest!=null && species.fitnessBest.difference.compareTo(Constants.I0) == 0) {
+			if(species.fitnessBest!=null && species.fitnessBest.sum.compareTo(Constants.I0) == 0) {
 				return true;
 			}
 		}

@@ -35,11 +35,11 @@ downselectPopulation();
 5. mkdir log
 6. mkdir data
 7. mkdir bin
-8. javac -Xlint -d bin -sourcepath src -cp lib/antlr-4.7.2-complete.jar src/minijava/GP.java src/minijava/Util.java
-9. java -cp bin:lib/antlr-4.7.2-complete.jar minijava.GP
+8. javac -Xlint -d bin -sourcepath src -cp lib/\* src/minijava/GP.java
+9. java -cp bin:lib/\* minijava.GP
 
 # Bugs/Issues #
-1. Must use latest version of OpenJDK per https://stackoverflow.com/questions/58927052/is-java-vm-defective-or-why-does-repeated-use-of-compilationtask-and-reflections
+1. Must use latest version of OpenJDK per [https://stackoverflow.com/questions/58927052/is-java-vm-defective-or-why-does-repeated-use-of-compilationtask-and-reflections](https://stackoverflow.com/questions/58927052/is-java-vm-defective-or-why-does-repeated-use-of-compilationtask-and-reflections)
 
 # Resources #
 
@@ -47,6 +47,7 @@ downselectPopulation();
 2. [https://en.wikipedia.org/wiki/Genetic_programming](https://en.wikipedia.org/wiki/Genetic_programming)
 3. [http://cswww.essex.ac.uk/staff/poli/gp-field-guide/index.html](http://cswww.essex.ac.uk/staff/poli/gp-field-guide/index.html)
 4. [http://www.antlr.org](http://www.antlr.org)
+5. [https://commons.apache.org/proper/commons-math](https://commons.apache.org/proper/commons-math/)
 
 # License #
 

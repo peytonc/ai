@@ -13,5 +13,5 @@ public final class Constants {
 	public static final BigInteger I1 = new BigInteger("1");
 	public static final BigInteger I2 = new BigInteger("2");
 	public static final BigInteger I8 = new BigInteger("8");
-	
+	public static final BigInteger I10000000000 = new BigInteger("10000000000");
 }

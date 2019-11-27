@@ -30,21 +30,15 @@ public final class Tests {
 		if(vectors == null) {
 			return false;
 		} else if(listTests.size()==vectors.size()) {
-			BigInteger differenceTotal = Constants.I0;
-			int correct = 0;
 			for(int index=0; index<MAX_TEST_VECTORS; index++) {
-				BigInteger difference = listTests.get(index).getDifference(vectors.get(index));
-				if(difference == null) {
+				BigInteger differenceError = listTests.get(index).getDifference(vectors.get(index));
+				if(differenceError == null) {
 					return false;
 				} else {
-					differenceTotal = differenceTotal.add(difference);
-					if(difference.compareTo(Constants.I0) == 0) {
-						correct++;
-					}
+					fitness.addSample(differenceError);
 				}
 			}
-			fitness.difference = differenceTotal;
-			fitness.correct = correct;
+			fitness.update();	// update statistical moments
 			return true;
 		} else {
 			return false;

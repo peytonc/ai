@@ -2,7 +2,6 @@ package minijava;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -40,11 +39,11 @@ public class Species implements Runnable {
 	public int stagnant = MAX_STAGNANT_YEARS;
 	public int species;
 	
-	private static final int MAX_PARENT_BY_FIT = 2;				// Size of parent pool reserved for BY_FIT
-	private static final int MAX_PARENT_BY_DIFFERENCE = 2;		// Size of parent pool reserved for BY_DIFFERENCE
-	private static final int MAX_PARENT_BY_GENERATIONAL = 2;	// Size of parent pool reserved for BY_GENERATIONAL
-	private static final int maxParentByCategory[] = {MAX_PARENT_BY_FIT, MAX_PARENT_BY_DIFFERENCE, MAX_PARENT_BY_GENERATIONAL};		// must match program/fitness categories
-	private static final int MAX_PARENT = MAX_PARENT_BY_FIT + MAX_PARENT_BY_DIFFERENCE + MAX_PARENT_BY_GENERATIONAL;	// Total size of parent pool
+	private static final int MAX_PARENT_BY_SUM = 2;					// Size of parent pool reserved for BY_SUM
+	private static final int MAX_PARENT_BY_CORRECT = 2;				// Size of parent pool reserved for BY_CORECT
+	private static final int MAX_PARENT_BY_CONFIDENCE_INTERVAL = 2;	// Size of parent pool reserved for BY_CONFIDENCE_INTERVAL
+	private static final int maxParentByCategory[] = {MAX_PARENT_BY_SUM, MAX_PARENT_BY_CORRECT, MAX_PARENT_BY_CONFIDENCE_INTERVAL};		// must match program/fitness categories
+	private static final int MAX_PARENT =  MAX_PARENT_BY_SUM + MAX_PARENT_BY_CORRECT + MAX_PARENT_BY_CONFIDENCE_INTERVAL;	// Total size of parent pool
 	private static final int MAX_CHILDREN = 2;	// Number of children each parent produces
 	public static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
 	private static final int MAX_STAGNANT_YEARS = 4;	// number of years a species can live without progress on bestfit
@@ -53,7 +52,6 @@ public class Species implements Runnable {
 	private static final Logger LOGGER = Logger.getLogger(Species.class.getName());
 	private Random random = new Random(GP.RANDOM_SEED);
 	private static final int MAX_NEW_CODE_SEGMENT_SIZE = 75;
-	private static final int MIN_GENERATIONAL_FITNESS = 3;	// minimum generational fitness before storage as bestfit
 	private List<Program> listProgramParent = new ArrayList<Program>(MAX_PARENT);
 	private List<Program> listProgramPopulation = new ArrayList<Program>(MAX_POPULATION);
 	private String stringBestSource;
@@ -88,7 +86,7 @@ public class Species implements Runnable {
 	}
 	
 	public void extinction() {
-		LOGGER.info("EXTY" + year + "S" + species + " " + fitnessBest.toString() + stringBestSource);
+		LOGGER.info("EXTY" + year + "S" + species + " " + fitnessBest.toString() + "\t" + stringBestSource);
 		try {
 			Files.delete(Paths.get(PROGRAM_FILENAME));
 		} catch (IOException e) {
@@ -124,17 +122,16 @@ public class Species implements Runnable {
 		String source;
 		listProgramPopulation.clear();
 		if(listProgramParent.isEmpty()) {
-			// create new program using best source. increase generational fitness because program was historically best
-			Program program = new Program(stringBestSource, species, 0, MIN_GENERATIONAL_FITNESS, MIN_GENERATIONAL_FITNESS);
+			// create new program using best source
+			Program program = new Program(stringBestSource, species, 0, 0);
 			listProgramParent.add(program);
 			LOGGER.info("RESTARTEDY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + listProgramParent.get(0).source);
 		}
 		//make ANTLR parsers for parents, used by crossover
 		for(Program program : listProgramParent) {
 			long generation = program.fitness.generation;
-			long generationalFitness = program.fitness.generationalFitness;
 			source = replacePackage(program.source, species, indexPackage);
-			Program programParent = new Program(source, species, indexPackage, generation, generationalFitness);
+			Program programParent = new Program(source, species, indexPackage, generation);
 			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(CharStreams.fromString(programParent.source));
 			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
 			programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR only allows one call to program() before EOF error?
@@ -147,13 +144,13 @@ public class Species implements Runnable {
 			for(int indexChild=0; indexChild<MAX_CHILDREN; indexChild++) {
 				Program program2;
 				if(random.nextInt() % MUTATE_FACTOR == 0) {	
-					program2 = listProgramParent.get(random.nextInt(listProgramParent.size()));		// program2!=null means crossover
+					program2 = listProgramParent.get(random.nextInt(listProgramParent.size()));	// program2!=null means crossover
 				} else {
 					program2 = null;	// program2==null means mutate
 				}
 				source = createProgram(program, program2, program.source);
 				source = replacePackage(source, species, indexPackage);
-				listProgramPopulation.add(new Program(source, species, indexPackage, 0, 0));	// add child to population
+				listProgramPopulation.add(new Program(source, species, indexPackage, 0));	// add child to population
 				indexPackage++;
 			}
 		}
@@ -236,9 +233,7 @@ public class Species implements Runnable {
 	public void evaluatePopulation() {
 		for (Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); iteratorProgram.hasNext();) {
 			Program program = iteratorProgram.next();
-			if(Tests.getTests().getDifferences(program.vectors, program.fitness)) {
-				program.fitness.updateScaled();
-			} else {
+			if(Tests.getTests().getDifferences(program.vectors, program.fitness) == false) {
 				iteratorProgram.remove();
 			}
 		}
@@ -248,18 +243,17 @@ public class Species implements Runnable {
 		if(listProgramPopulation==null || listProgramPopulation.isEmpty()) {
 			return;
 		}
-		Collections.sort(listProgramPopulation, ProgramComparators.BY_CORRECT);
+		/*TODO update to CI*/Collections.sort(listProgramPopulation, ProgramComparators.BY_CORRECT);
 		if(fitnessBest == null) {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			stringBestSource = listProgramPopulation.get(0).source;
-			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + listProgramPopulation.get(0).source);
-		} else if(listProgramPopulation.get(0).fitness.generationalFitness>=MIN_GENERATIONAL_FITNESS 
-				&& FitnessComparators.BY_CORRECT.compare(fitnessBest, listProgramPopulation.get(0).fitness) > 0) {
+			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramPopulation.get(0).source);
+		} else if(/*TODO update to CI*/FitnessComparators.BY_CORRECT.compare(fitnessBest, listProgramPopulation.get(0).fitness) > 0) {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			try {
-				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + listProgramPopulation.get(0).source);
+				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramPopulation.get(0).source);
 				String source = listProgramPopulation.get(0).source;
 				source = replacePackage(source, species, 0);
 				if(!source.equals(stringBestSource)) {	// only save if different (reduce storage writes)
@@ -303,7 +297,7 @@ public class Species implements Runnable {
 				if(sizeOfCurrentCategory>=maxParentByCategory[category]) {
 					break;
 				}
-				if(programPopulation.fitness.difference.compareTo(Constants.LONG_MAX_VALUE)>=0 || programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
+				if(programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
 					iteratorProgramPopulation.remove();
 					continue;
 				}
@@ -316,19 +310,9 @@ public class Species implements Runnable {
 					}
 				}
 				if(!exists) {
-					long generation = programPopulation.fitness.generation + 1;						// survived another generation
-					long generationalFitness = 0;
-					if(category==0 || category==1) {		
-						generationalFitness = programPopulation.fitness.generationalFitness + 1;	// program is a top performer, so increase the generational fitness
-					} else {
-						generationalFitness = programPopulation.fitness.generationalFitness - 1;	// program was preserved based on historical performance, so decrease the generational fitness
-					}
-					Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, generation, generationalFitness);
-					//copy fitness for analysis logging
-					programCopy.fitness.correct = programPopulation.fitness.correct;
-					programCopy.fitness.difference = programPopulation.fitness.difference;
-					programCopy.fitness.size = programPopulation.fitness.size;
-					programCopy.fitness.speed = programPopulation.fitness.speed;
+					programPopulation.fitness.generation++;					// survived another generation
+					Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, programPopulation.fitness.generation);
+					programCopy.fitness = programPopulation.fitness;		//copy fitness to preserve statistical moments 
 					listProgramParent.add(programCopy);
 					sizeOfCurrentCategory++;
 					indexPackage++;

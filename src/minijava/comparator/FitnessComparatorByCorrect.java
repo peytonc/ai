@@ -9,13 +9,13 @@ public class FitnessComparatorByCorrect implements Comparator<Fitness> {
 		int compare = 0;
 		compare = Integer.compare(fitness2.correctScaled, fitness1.correctScaled);		// flip order to obtain largest correct first
 		if(compare == 0) {
-			compare = fitness1.differenceScaled.compareTo(fitness2.differenceScaled);
+			compare = fitness1.sumScaled.compareTo(fitness2.sumScaled);
 			if(compare == 0) {
 				compare = Long.compare(fitness1.speed, fitness2.speed);
 				if(compare == 0) {
 					compare = Integer.compare(fitness1.size, fitness2.size);
 					if(compare == 0) {
-						compare = Long.compare(fitness2.generationalFitness, fitness1.generationalFitness);		// flip order to obtain largest generationalFitness first
+						compare = fitness1.confidenceIntervalUpperScaled.compareTo(fitness2.confidenceIntervalUpperScaled);
 					}
 				}
 			}
