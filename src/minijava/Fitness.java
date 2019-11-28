@@ -47,6 +47,25 @@ public class Fitness {
 		sumSquareDifference = Constants.I0;
 	}
 	
+	public Fitness(Fitness fitness) {
+		this.generation = fitness.generation;
+		this.speed = fitness.speed;
+		this.size = fitness.size;
+		this.isComplete = fitness.isComplete;
+		this.isMarginOfErrorFinal = fitness.isMarginOfErrorFinal;
+		this.correct = fitness.correct;
+		this.correctScaled = fitness.correctScaled;
+		this.sumScaled = fitness.sumScaled;
+		this.confidenceIntervalUpper = fitness.confidenceIntervalUpper;
+		this.confidenceIntervalUpperScaled = fitness.confidenceIntervalUpperScaled;
+		this.numeratorScaled = fitness.numeratorScaled;
+		this.denominatorScaled = fitness.denominatorScaled;
+		this.count = fitness.count;
+		this.sum = fitness.sum;
+		this.sumSquareDifference = fitness.sumSquareDifference;
+		this.mean = fitness.mean;
+	}
+	
 	// add the sample to the fitness parameters 
 	public void addSample(BigInteger sampledDifference) {
 		if(sampledDifference.compareTo(Constants.I0) == 0) {

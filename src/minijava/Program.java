@@ -16,7 +16,7 @@ public class Program extends SimpleJavaFileObject {
 	public static final String PACKAGE_SPECIES = new String("species");
 	public static final String PACKAGE_ID = new String("id");
 	public String source;
-	public Fitness fitness = null;
+	public Fitness fitness;
 	public ArrayList<ArrayList<Long>> vectors;
 	public int species;
 	public int ID;
@@ -28,8 +28,12 @@ public class Program extends SimpleJavaFileObject {
 	Program(String source, int species, int ID, Fitness fitness) {
 		super(URI.create("string:///" + PACKAGE_SPECIES + species + '/' + PACKAGE_ID + ID + '/' + PROGRAM_CLASS + Kind.SOURCE.extension), Kind.SOURCE);
 		this.source = new String(source);
-		this.fitness = fitness;
-		fitness.size = source.length();
+		if(fitness == null) {
+			this.fitness = new Fitness();
+		} else {
+			this.fitness = new Fitness(fitness);
+		}
+		this.fitness.size = source.length();
 		this.species = species;
 		this.ID = ID;
 		vectors = new ArrayList<ArrayList<Long>>(Tests.MAX_TEST_VECTORS);

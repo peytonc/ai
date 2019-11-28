@@ -123,7 +123,7 @@ public class Species implements Runnable {
 		listProgramPopulation.clear();
 		if(listProgramParent.isEmpty()) {
 			// create new program using best source
-			Program program = new Program(stringBestSource, species, 0, new Fitness());
+			Program program = new Program(stringBestSource, species, 0, null);
 			listProgramParent.add(program);
 			LOGGER.info("RESTARTEDY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + listProgramParent.get(0).source);
 		}
@@ -150,7 +150,7 @@ public class Species implements Runnable {
 				}
 				source = createProgram(program, program2, program.source);
 				source = replacePackage(source, species, indexPackage);
-				listProgramPopulation.add(new Program(source, species, indexPackage, new Fitness()));	// add child to population
+				listProgramPopulation.add(new Program(source, species, indexPackage, null));	// add child to population
 				indexPackage++;
 			}
 		}
@@ -217,7 +217,9 @@ public class Species implements Runnable {
 			        	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_90PERCENT
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
-			        	listProgramPopulationCompleted.add(program);
+			        	if(program.fitness.speed!=Integer.MAX_VALUE && program.fitness.size!=Integer.MAX_VALUE) {
+			        		listProgramPopulationCompleted.add(program);
+			        	}
 			        	iteratorProgram.remove();
 			        }
 			    }
@@ -254,10 +256,6 @@ public class Species implements Runnable {
 				if(sizeOfCurrentCategory>=maxParentByCategory[category]) {
 					break;
 				}
-				if(programPopulation.fitness.speed==Integer.MAX_VALUE || programPopulation.fitness.size==Integer.MAX_VALUE) {
-					iteratorProgramPopulation.remove();
-					continue;
-				}
 				boolean exists = false;
 				String stringSource = removeSpace(programPopulation.source);
 				for(Program programParent : listProgramParent) {
@@ -288,12 +286,12 @@ public class Species implements Runnable {
 		Collections.sort(listProgramParent, ProgramComparators.BY_CONFIDENCE_INTERVAL);
 		if(fitnessBest == null) {
 			stagnant = MAX_STAGNANT_YEARS;
-			fitnessBest = listProgramParent.get(0).fitness;
+			fitnessBest = new Fitness(listProgramParent.get(0).fitness);
 			stringBestSource = listProgramParent.get(0).source;
 			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramParent.get(0).source);
 		} else if(FitnessComparators.BY_CONFIDENCE_INTERVAL.compare(fitnessBest, listProgramParent.get(0).fitness) > 0) {
 			stagnant = MAX_STAGNANT_YEARS;
-			fitnessBest = listProgramParent.get(0).fitness;
+			fitnessBest = new Fitness(listProgramParent.get(0).fitness);
 			try {
 				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramParent.get(0).source);
 				String source = listProgramParent.get(0).source;
@@ -312,9 +310,9 @@ public class Species implements Runnable {
 	synchronized public void storeBestFitnessGlobal() {
 		final String PROGRAM_FILENAME_GLOBAL = new String("data" + File.separator + "GeneticProgram.java");
 		if(GP.fitnessBestGlobal == null) {
-			GP.fitnessBestGlobal = fitnessBest;
+			GP.fitnessBestGlobal = new Fitness(fitnessBest);
 		} else if(FitnessComparators.BY_CONFIDENCE_INTERVAL.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
-			GP.fitnessBestGlobal = fitnessBest;
+			GP.fitnessBestGlobal = new Fitness(fitnessBest);
 			try {
 				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
 				GP.sizeSourceLength = stringBestSource.length();
