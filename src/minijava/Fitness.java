@@ -101,6 +101,6 @@ public class Fitness {
 
 	
 	public String toString() {
-		return generation + "\t" + sum + "\t" + correct + "\t" + confidenceIntervalUpper + "\t" + speed + "\t" + size;
+		return generation + "\t" + mean + "\t" + correct + "\t" + confidenceIntervalUpper + "\t" + speed + "\t" + size;
 	}
 }
