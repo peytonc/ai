@@ -131,6 +131,7 @@ public class Species implements Runnable {
 		for(Program program : listProgramParent) {
 			source = replacePackage(program.source, species, indexPackage);
 			Program programParent = new Program(source, species, indexPackage, program.fitness);		//copy fitness to preserve statistical moments
+			programParent.fitness.reset(programParent.source.length());
 			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(CharStreams.fromString(programParent.source));
 			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
 			programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR only allows one call to program() before EOF error?
@@ -313,7 +314,7 @@ public class Species implements Runnable {
 					programPopulation.fitness.generation++;
 					//copy fitness to preserve statistical moments
 					Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, programPopulation.fitness);		 
-					programCopy.fitness.reset(programCopy.source.length());
+					// don't reset fitness here until day is logged
 					listProgramParent.add(programCopy);
 					sizeOfCurrentCategory++;
 					indexPackage++;
