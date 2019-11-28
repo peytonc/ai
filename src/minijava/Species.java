@@ -309,11 +309,11 @@ public class Species implements Runnable {
 					}
 				}
 				if(!exists) {
-					programPopulation.fitness.generation++;					// survived another generation
+					// survived another day
+					programPopulation.fitness.generation++;
 					//copy fitness to preserve statistical moments
 					Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, programPopulation.fitness);		 
-					programCopy.fitness.isComplete = false;
-					programCopy.fitness.size = programCopy.source.length();
+					programCopy.fitness.reset(programCopy.source.length());
 					listProgramParent.add(programCopy);
 					sizeOfCurrentCategory++;
 					indexPackage++;

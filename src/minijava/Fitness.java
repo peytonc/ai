@@ -47,6 +47,28 @@ public class Fitness {
 		sumSquareDifference = Constants.I0;
 	}
 	
+	// add the sample to the fitness parameters 
+	public void addSample(BigInteger sampledDifference) {
+		if(sampledDifference.compareTo(Constants.I0) == 0) {
+			correct++;
+		}
+		// update parameters of Welford's online algorithm, used to calculate statistical moments (e.g. mean, variance)
+		// modification to Welford's online algorithm to use integer sum, because it needs to scale with large integer division (and stay integer) instead of reals
+		count = count.add(Constants.I1);
+		BigInteger deltaPrevious = sampledDifference.subtract(mean);
+		sum = sum.add(sampledDifference);
+		mean = sum.divide(count);
+		BigInteger deltaCurrent = sampledDifference.subtract(mean);
+		sumSquareDifference = sumSquareDifference.add(deltaPrevious.multiply(deltaCurrent));
+	}
+	
+	// reset all daily fitness parameters
+	public void reset(int size) {
+		isComplete = false;
+		correct = 0;
+		this.size = size;
+	}
+	
 	public void update() {
 		if(speed > Environment.getEnvironment().speedBeforeRestrict) {
 			// if speed exceeds restriction then punish fitness (by increasing value)
@@ -76,21 +98,7 @@ public class Fitness {
 		confidenceIntervalUpper = sum.divide(count).add(marginOfError);
 		confidenceIntervalUpperScaled = confidenceIntervalUpper.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
 	}
-	
-	// add the sample to the fitness parameters 
-	public void addSample(BigInteger sampledDifference) {
-		if(sampledDifference.compareTo(Constants.I0) == 0) {
-			correct++;
-		}
-		// update parameters of Welford's online algorithm, used to calculate statistical moments (e.g. mean, variance)
-		// modification to Welford's online algorithm to use integer sum, because it needs to scale with large integer division (and stay integer) instead of reals
-		count = count.add(Constants.I1);
-		BigInteger deltaPrevious = sampledDifference.subtract(mean);
-		sum = sum.add(sampledDifference);
-		mean = sum.divide(count);
-		BigInteger deltaCurrent = sampledDifference.subtract(mean);
-		sumSquareDifference = sumSquareDifference.add(deltaPrevious.multiply(deltaCurrent));
-	}
+
 	
 	public String toString() {
 		return generation + "\t" + sum + "\t" + correct + "\t" + confidenceIntervalUpper + "\t" + speed + "\t" + size;
