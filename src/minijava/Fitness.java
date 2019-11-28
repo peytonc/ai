@@ -25,7 +25,7 @@ public class Fitness {
 	
 	private BigInteger mean;				// Welford's online algorithm
 	private static final NormalDistribution normalDistribution = new NormalDistribution();
-	private static final double confidenceLevel = 99.9;	// confidence level before final acceptance, in [0,100%) 
+	private static final double confidenceLevel = 98.5;	// confidence level before final acceptance, in [0,100%) 
 	private static final double alpha = 1.0-(confidenceLevel/100.0);
 	private static final double zScore = normalDistribution.inverseCumulativeProbability(1.0-(alpha/2.0));
 	private static final BigInteger zScore10000000000 = BigDecimal.valueOf(zScore * Constants.I10000000000.doubleValue()).toBigInteger();

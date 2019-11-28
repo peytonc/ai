@@ -22,8 +22,8 @@ createPopulation();
 compilePopulation();
 executePopulation();
 evaluatePopulation();
-storeBestFitness();
 downselectPopulation();
+storeBestFitness();
 ```
 
 # Installation #
