@@ -105,13 +105,13 @@ public class Species implements Runnable {
 		compilePopulation();
 		executePopulation();
 		evaluatePopulation();
-		storeBestFitness();
 		downselectPopulation();
+		storeBestFitness();
 		if(day%1 == 0 && listProgramParent!=null && !listProgramParent.isEmpty()) {
-			int count =0;
+			int count = 0;
 			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
 			for(Program program : listProgramParent) {
-				LOGGER.info("\tevaluatePopulation\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				LOGGER.info("\tstoreBestFitness\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
 				count++;
 			}
 		}
@@ -239,49 +239,6 @@ public class Species implements Runnable {
 		}
 	}
 	
-	public void storeBestFitness() {
-		if(listProgramPopulation==null || listProgramPopulation.isEmpty()) {
-			return;
-		}
-		Collections.sort(listProgramPopulation, ProgramComparators.BY_CONFIDENCE_INTERVAL);
-		if(fitnessBest == null) {
-			stagnant = MAX_STAGNANT_YEARS;
-			fitnessBest = listProgramPopulation.get(0).fitness;
-			stringBestSource = listProgramPopulation.get(0).source;
-			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramPopulation.get(0).source);
-		} else if(FitnessComparators.BY_CONFIDENCE_INTERVAL.compare(fitnessBest, listProgramPopulation.get(0).fitness) > 0) {
-			stagnant = MAX_STAGNANT_YEARS;
-			fitnessBest = listProgramPopulation.get(0).fitness;
-			try {
-				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramPopulation.get(0).source);
-				String source = listProgramPopulation.get(0).source;
-				source = replacePackage(source, species, 0);
-				if(!source.equals(stringBestSource)) {	// only save if different (reduce storage writes)
-					stringBestSource = source;
-					Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
-					storeBestFitnessGlobal();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	synchronized public void storeBestFitnessGlobal() {
-		final String PROGRAM_FILENAME_GLOBAL = new String("data" + File.separator + "GeneticProgram.java");
-		if(GP.fitnessBestGlobal == null) {
-			GP.fitnessBestGlobal = fitnessBest;
-		} else if(FitnessComparators.BY_CONFIDENCE_INTERVAL.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
-			GP.fitnessBestGlobal = fitnessBest;
-			try {
-				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
-				GP.sizeSourceLength = stringBestSource.length();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
 	public void downselectPopulation() {
 		int indexPackage = 0;
 		Iterator<Program> iteratorProgramPopulation;
@@ -320,6 +277,49 @@ public class Species implements Runnable {
 					indexPackage++;
 				}
 				iteratorProgramPopulation.remove();
+			}
+		}
+	}
+	
+	public void storeBestFitness() {
+		if(listProgramParent==null || listProgramParent.isEmpty()) {
+			return;
+		}
+		Collections.sort(listProgramParent, ProgramComparators.BY_CONFIDENCE_INTERVAL);
+		if(fitnessBest == null) {
+			stagnant = MAX_STAGNANT_YEARS;
+			fitnessBest = listProgramParent.get(0).fitness;
+			stringBestSource = listProgramParent.get(0).source;
+			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramParent.get(0).source);
+		} else if(FitnessComparators.BY_CONFIDENCE_INTERVAL.compare(fitnessBest, listProgramParent.get(0).fitness) > 0) {
+			stagnant = MAX_STAGNANT_YEARS;
+			fitnessBest = listProgramParent.get(0).fitness;
+			try {
+				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramParent.get(0).source);
+				String source = listProgramParent.get(0).source;
+				source = replacePackage(source, species, 0);
+				if(!source.equals(stringBestSource)) {	// only save if different (reduce storage writes)
+					stringBestSource = source;
+					Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
+					storeBestFitnessGlobal();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	synchronized public void storeBestFitnessGlobal() {
+		final String PROGRAM_FILENAME_GLOBAL = new String("data" + File.separator + "GeneticProgram.java");
+		if(GP.fitnessBestGlobal == null) {
+			GP.fitnessBestGlobal = fitnessBest;
+		} else if(FitnessComparators.BY_CONFIDENCE_INTERVAL.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
+			GP.fitnessBestGlobal = fitnessBest;
+			try {
+				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
+				GP.sizeSourceLength = stringBestSource.length();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
