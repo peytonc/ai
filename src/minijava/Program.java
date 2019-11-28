@@ -25,11 +25,10 @@ public class Program extends SimpleJavaFileObject {
 	public BlockContext blockContext = null;
 	
 
-	Program(String source, int species, int ID, long generation) {
+	Program(String source, int species, int ID, Fitness fitness) {
 		super(URI.create("string:///" + PACKAGE_SPECIES + species + '/' + PACKAGE_ID + ID + '/' + PROGRAM_CLASS + Kind.SOURCE.extension), Kind.SOURCE);
 		this.source = new String(source);
-		fitness = new Fitness();
-		fitness.generation = generation;
+		this.fitness = fitness;
 		fitness.size = source.length();
 		this.species = species;
 		this.ID = ID;

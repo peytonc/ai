@@ -123,15 +123,14 @@ public class Species implements Runnable {
 		listProgramPopulation.clear();
 		if(listProgramParent.isEmpty()) {
 			// create new program using best source
-			Program program = new Program(stringBestSource, species, 0, 0);
+			Program program = new Program(stringBestSource, species, 0, new Fitness());
 			listProgramParent.add(program);
 			LOGGER.info("RESTARTEDY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + listProgramParent.get(0).source);
 		}
 		//make ANTLR parsers for parents, used by crossover
 		for(Program program : listProgramParent) {
-			long generation = program.fitness.generation;
 			source = replacePackage(program.source, species, indexPackage);
-			Program programParent = new Program(source, species, indexPackage, generation);
+			Program programParent = new Program(source, species, indexPackage, program.fitness);		//copy fitness to preserve statistical moments
 			MiniJavaLexer miniJavaLexer = new MiniJavaLexer(CharStreams.fromString(programParent.source));
 			programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
 			programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR only allows one call to program() before EOF error?
@@ -150,7 +149,7 @@ public class Species implements Runnable {
 				}
 				source = createProgram(program, program2, program.source);
 				source = replacePackage(source, species, indexPackage);
-				listProgramPopulation.add(new Program(source, species, indexPackage, 0));	// add child to population
+				listProgramPopulation.add(new Program(source, species, indexPackage, new Fitness()));	// add child to population
 				indexPackage++;
 			}
 		}
@@ -243,13 +242,13 @@ public class Species implements Runnable {
 		if(listProgramPopulation==null || listProgramPopulation.isEmpty()) {
 			return;
 		}
-		/*TODO update to CI*/Collections.sort(listProgramPopulation, ProgramComparators.BY_CORRECT);
+		Collections.sort(listProgramPopulation, ProgramComparators.BY_CONFIDENCE_INTERVAL);
 		if(fitnessBest == null) {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			stringBestSource = listProgramPopulation.get(0).source;
 			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramPopulation.get(0).species + "ID" + listProgramPopulation.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramPopulation.get(0).source);
-		} else if(/*TODO update to CI*/FitnessComparators.BY_CORRECT.compare(fitnessBest, listProgramPopulation.get(0).fitness) > 0) {
+		} else if(FitnessComparators.BY_CONFIDENCE_INTERVAL.compare(fitnessBest, listProgramPopulation.get(0).fitness) > 0) {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = listProgramPopulation.get(0).fitness;
 			try {
@@ -271,7 +270,7 @@ public class Species implements Runnable {
 		final String PROGRAM_FILENAME_GLOBAL = new String("data" + File.separator + "GeneticProgram.java");
 		if(GP.fitnessBestGlobal == null) {
 			GP.fitnessBestGlobal = fitnessBest;
-		} else if(FitnessComparators.BY_CORRECT.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
+		} else if(FitnessComparators.BY_CONFIDENCE_INTERVAL.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
 			GP.fitnessBestGlobal = fitnessBest;
 			try {
 				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
@@ -311,8 +310,10 @@ public class Species implements Runnable {
 				}
 				if(!exists) {
 					programPopulation.fitness.generation++;					// survived another generation
-					Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, programPopulation.fitness.generation);
-					programCopy.fitness = programPopulation.fitness;		//copy fitness to preserve statistical moments 
+					//copy fitness to preserve statistical moments
+					Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, programPopulation.fitness);		 
+					programCopy.fitness.isComplete = false;
+					programCopy.fitness.size = programCopy.source.length();
 					listProgramParent.add(programCopy);
 					sizeOfCurrentCategory++;
 					indexPackage++;

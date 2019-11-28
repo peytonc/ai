@@ -50,8 +50,12 @@ public class Fitness {
 	public void update() {
 		if(speed > Environment.getEnvironment().speedBeforeRestrict) {
 			// if speed exceeds restriction then punish fitness (by increasing value)
-			numeratorScaled *= speed;
-			denominatorScaled *= Environment.getEnvironment().speedBeforeRestrict;
+			numeratorScaled = speed;
+			denominatorScaled = Environment.getEnvironment().speedBeforeRestrict;
+		} else {
+			// reset scaling factors before another day
+			numeratorScaled = 1;
+			denominatorScaled = 1;
 		}
 		if(size > Environment.getEnvironment().sizeBeforeRestrict) {
 			// if size exceeds restriction then punish fitness (by increasing value)
