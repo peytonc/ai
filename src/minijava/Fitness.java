@@ -7,23 +7,23 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 
 public class Fitness {
 	
-	public long generation;
-	public long speed;
-	public int size;
+	public long generation;					// number of generations (or days) this program has survived
+	public long speed;						// total CPU time taken to execute program across samples
+	public int size;						// size of source code
 	public boolean isComplete;				// successfully completed all test cases?
 	public boolean isMarginOfErrorFinal;	// is MarginOfErrorFinal less than 1, implies high confidence of sample mean converged to population mean 
-	public int correct;
-	public int correctScaled;
-	public BigInteger sumScaled;
+	public int correct;						// number of samples that are correct (e.g. no difference between actual and expected)
 	public BigInteger confidenceIntervalUpper;
-	public BigInteger confidenceIntervalUpperScaled;
-	public long numeratorScaled;
-	public long denominatorScaled;
+	public int correctScaled;				// scaled when speed/size is over allocation
+	public BigInteger meanScaled;			// scaled when speed/size is over allocation
+	public BigInteger confidenceIntervalUpperScaled;	// scaled when speed/size is over allocation
+	public long numeratorScaled;			// for scaling when speed/size is over allocation
+	public long denominatorScaled;			// for scaling when speed/size is over allocation
+	public BigInteger mean;					// Welford's online algorithm
 	public BigInteger count;				// Welford's online algorithm
-	public BigInteger sum;					// Welford's online algorithm
 	public BigInteger sumSquareDifference;	// Welford's online algorithm
+	private BigInteger sum;					// Welford's online algorithm
 	
-	private BigInteger mean;				// Welford's online algorithm
 	private static final NormalDistribution normalDistribution = new NormalDistribution();
 	private static final double confidenceLevel = 98.5;	// confidence level before final acceptance, in [0,100%) 
 	private static final double alpha = 1.0-(confidenceLevel/100.0);
@@ -38,7 +38,7 @@ public class Fitness {
 		isMarginOfErrorFinal = false;
 		correct = 0;
 		correctScaled = 0;
-		sumScaled = Constants.LONG_MAX_VALUE;
+		meanScaled = Constants.I0;
 		numeratorScaled = 1;
 		denominatorScaled = 1;
 		count = Constants.I0;
@@ -55,7 +55,7 @@ public class Fitness {
 		this.isMarginOfErrorFinal = fitness.isMarginOfErrorFinal;
 		this.correct = fitness.correct;
 		this.correctScaled = fitness.correctScaled;
-		this.sumScaled = fitness.sumScaled;
+		this.meanScaled = fitness.meanScaled;
 		this.confidenceIntervalUpper = fitness.confidenceIntervalUpper;
 		this.confidenceIntervalUpperScaled = fitness.confidenceIntervalUpperScaled;
 		this.numeratorScaled = fitness.numeratorScaled;
@@ -106,7 +106,7 @@ public class Fitness {
 		BigInteger denominatorScaledBigInteger = BigInteger.valueOf(denominatorScaled);
 		BigInteger numeratorScaledBigInteger = BigInteger.valueOf(numeratorScaled);
 		correctScaled = (int)(correct*denominatorScaled/numeratorScaled);	// flip numerator and denominator to punish fitness, because numeratorScaled>denominatorScaled
-		sumScaled = sum.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
+		meanScaled = mean.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
 		// sample standard deviation
 		BigInteger standardDeviation = Util.sqrt(sumSquareDifference.divide(count.subtract(Constants.I1)));
 		// calculate maximum value of confidence interval range
