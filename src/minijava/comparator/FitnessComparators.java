@@ -8,4 +8,5 @@ public class FitnessComparators {
 	public static final Comparator<Fitness> BY_MEAN = new FitnessComparatorByMean();
 	public static final Comparator<Fitness> BY_CORRECT = new FitnessComparatorByCorrect();
 	public static final Comparator<Fitness> BY_CONFIDENCE_INTERVAL = new FitnessComparatorByConfidenceInterval();
+	public static final Comparator<Fitness> BY_COMBINED = new FitnessComparatorByCombined();
 }

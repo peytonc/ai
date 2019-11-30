@@ -40,10 +40,12 @@ public class Species implements Runnable {
 	public int species;
 	
 	private static final int MAX_PARENT_BY_MEAN = 2;				// Size of parent pool reserved for BY_MEAN
-	private static final int MAX_PARENT_BY_CORRECT = 2;				// Size of parent pool reserved for BY_CORECT
+	private static final int MAX_PARENT_BY_CORRECT = 2;				// Size of parent pool reserved for BY_CORRECT
 	private static final int MAX_PARENT_BY_CONFIDENCE_INTERVAL = 2;	// Size of parent pool reserved for BY_CONFIDENCE_INTERVAL
-	private static final int maxParentByCategory[] = {MAX_PARENT_BY_MEAN, MAX_PARENT_BY_CORRECT, MAX_PARENT_BY_CONFIDENCE_INTERVAL};	// must match program/fitness categories
-	private static final int MAX_PARENT =  MAX_PARENT_BY_MEAN + MAX_PARENT_BY_CORRECT + MAX_PARENT_BY_CONFIDENCE_INTERVAL;	// Total size of parent pool
+	private static final int MAX_PARENT_BY_COMBINED = 2;			// Size of parent pool reserved for BY_COMBINED
+	// must match program/fitness categories
+	private static final int maxParentByCategory[] = {MAX_PARENT_BY_MEAN, MAX_PARENT_BY_CORRECT, MAX_PARENT_BY_CONFIDENCE_INTERVAL, MAX_PARENT_BY_COMBINED};	
+	private static final int MAX_PARENT =  MAX_PARENT_BY_MEAN + MAX_PARENT_BY_CORRECT + MAX_PARENT_BY_CONFIDENCE_INTERVAL + MAX_PARENT_BY_COMBINED;	// Total size of parent pool
 	private static final int MAX_CHILDREN = 2;	// Number of children each parent produces
 	public static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
 	private static final int MAX_STAGNANT_YEARS = 4;	// number of years a species can live without progress on bestfit
@@ -213,11 +215,11 @@ public class Species implements Runnable {
 			        if(program.vectors == null) {
 			        	// remove program when vectors is null
 			        	iteratorProgram.remove();
-			        } else if(program.fitness.speed > Environment.MAX_EXECUTE_MILLISECONDS_90PERCENT) {
+			        } else if(program.fitness.meanSpeed > Environment.MAX_EXECUTE_MILLISECONDS_90PERCENT) {
 			        	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_90PERCENT
 			        	iteratorProgram.remove();
 			        } else if(program.fitness.isComplete) {	// remove program when completed and add to completed list
-			        	if(program.fitness.speed!=Integer.MAX_VALUE && program.fitness.size!=Integer.MAX_VALUE) {
+			        	if(program.fitness.meanSpeed!=Long.MAX_VALUE && program.fitness.size!=Integer.MAX_VALUE) {
 			        		listProgramPopulationCompleted.add(program);
 			        	}
 			        	iteratorProgram.remove();

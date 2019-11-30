@@ -35,7 +35,7 @@ public final class Tests {
 				if(differenceError == null) {
 					return false;
 				} else {
-					fitness.addSample(differenceError);
+					fitness.addSampleDifference(differenceError);
 				}
 			}
 			fitness.update();	// update statistical moments

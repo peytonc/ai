@@ -4,18 +4,18 @@ import java.util.Comparator;
 
 import minijava.Fitness;
 
-public class FitnessComparatorByConfidenceInterval implements Comparator<Fitness> {
+public class FitnessComparatorByCombined implements Comparator<Fitness> {
     public int compare(Fitness fitness1, Fitness fitness2) { 
 		int compare = 0;
-		compare = fitness1.meanConfidenceIntervalScaled.compareTo(fitness2.meanConfidenceIntervalScaled);
+		compare = fitness1.combinedFunction.compareTo(fitness2.combinedFunction);
 		if(compare == 0) {
 			compare = Long.compare(fitness1.meanSpeed, fitness2.meanSpeed);
 			if(compare == 0) {
 				compare = Integer.compare(fitness1.size, fitness2.size);
 				if(compare == 0) {
-					compare = fitness1.meanScaled.compareTo(fitness2.meanScaled);
+					compare = Integer.compare(fitness2.correctScaled, fitness1.correctScaled);		// flip order to obtain largest correct first
 					if(compare == 0) {
-						compare = Integer.compare(fitness2.correctScaled, fitness1.correctScaled);		// flip order to obtain largest correct first
+						compare = fitness1.meanConfidenceIntervalScaled.compareTo(fitness2.meanConfidenceIntervalScaled);
 					}
 				}
 			}

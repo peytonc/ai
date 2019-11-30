@@ -61,17 +61,16 @@ public class CallableMiniJava implements Runnable {
 				program.vectors = null;
 				e.printStackTrace();
 			}
-			if(timeStart == 0) {
-				program.fitness.speed = 0;
+			long timeStop = GP.threadMXBean.getThreadCpuTime(thread.getId());
+			if(timeStart == -1 || timeStop == -1) {
+				program.fitness.sumSpeed = Long.MAX_VALUE;
+				program.fitness.meanSpeed = Long.MAX_VALUE;
+				LOGGER.severe("OS and JVM must support CPU time as defined by ThreadMXBean");
 			} else {
-				long timeStop = GP.threadMXBean.getThreadCpuTime(thread.getId());
-				if(timeStart == -1 || timeStop == -1) {
-					program.fitness.speed = Integer.MAX_VALUE;
-					LOGGER.severe("OS and JVM must support CPU time as defined by ThreadMXBean");
-				} else {
-					program.fitness.speed = TimeUnit.NANOSECONDS.toMillis(timeStop - timeStart) + 1;	// add +1 to show process ran
-				}
+				long speed = TimeUnit.NANOSECONDS.toMillis(timeStop - timeStart);
+				program.fitness.addSampleSpeed(speed);
 			}
+			
 		}
 	}
 }
