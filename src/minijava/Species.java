@@ -244,7 +244,6 @@ public class Species implements Runnable {
 	}
 	
 	public void downselectPopulation() {
-		int indexPackage = 0;
 		Iterator<Program> iteratorProgramPopulation;
 		listProgramParent.clear();
 		
@@ -267,14 +266,8 @@ public class Species implements Runnable {
 					}
 				}
 				if(!exists) {
-					// survived another day
-					programPopulation.fitness.generation++;
-					// copy fitness to preserve statistical moments
-					Program programCopy = new Program(replacePackage(programPopulation.source, species, indexPackage), species, indexPackage, programPopulation.fitness);		 
-					// don't reset fitness here until day is logged
-					listProgramParent.add(programCopy);
+					listProgramParent.add(programPopulation);
 					sizeOfCurrentCategory++;
-					indexPackage++;
 				}
 				iteratorProgramPopulation.remove();
 			}

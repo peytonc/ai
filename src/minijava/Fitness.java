@@ -42,7 +42,7 @@ public class Fitness {
 
 	public Fitness() {
 		// sample size parameters
-		generation = 1;
+		generation = 0;					// start at 0 and program will increment
 		count = Constants.I0;
 		// size	parameters
 		size = Integer.MAX_VALUE;

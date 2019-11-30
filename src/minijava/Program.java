@@ -33,6 +33,7 @@ public class Program extends SimpleJavaFileObject {
 		} else {
 			this.fitness = new Fitness(fitness);
 		}
+		this.fitness.generation++;
 		this.fitness.size = source.length();
 		this.species = species;
 		this.ID = ID;
