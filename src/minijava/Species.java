@@ -39,13 +39,13 @@ public class Species implements Runnable {
 	public int stagnant = MAX_STAGNANT_YEARS;
 	public int species;
 	
+	private static final int MAX_PARENT_BY_COMBINED = 2;			// Size of parent pool reserved for BY_COMBINED
+	private static final int MAX_PARENT_BY_CONFIDENCE_INTERVAL = 2;	// Size of parent pool reserved for BY_CONFIDENCE_INTERVAL
 	private static final int MAX_PARENT_BY_MEAN = 2;				// Size of parent pool reserved for BY_MEAN
 	private static final int MAX_PARENT_BY_CORRECT = 2;				// Size of parent pool reserved for BY_CORRECT
-	private static final int MAX_PARENT_BY_CONFIDENCE_INTERVAL = 2;	// Size of parent pool reserved for BY_CONFIDENCE_INTERVAL
-	private static final int MAX_PARENT_BY_COMBINED = 2;			// Size of parent pool reserved for BY_COMBINED
 	// must match program/fitness categories
-	private static final int maxParentByCategory[] = {MAX_PARENT_BY_MEAN, MAX_PARENT_BY_CORRECT, MAX_PARENT_BY_CONFIDENCE_INTERVAL, MAX_PARENT_BY_COMBINED};	
-	private static final int MAX_PARENT =  MAX_PARENT_BY_MEAN + MAX_PARENT_BY_CORRECT + MAX_PARENT_BY_CONFIDENCE_INTERVAL + MAX_PARENT_BY_COMBINED;	// Total size of parent pool
+	private static final int maxParentByCategory[] = {MAX_PARENT_BY_COMBINED,  MAX_PARENT_BY_CONFIDENCE_INTERVAL, MAX_PARENT_BY_MEAN, MAX_PARENT_BY_CORRECT};	
+	private static final int MAX_PARENT =  MAX_PARENT_BY_COMBINED + MAX_PARENT_BY_CONFIDENCE_INTERVAL + MAX_PARENT_BY_MEAN + MAX_PARENT_BY_CORRECT;	// Total size of parent pool
 	private static final int MAX_CHILDREN = 2;	// Number of children each parent produces
 	public static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
 	private static final int MAX_STAGNANT_YEARS = 4;	// number of years a species can live without progress on bestfit
@@ -285,13 +285,13 @@ public class Species implements Runnable {
 		if(listProgramParent==null || listProgramParent.isEmpty()) {
 			return;
 		}
-		Collections.sort(listProgramParent, ProgramComparators.BY_CONFIDENCE_INTERVAL);
+		Collections.sort(listProgramParent, ProgramComparators.BY_COMBINED);
 		if(fitnessBest == null) {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = new Fitness(listProgramParent.get(0).fitness);
 			stringBestSource = listProgramParent.get(0).source;
 			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramParent.get(0).source);
-		} else if(FitnessComparators.BY_CONFIDENCE_INTERVAL.compare(fitnessBest, listProgramParent.get(0).fitness) > 0) {
+		} else if(FitnessComparators.BY_COMBINED.compare(fitnessBest, listProgramParent.get(0).fitness) > 0) {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = new Fitness(listProgramParent.get(0).fitness);
 			try {
@@ -313,7 +313,7 @@ public class Species implements Runnable {
 		final String PROGRAM_FILENAME_GLOBAL = new String("data" + File.separator + "GeneticProgram.java");
 		if(GP.fitnessBestGlobal == null) {
 			GP.fitnessBestGlobal = new Fitness(fitnessBest);
-		} else if(FitnessComparators.BY_CONFIDENCE_INTERVAL.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
+		} else if(FitnessComparators.BY_COMBINED.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
 			GP.fitnessBestGlobal = new Fitness(fitnessBest);
 			try {
 				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
