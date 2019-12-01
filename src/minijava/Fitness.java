@@ -14,17 +14,21 @@ public class Fitness {
 	// CPU time parameters
 	public long meanSpeed;					// mean CPU time taken to execute program across samples (i.e. # of generations)
 	public long sumSpeed;					// aggregates the speeds, for Welford's online algorithm
-	// BY_MEAN parameters
+	// BY_MEAN_ERROR and BY_MEAN_ERROR_CONFIDENCE_INTERVAL parameters
 	public BigInteger meanError;			// sample mean of error (between actual and expected), for Welford's online algorithm
 	private BigInteger sumError;			// aggregates the difference between actual and expected, for Welford's online algorithm
 	public BigInteger sumErrorM2;			// aggregates the squared distance from the sample mean error, for Welford's online algorithm
-	public BigInteger meanScaled;			// scaled when speed/size is over allocation
-	// BY_CORRECT parameters
-	public int correct;						// number of samples that are correct (e.g. no difference between actual and expected)
-	public int correctScaled;				// scaled when speed/size is over allocation
-	// BY_CONFIDENCE_INTERVAL parameters
-	public BigInteger meanConfidenceInterval;		// sample mean error plus maximum value of confidence interval
-	public BigInteger meanConfidenceIntervalScaled;	// scaled when speed/size is over allocation
+	public BigInteger meanErrorScaled;		// scaled when speed/size is over allocation
+	public BigInteger meanErrorConfidenceInterval;			// sample mean error plus maximum value of confidence interval
+	public BigInteger meanErrorConfidenceIntervalScaled;	// scaled when speed/size is over allocation
+	// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
+	public long meanCorrect;						// number of samples that are correct (e.g. no difference between actual and expected)
+	public long sumCorrect;						// aggregates number of correct, for Welford's online algorithm
+	public long sumCorrectM2;					// aggregates the squared distance from the mean correct, for Welford's online algorithm
+	public long meanCorrectScaled;				// scaled when speed/size is over allocation
+	public long meanCorrectConfidenceInterval;	// sample mean error plus maximum value of confidence interval
+	public long meanCorrectConfidenceIntervalScaled;	// scaled when speed/size is over allocation
+	
 	// BY_COMBINED parameters
 	public BigInteger combinedFunction;		// a combined function of: correct, mean confidence interval, speed confidence interval, and size
 	// program control parameters
@@ -53,10 +57,10 @@ public class Fitness {
 		meanError = Constants.I0;
 		sumError = Constants.I0;
 		sumErrorM2 = Constants.I0;
-		meanScaled = Constants.I0;
+		meanErrorScaled = Constants.I0;
 		// BY_CORRECT parameters
-		correct = 0;
-		correctScaled = 0;
+		meanCorrect = 0;
+		meanCorrectScaled = 0;
 		// BY_COMBINED parameters
 		combinedFunction = Constants.I0;
 		// program control parameters
@@ -80,13 +84,13 @@ public class Fitness {
 		this.sumError = fitness.sumError;
 		this.meanError = fitness.meanError;
 		this.sumErrorM2 = fitness.sumErrorM2;
-		this.meanScaled = fitness.meanScaled;
+		this.meanErrorScaled = fitness.meanErrorScaled;
 		// BY_CORRECT parameters
-		this.correct = fitness.correct;
-		this.correctScaled = fitness.correctScaled;
+		this.meanCorrect = fitness.meanCorrect;
+		this.meanCorrectScaled = fitness.meanCorrectScaled;
 		// BY_CONFIDENCE_INTERVAL parameters
-		this.meanConfidenceInterval = fitness.meanConfidenceInterval;
-		this.meanConfidenceIntervalScaled = fitness.meanConfidenceIntervalScaled;
+		this.meanErrorConfidenceInterval = fitness.meanErrorConfidenceInterval;
+		this.meanErrorConfidenceIntervalScaled = fitness.meanErrorConfidenceIntervalScaled;
 		// BY_COMBINED parameters
 		this.combinedFunction = fitness.combinedFunction;
 		// scaling parameters
@@ -100,7 +104,7 @@ public class Fitness {
 	// add the sampled difference to the fitness parameters 
 	public void addSampleDifference(BigInteger sampledDifference) {
 		if(sampledDifference.compareTo(Constants.I0) == 0) {
-			correct++;
+			meanCorrect++;
 		}
 		// update parameters of Welford's online algorithm, used to calculate statistical moments (e.g. mean, variance)
 		// modification to Welford's online algorithm to use integer sum, because it needs to scale with large integer division (and stay integer) instead of reals
@@ -121,7 +125,7 @@ public class Fitness {
 	// reset all daily fitness parameters
 	public void reset(int size) {
 		isComplete = false;
-		correct = 0;
+		meanCorrect = 0;
 		this.size = size;
 	}
 	
@@ -142,8 +146,8 @@ public class Fitness {
 		}
 		BigInteger denominatorScaledBigInteger = BigInteger.valueOf(denominatorScaled);
 		BigInteger numeratorScaledBigInteger = BigInteger.valueOf(numeratorScaled);
-		correctScaled = (int)(correct*denominatorScaled/numeratorScaled);	// flip numerator and denominator to punish fitness, because numeratorScaled>denominatorScaled
-		meanScaled = meanError.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
+		meanCorrectScaled = (int)(meanCorrect*denominatorScaled/numeratorScaled);	// flip numerator and denominator to punish fitness, because numeratorScaled>denominatorScaled
+		meanErrorScaled = meanError.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
 		// sample standard deviation
 		BigInteger standardDeviation = Util.sqrt(sumErrorM2.divide(count.subtract(Constants.I1)));
 		// calculate maximum value of confidence interval range
@@ -151,16 +155,16 @@ public class Fitness {
 		if(marginOfError.compareTo(Constants.I0) == 0) {
 			isMarginOfErrorFinal = true;
 		}
-		meanConfidenceInterval = meanError.add(marginOfError);
-		meanConfidenceIntervalScaled = meanConfidenceInterval.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
-		combinedFunction = meanConfidenceIntervalScaled.multiply(BigInteger.valueOf(Tests.MAX_TEST_VECTORS));
-		if(correct>0) {
-			combinedFunction = combinedFunction.divide(BigInteger.valueOf(correct));
+		meanErrorConfidenceInterval = meanError.add(marginOfError);
+		meanErrorConfidenceIntervalScaled = meanErrorConfidenceInterval.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
+		combinedFunction = meanErrorConfidenceIntervalScaled.multiply(BigInteger.valueOf(Tests.MAX_TEST_VECTORS));
+		if(meanCorrect>0) {
+			combinedFunction = combinedFunction.divide(BigInteger.valueOf(meanCorrect));
 		}
 	}
 
 	
 	public String toString() {
-		return generation + "\t" + meanError + "\t" + correct + "\t" + meanConfidenceInterval + "\t" + combinedFunction + "\t" + meanSpeed + "\t" + size;
+		return generation + "\t" + meanError + "\t" + meanCorrect + "\t" + meanErrorConfidenceInterval + "\t" + combinedFunction + "\t" + meanSpeed + "\t" + size;
 	}
 }
