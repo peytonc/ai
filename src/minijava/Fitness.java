@@ -23,12 +23,11 @@ public class Fitness {
 	public BigInteger meanErrorConfidenceIntervalScaled;	// scaled when speed/size is over allocation
 	// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
 	public long meanCorrect;						// number of samples that are correct (e.g. no difference between actual and expected)
-	public long sumCorrect;						// aggregates number of correct, for Welford's online algorithm
+	private long sumCorrect;						// aggregates number of correct, for Welford's online algorithm
 	public long sumCorrectM2;					// aggregates the squared distance from the mean correct, for Welford's online algorithm
 	public long meanCorrectScaled;				// scaled when speed/size is over allocation
 	public long meanCorrectConfidenceInterval;	// sample mean error plus maximum value of confidence interval
 	public long meanCorrectConfidenceIntervalScaled;	// scaled when speed/size is over allocation
-	
 	// BY_COMBINED parameters
 	public BigInteger combinedFunction;		// a combined function of: correct, mean confidence interval, speed confidence interval, and size
 	// program control parameters
@@ -48,18 +47,20 @@ public class Fitness {
 		// sample size parameters
 		generation = 0;					// start at 0 and program will increment
 		count = Constants.I0;
-		// size	parameters
+		// size parameters
 		size = Integer.MAX_VALUE;
 		// CPU time parameters
 		meanSpeed = 0;
 		sumSpeed = 0;
-		// BY_MEAN parameters
+		// BY_MEAN_ERROR and BY_MEAN_ERROR_CONFIDENCE_INTERVAL parameters
 		meanError = Constants.I0;
 		sumError = Constants.I0;
 		sumErrorM2 = Constants.I0;
 		meanErrorScaled = Constants.I0;
-		// BY_CORRECT parameters
+		// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
 		meanCorrect = 0;
+		sumCorrect = 0;
+		sumCorrectM2 = 0;
 		meanCorrectScaled = 0;
 		// BY_COMBINED parameters
 		combinedFunction = Constants.I0;
@@ -80,17 +81,20 @@ public class Fitness {
 		// CPU time parameters
 		this.meanSpeed = fitness.meanSpeed;
 		this.sumSpeed = fitness.sumSpeed;
-		// BY_MEAN parameters
-		this.sumError = fitness.sumError;
+		// BY_MEAN_ERROR and BY_MEAN_ERROR_CONFIDENCE_INTERVAL parameters
 		this.meanError = fitness.meanError;
+		this.sumError = fitness.sumError;
 		this.sumErrorM2 = fitness.sumErrorM2;
 		this.meanErrorScaled = fitness.meanErrorScaled;
-		// BY_CORRECT parameters
-		this.meanCorrect = fitness.meanCorrect;
-		this.meanCorrectScaled = fitness.meanCorrectScaled;
-		// BY_CONFIDENCE_INTERVAL parameters
 		this.meanErrorConfidenceInterval = fitness.meanErrorConfidenceInterval;
 		this.meanErrorConfidenceIntervalScaled = fitness.meanErrorConfidenceIntervalScaled;
+		// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
+		this.meanCorrect = fitness.meanCorrect;
+		this.sumCorrect = fitness.sumCorrect;
+		this.sumCorrectM2 = fitness.sumCorrectM2;
+		this.meanCorrectScaled = fitness.meanCorrectScaled;
+		this.meanCorrectConfidenceInterval = fitness.meanCorrectConfidenceInterval;
+		this.meanCorrectConfidenceIntervalScaled = fitness.meanCorrectConfidenceIntervalScaled;
 		// BY_COMBINED parameters
 		this.combinedFunction = fitness.combinedFunction;
 		// scaling parameters
@@ -101,13 +105,14 @@ public class Fitness {
 		this.isMarginOfErrorFinal = fitness.isMarginOfErrorFinal;
 	}
 	
-	// add the sampled difference to the fitness parameters 
+	// add the sampled difference to the fitness parameters
+	// update parameters of Welford's online algorithm, used to calculate statistical moments (e.g. mean, variance)
+	// modification to Welford's online algorithm to use integer sum, because it needs to scale with large integer division (and stay integer) instead of reals
 	public void addSampleDifference(BigInteger sampledDifference) {
 		if(sampledDifference.compareTo(Constants.I0) == 0) {
 			meanCorrect++;
 		}
-		// update parameters of Welford's online algorithm, used to calculate statistical moments (e.g. mean, variance)
-		// modification to Welford's online algorithm to use integer sum, because it needs to scale with large integer division (and stay integer) instead of reals
+		
 		count = count.add(Constants.I1);
 		BigInteger deltaPrevious = sampledDifference.subtract(meanError);
 		sumError = sumError.add(sampledDifference);

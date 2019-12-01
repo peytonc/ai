@@ -42,11 +42,12 @@ public class Species implements Runnable {
 	// Size of parent pool reserved for by category
 	private static final int MAX_PARENT_BY_COMBINED = 2;
 	private static final int MAX_PARENT_BY_MEAN_ERROR_CONFIDENCE_INTERVAL = 2;
+	private static final int MAX_PARENT_BY_MEAN_CORRECT_CONFIDENCE_INTERVAL = 2;
 	private static final int MAX_PARENT_BY_MEAN_ERROR = 2;
 	private static final int MAX_PARENT_BY_MEAN_CORRECT = 2;
 	// must match program/fitness categories
-	private static final int maxParentByCategory[] = {MAX_PARENT_BY_COMBINED,  MAX_PARENT_BY_MEAN_ERROR_CONFIDENCE_INTERVAL, MAX_PARENT_BY_MEAN_ERROR, MAX_PARENT_BY_MEAN_CORRECT};	
-	private static final int MAX_PARENT =  MAX_PARENT_BY_COMBINED + MAX_PARENT_BY_MEAN_ERROR_CONFIDENCE_INTERVAL + MAX_PARENT_BY_MEAN_ERROR + MAX_PARENT_BY_MEAN_CORRECT;	// Total size of parent pool
+	private static final int maxParentByCategory[] = {MAX_PARENT_BY_COMBINED,  MAX_PARENT_BY_MEAN_ERROR_CONFIDENCE_INTERVAL, MAX_PARENT_BY_MEAN_CORRECT_CONFIDENCE_INTERVAL, MAX_PARENT_BY_MEAN_ERROR, MAX_PARENT_BY_MEAN_CORRECT};	
+	private static final int MAX_PARENT =  MAX_PARENT_BY_COMBINED + MAX_PARENT_BY_MEAN_ERROR_CONFIDENCE_INTERVAL + MAX_PARENT_BY_MEAN_CORRECT_CONFIDENCE_INTERVAL + MAX_PARENT_BY_MEAN_ERROR + MAX_PARENT_BY_MEAN_CORRECT;	// Total size of parent pool
 	private static final int MAX_CHILDREN = 2;	// Number of children each parent produces
 	public static final int MAX_POPULATION = MAX_PARENT*MAX_CHILDREN + MAX_PARENT;	// Total population size
 	private static final int MAX_STAGNANT_YEARS = 4;	// number of years a species can live without progress on bestfit
