@@ -13,7 +13,7 @@ public class FitnessComparatorByCombined implements Comparator<Fitness> {
 			if(compare == 0) {
 				compare = Integer.compare(fitness1.size, fitness2.size);
 				if(compare == 0) {
-					compare = Integer.compare(fitness2.meanCorrectScaled, fitness1.meanCorrectScaled);		// flip order to obtain largest correct first
+					compare = Long.compare(fitness2.meanCorrectConfidenceIntervalScaled, fitness1.meanCorrectConfidenceIntervalScaled);		// flip order to obtain largest correct first
 					if(compare == 0) {
 						compare = fitness1.meanErrorConfidenceIntervalScaled.compareTo(fitness2.meanErrorConfidenceIntervalScaled);
 					}

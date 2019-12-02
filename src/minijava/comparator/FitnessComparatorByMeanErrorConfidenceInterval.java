@@ -15,7 +15,7 @@ public class FitnessComparatorByMeanErrorConfidenceInterval implements Comparato
 				if(compare == 0) {
 					compare = fitness1.meanErrorScaled.compareTo(fitness2.meanErrorScaled);
 					if(compare == 0) {
-						compare = Integer.compare(fitness2.meanCorrectScaled, fitness1.meanCorrectScaled);		// flip order to obtain largest correct first
+						compare = Long.compare(fitness2.meanCorrectScaled, fitness1.meanCorrectScaled);		// flip order to obtain largest correct first
 					}
 				}
 			}
