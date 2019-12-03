@@ -13,7 +13,8 @@ public class FitnessComparatorByMeanError implements Comparator<Fitness> {
 			if(compare == 0) {
 				compare = Integer.compare(fitness1.size, fitness2.size);
 				if(compare == 0) {
-					compare = Long.compare(fitness2.meanCorrectScaled, fitness1.meanCorrectScaled);		// flip order to obtain largest correct first
+					// flip order to obtain largest correct first
+					compare = Double.compare(fitness2.meanCorrectScaled, fitness1.meanCorrectScaled);
 					if(compare == 0) {
 						compare = fitness1.meanErrorConfidenceIntervalScaled.compareTo(fitness2.meanErrorConfidenceIntervalScaled);
 					}

@@ -7,7 +7,8 @@ import minijava.Fitness;
 public class FitnessComparatorByMeanCorrectConfidenceInterval implements Comparator<Fitness> {
     public int compare(Fitness fitness1, Fitness fitness2) { 
 		int compare = 0;
-		compare = Long.compare(fitness2.meanCorrectConfidenceIntervalScaled, fitness1.meanCorrectConfidenceIntervalScaled);		// flip order to obtain largest correct first
+		// flip order to obtain largest correct first
+		compare = Double.compare(fitness2.meanCorrectConfidenceIntervalScaled, fitness1.meanCorrectConfidenceIntervalScaled);
 		if(compare == 0) {
 			compare = fitness1.combinedFunction.compareTo(fitness2.combinedFunction);
 			if(compare == 0) {

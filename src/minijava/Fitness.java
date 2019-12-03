@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.stat.interval.ConfidenceInterval;
+import org.apache.commons.math3.stat.interval.WilsonScoreInterval;
 
 public class Fitness {
 	// sample size parameters
@@ -19,15 +21,14 @@ public class Fitness {
 	private BigInteger sumError;			// aggregates the difference between actual and expected, for Welford's online algorithm
 	public BigInteger sumErrorM2;			// aggregates the squared distance from the sample mean error, for Welford's online algorithm
 	public BigInteger meanErrorScaled;		// scaled when speed/size is over allocation
-	public BigInteger meanErrorConfidenceInterval;			// sample mean error plus maximum value of confidence interval
+	public BigInteger meanErrorConfidenceInterval;			// sample mean error plus margin of error
 	public BigInteger meanErrorConfidenceIntervalScaled;	// scaled when speed/size is over allocation
 	// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
-	public long meanCorrect;						// number of samples that are correct (e.g. no difference between actual and expected)
-	private long sumCorrect;						// aggregates number of correct, for Welford's online algorithm
-	public long sumCorrectM2;					// aggregates the squared distance from the mean correct, for Welford's online algorithm
-	public long meanCorrectScaled;				// scaled when speed/size is over allocation
-	public long meanCorrectConfidenceInterval;	// sample mean error plus maximum value of confidence interval
-	public long meanCorrectConfidenceIntervalScaled;	// scaled when speed/size is over allocation
+	public double meanCorrect;					// number of samples that are correct (e.g. no difference between actual and expected)
+	private long sumCorrect;					// aggregates number of correct
+	public double meanCorrectScaled;				// scaled when speed/size is over allocation
+	public double meanCorrectConfidenceInterval;	// mean correct minus margin of error, obtain smallest value
+	public double meanCorrectConfidenceIntervalScaled;	// scaled when speed/size is over allocation
 	// BY_COMBINED parameters
 	public BigInteger combinedFunction;		// a combined function of: correct, mean confidence interval, speed confidence interval, and size
 	// program control parameters
@@ -38,10 +39,11 @@ public class Fitness {
 	public long denominatorScaled;			// for scaling when speed/size is over allocation
 	// statistical parameters
 	private static final NormalDistribution normalDistribution = new NormalDistribution();	// assume normal (TODO random programs make random probability mass function)
-	private static final double confidenceLevel = 98.5;	// confidence level of confidence interval, in [0,100%)
-	private static final double alpha = 1.0-(confidenceLevel/100.0);
-	private static final double zScore = normalDistribution.inverseCumulativeProbability(1.0-(alpha/2.0));
+	private static final double confidenceLevel = 0.985;	// confidence level of confidence interval, in [0,1)
+	private static final double alpha = (1.0 - confidenceLevel) / 2.0;
+	private static final double zScore = normalDistribution.inverseCumulativeProbability(1.0 - alpha);
 	private static final BigInteger zScore10000000000 = BigDecimal.valueOf(zScore * Constants.I10000000000.doubleValue()).toBigInteger();
+	private static final WilsonScoreInterval wilsonScoreInterval = new WilsonScoreInterval();
 
 	public Fitness() {
 		// sample size parameters
@@ -60,7 +62,6 @@ public class Fitness {
 		// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
 		meanCorrect = 0;
 		sumCorrect = 0;
-		sumCorrectM2 = 0;
 		meanCorrectScaled = 0;
 		// BY_COMBINED parameters
 		combinedFunction = Constants.I0;
@@ -91,7 +92,6 @@ public class Fitness {
 		// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
 		this.meanCorrect = fitness.meanCorrect;
 		this.sumCorrect = fitness.sumCorrect;
-		this.sumCorrectM2 = fitness.sumCorrectM2;
 		this.meanCorrectScaled = fitness.meanCorrectScaled;
 		this.meanCorrectConfidenceInterval = fitness.meanCorrectConfidenceInterval;
 		this.meanCorrectConfidenceIntervalScaled = fitness.meanCorrectConfidenceIntervalScaled;
@@ -106,13 +106,12 @@ public class Fitness {
 	}
 	
 	// add the sampled difference to the fitness parameters
-	// update parameters of Welford's online algorithm, used to calculate statistical moments (e.g. mean, variance)
-	// modification to Welford's online algorithm to use integer sum, because it needs to scale with large integer division (and stay integer) instead of reals
 	public void addSampleDifference(BigInteger sampledDifference) {
 		if(sampledDifference.compareTo(Constants.I0) == 0) {
-			meanCorrect++;
+			sumCorrect++;
 		}
-		
+		// update parameters of Welford's online algorithm, used to calculate statistical moments (e.g. mean, variance)
+		// modification to Welford's online algorithm to use integer sum, because it needs to scale with large integer division (and stay integer) instead of reals
 		count = count.add(Constants.I1);
 		BigInteger deltaPrevious = sampledDifference.subtract(meanError);
 		sumError = sumError.add(sampledDifference);
@@ -130,7 +129,6 @@ public class Fitness {
 	// reset all daily fitness parameters
 	public void reset(int size) {
 		isComplete = false;
-		meanCorrect = 0;
 		this.size = size;
 	}
 	
@@ -151,7 +149,8 @@ public class Fitness {
 		}
 		BigInteger denominatorScaledBigInteger = BigInteger.valueOf(denominatorScaled);
 		BigInteger numeratorScaledBigInteger = BigInteger.valueOf(numeratorScaled);
-		meanCorrectScaled = (int)(meanCorrect*denominatorScaled/numeratorScaled);	// flip numerator and denominator to punish fitness, because numeratorScaled>denominatorScaled
+		
+		// BY_MEAN_ERROR and BY_MEAN_ERROR_CONFIDENCE_INTERVAL parameters
 		meanErrorScaled = meanError.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
 		// sample standard deviation
 		BigInteger standardDeviation = Util.sqrt(sumErrorM2.divide(count.subtract(Constants.I1)));
@@ -162,10 +161,20 @@ public class Fitness {
 		}
 		meanErrorConfidenceInterval = meanError.add(marginOfError);
 		meanErrorConfidenceIntervalScaled = meanErrorConfidenceInterval.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
-		combinedFunction = meanErrorConfidenceIntervalScaled.multiply(BigInteger.valueOf(Tests.MAX_TEST_VECTORS));
-		if(meanCorrect>0) {
-			combinedFunction = combinedFunction.divide(BigInteger.valueOf(meanCorrect));
-		}
+		
+		// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
+		meanCorrect = sumCorrect/count.doubleValue();
+		// flip numerator and denominator to punish fitness, because numeratorScaled>denominatorScaled
+		meanCorrectScaled = meanCorrect*denominatorScaled/numeratorScaled;	
+		ConfidenceInterval confidenceInterval = wilsonScoreInterval.createInterval(count.intValue(), (int)sumCorrect, confidenceLevel);
+		meanCorrectConfidenceInterval = confidenceInterval.getLowerBound();
+		// flip numerator and denominator to punish fitness, because numeratorScaled>denominatorScaled
+		meanCorrectConfidenceIntervalScaled = meanCorrectConfidenceInterval*denominatorScaled/numeratorScaled;
+		
+		// BY_COMBINED parameters
+		combinedFunction = meanErrorConfidenceIntervalScaled;
+		double incorrectPercent = 1.0 - meanCorrectConfidenceInterval;
+		combinedFunction = BigDecimal.valueOf(incorrectPercent * combinedFunction.doubleValue()).toBigInteger();
 	}
 
 	
