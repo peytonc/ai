@@ -30,14 +30,18 @@ public final class Tests {
 		if(vectors == null) {
 			return false;
 		} else if(listTests.size()==vectors.size()) {
+			BigInteger differenceTotal = Constants.I0;
 			for(int index=0; index<MAX_TEST_VECTORS; index++) {
-				BigInteger differenceError = listTests.get(index).getDifference(vectors.get(index));
-				if(differenceError == null) {
+				BigInteger difference = listTests.get(index).getDifference(vectors.get(index));
+				if(difference == null) {
 					return false;
 				} else {
-					fitness.addSampleDifference(differenceError);
+					fitness.addDifference(difference);
+					differenceTotal = differenceTotal.add(difference);
 				}
 			}
+			// a sample of getDifference are not Normally distributed, but by central limit theorem, the sample means are Normally distributed
+			fitness.addSampleMean(differenceTotal.divide(MAX_TEST_VECTORS_BIG_INTEGER));
 			fitness.update();	// update statistical moments
 			return true;
 		} else {

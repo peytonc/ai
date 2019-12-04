@@ -18,7 +18,7 @@ public class Fitness {
 	public long sumSpeed;					// aggregates the speeds, for Welford's online algorithm
 	// BY_MEAN_ERROR and BY_MEAN_ERROR_CONFIDENCE_INTERVAL parameters
 	public BigInteger meanError;			// sample mean of error (between actual and expected), for Welford's online algorithm
-	private BigInteger sumError;			// aggregates the difference between actual and expected, for Welford's online algorithm
+	private BigInteger sumOfMeansError;		// aggregates the sample means (each sample mean is the average difference between actuals and expected)
 	public BigInteger sumErrorM2;			// aggregates the squared distance from the sample mean error, for Welford's online algorithm
 	public BigInteger meanErrorScaled;		// scaled when speed/size is over allocation
 	public BigInteger meanErrorConfidenceInterval;			// sample mean error plus margin of error
@@ -38,7 +38,7 @@ public class Fitness {
 	public long numeratorScaled;			// for scaling when speed/size is over allocation
 	public long denominatorScaled;			// for scaling when speed/size is over allocation
 	// statistical parameters
-	private static final NormalDistribution normalDistribution = new NormalDistribution();	// assume normal (TODO random programs make random probability mass function)
+	private static final NormalDistribution normalDistribution = new NormalDistribution();
 	private static final double confidenceLevel = 0.985;	// confidence level of confidence interval, in [0,1)
 	private static final double alpha = (1.0 - confidenceLevel) / 2.0;
 	private static final double zScore = normalDistribution.inverseCumulativeProbability(1.0 - alpha);
@@ -56,7 +56,7 @@ public class Fitness {
 		sumSpeed = 0;
 		// BY_MEAN_ERROR and BY_MEAN_ERROR_CONFIDENCE_INTERVAL parameters
 		meanError = Constants.I0;
-		sumError = Constants.I0;
+		sumOfMeansError = Constants.I0;
 		sumErrorM2 = Constants.I0;
 		meanErrorScaled = Constants.I0;
 		// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
@@ -84,7 +84,7 @@ public class Fitness {
 		this.sumSpeed = fitness.sumSpeed;
 		// BY_MEAN_ERROR and BY_MEAN_ERROR_CONFIDENCE_INTERVAL parameters
 		this.meanError = fitness.meanError;
-		this.sumError = fitness.sumError;
+		this.sumOfMeansError = fitness.sumOfMeansError;
 		this.sumErrorM2 = fitness.sumErrorM2;
 		this.meanErrorScaled = fitness.meanErrorScaled;
 		this.meanErrorConfidenceInterval = fitness.meanErrorConfidenceInterval;
@@ -106,17 +106,22 @@ public class Fitness {
 	}
 	
 	// add the sampled difference to the fitness parameters
-	public void addSampleDifference(BigInteger sampledDifference) {
-		if(sampledDifference.compareTo(Constants.I0) == 0) {
+	public void addDifference(BigInteger difference) {
+		if(difference.compareTo(Constants.I0) == 0) {
 			sumCorrect++;
 		}
+		count = count.add(Constants.I1);
+	}
+	
+	// add the sampled mean to the fitness parameters
+	// a sample of getDifference are not Normally distributed, but by central limit theorem, the sample means are Normally distributed
+	public void addSampleMean(BigInteger sampleMean) {
 		// update parameters of Welford's online algorithm, used to calculate statistical moments (e.g. mean, variance)
 		// modification to Welford's online algorithm to use integer sum, because it needs to scale with large integer division (and stay integer) instead of reals
-		count = count.add(Constants.I1);
-		BigInteger deltaPrevious = sampledDifference.subtract(meanError);
-		sumError = sumError.add(sampledDifference);
-		meanError = sumError.divide(count);
-		BigInteger deltaCurrent = sampledDifference.subtract(meanError);
+		BigInteger deltaPrevious = sampleMean.subtract(meanError);
+		sumOfMeansError = sumOfMeansError.add(sampleMean);
+		meanError = sumOfMeansError.divide(BigInteger.valueOf(generation));
+		BigInteger deltaCurrent = sampleMean.subtract(meanError);
 		sumErrorM2 = sumErrorM2.add(deltaPrevious.multiply(deltaCurrent));
 	}
 	
@@ -153,9 +158,14 @@ public class Fitness {
 		// BY_MEAN_ERROR and BY_MEAN_ERROR_CONFIDENCE_INTERVAL parameters
 		meanErrorScaled = meanError.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
 		// sample standard deviation
-		BigInteger standardDeviation = Util.sqrt(sumErrorM2.divide(count.subtract(Constants.I1)));
+		BigInteger standardDeviation;
+		if(generation>1) {
+			standardDeviation = Util.sqrt(sumErrorM2.divide(BigInteger.valueOf(generation-1)));
+		} else {
+			standardDeviation = Util.sqrt(sumErrorM2);
+		}
 		// calculate maximum value of confidence interval range
-		BigInteger marginOfError = zScore10000000000.multiply(standardDeviation).divide(Util.sqrt(count)).divide(Constants.I10000000000);
+		BigInteger marginOfError = zScore10000000000.multiply(standardDeviation).divide(Util.sqrt(BigInteger.valueOf(generation))).divide(Constants.I10000000000);
 		if(marginOfError.compareTo(Constants.I0) == 0) {
 			isMarginOfErrorFinal = true;
 		}
@@ -179,6 +189,6 @@ public class Fitness {
 
 	
 	public String toString() {
-		return generation + "\t" + meanError + "\t" + meanCorrect + "\t" + meanErrorConfidenceInterval + "\t" + combinedFunction + "\t" + meanSpeed + "\t" + size;
+		return generation + "\t" + combinedFunction + "\t" + meanErrorConfidenceInterval + "\t" + meanCorrectConfidenceInterval + "\t" + meanError + "\t" + meanCorrect + "\t" +  meanSpeed + "\t" + size;
 	}
 }

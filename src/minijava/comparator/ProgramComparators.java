@@ -8,7 +8,7 @@ import minijava.Program;
 public class ProgramComparators {
 	private static final ProgramComparators programComparators = new ProgramComparators();
 	
-	public static final int MAX_CATEGORIES = 4;
+	public static final int MAX_CATEGORIES = 5;
 	public static final Comparator<Program> BY_COMBINED = new ProgramComparatorByCombined();
 	public static final Comparator<Program> BY_MEAN_ERROR_CONFIDENCE_INTERVAL = new ProgramComparatorByMeanErrorConfidenceInterval();
 	public static final Comparator<Program> BY_MEAN_CORRECT_CONFIDENCE_INTERVAL = new ProgramComparatorByMeanCorrectConfidenceInterval();
