@@ -1,11 +1,8 @@
 package minijava;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ProgramClassLoader extends ClassLoader {
 
-    public Map<String, ProgramClassSimpleJavaFileObject> mapProgramClass = new HashMap<>();
+    public ProgramClassSimpleJavaFileObject programClassSimpleJavaFileObject = null;
 
     public ProgramClassLoader(ClassLoader classLoader) {
         super(classLoader);
@@ -13,7 +10,6 @@ public class ProgramClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> findClass(String className) throws ClassNotFoundException {
-        ProgramClassSimpleJavaFileObject programClassSimpleJavaFileObject = mapProgramClass.get(className);
         if(programClassSimpleJavaFileObject != null) {
         	byte[] byteCode = programClassSimpleJavaFileObject.byteArrayOutputStream.toByteArray();
             return defineClass(className, byteCode, 0, byteCode.length);

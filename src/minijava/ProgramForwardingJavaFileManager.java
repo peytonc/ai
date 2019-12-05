@@ -16,7 +16,7 @@ public class ProgramForwardingJavaFileManager extends ForwardingJavaFileManager<
     	super(javaFileManager);
     	this.programClassSimpleJavaFileObject = programClassSimpleJavaFileObject;
         this.programClassLoader = programClassLoader;
-        this.programClassLoader.mapProgramClass.put(programClassSimpleJavaFileObject.getName(), programClassSimpleJavaFileObject);
+        this.programClassLoader.programClassSimpleJavaFileObject = programClassSimpleJavaFileObject;
 	}
 
 	@Override
