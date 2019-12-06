@@ -152,8 +152,8 @@ public class Fitness {
 			numeratorScaled *= size;
 			denominatorScaled *= Environment.getEnvironment().sizeBeforeRestrict;
 		}
-		BigInteger denominatorScaledBigInteger = BigInteger.valueOf(denominatorScaled);
 		BigInteger numeratorScaledBigInteger = BigInteger.valueOf(numeratorScaled);
+		BigInteger denominatorScaledBigInteger = BigInteger.valueOf(denominatorScaled);
 		
 		// BY_MEAN_ERROR and BY_MEAN_ERROR_CONFIDENCE_INTERVAL parameters
 		meanErrorScaled = meanError.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
