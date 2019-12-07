@@ -25,7 +25,7 @@ public class Program extends SimpleJavaFileObject {
 	public BlockContext blockContext = null;
 	
 
-	Program(String source, int species, int ID, Fitness fitness) {
+	Program(String source, int species, int ID, Fitness fitness, MiniJavaParser miniJavaParser, BlockContext blockContext) {
 		super(URI.create("string:///" + PACKAGE_SPECIES + species + '/' + PACKAGE_ID + ID + '/' + PROGRAM_CLASS + Kind.SOURCE.extension), Kind.SOURCE);
 		this.source = new String(source);
 		if(fitness == null) {
@@ -37,12 +37,16 @@ public class Program extends SimpleJavaFileObject {
 		this.fitness.size = source.length();
 		this.species = species;
 		this.ID = ID;
+		this.miniJavaParser = miniJavaParser;
+		this.blockContext = blockContext;
 		vectors = new ArrayList<ArrayList<Long>>(Tests.MAX_TEST_VECTORS);
-		for(Test test : Tests.getTests().listTests) {
-			ArrayList<Long> arrayList = new ArrayList<Long>(test.listTest);
-			vectors.add(arrayList);
-		}
 		programClassLoader = new ProgramClassLoader(ClassLoader.getSystemClassLoader());
+		if(Tests.getTests().listTests != null) {
+			for(Test test : Tests.getTests().listTests) {
+				ArrayList<Long> arrayList = new ArrayList<Long>(test.listTest);
+				vectors.add(arrayList);
+			}
+		}
 	}
 
 	@Override

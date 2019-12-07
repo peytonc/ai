@@ -36,7 +36,8 @@ public class CallableMiniJava implements Runnable {
 	public void run() {
 		if(method != null) {
 			Thread thread = Thread.currentThread();
-			thread.setPriority(Thread.MIN_PRIORITY);	// CallableMiniJava gets the lowest priority and is often computing results (minimum priority to avoid GP and Species starvation)
+			// CallableMiniJava gets the lowest priority and is often computing results (minimum priority to avoid GP and Species starvation)
+			thread.setPriority(Thread.MIN_PRIORITY);
 			long timeStart = GP.threadMXBean.getThreadCpuTime(thread.getId());
 			try {
 				int index = 0;
