@@ -309,19 +309,32 @@ public class Species implements Runnable {
 	}
 	
 	public void promoteChampion() {
-		while(listProgramChampion.size()<MAX_PARENT && !listProgramParent.isEmpty()) {
-			// initial promotion of best parents to champions
-			listProgramChampion.add(listProgramParent.remove(0));
-		}
-		int category = 0;
-		Iterator<Program> iteratorProgramChampion = listProgramChampion.iterator();
-		Iterator<Program> iteratorProgramParent = listProgramParent.iterator();
-		while (iteratorProgramChampion.hasNext() && iteratorProgramParent.hasNext()) {
-			Program programChampion = iteratorProgramChampion.next();
-			Program programParent = iteratorProgramParent.next();
-			int compare = ProgramComparators.getProgramComparators().category.get(category).compare(programChampion, programParent);
-			if(compare > 0) {
-				// swap?
+		if(listProgramChampion.size()<MAX_PARENT || listProgramParent.size()<MAX_PARENT) {
+			while(listProgramChampion.size()<MAX_PARENT && !listProgramParent.isEmpty()) {
+				// initial promotion of best parents to champions
+				listProgramChampion.add(listProgramParent.remove(0));
+			}
+		} else {
+			// in each category, only check best ranked parent against worst ranked champion
+			int indexChampion = 0;
+			int indexParent = 0;
+			Program programChampion;
+			Program programParent;
+			for (int category=0; category<maxByCategory.length; category++) {
+				indexChampion = indexParent + maxByCategory[category] - 1;
+				programChampion = listProgramChampion.get(indexChampion);	// worst ranked champion in this category
+				programParent = listProgramParent.get(indexParent);			// best ranked parent in this category
+				int compare = ProgramComparators.getProgramComparators().category.get(category).compare(programChampion, programParent);
+				if(compare > 0) {
+					listProgramChampion.remove(indexChampion);
+					listProgramParent.set(indexParent, programChampion);
+					while (indexChampion>=indexParent) {
+						programChampion = listProgramChampion.get(indexChampion);
+					}
+					listProgramChampion.add(indexChampion, programParent);
+				}
+				indexParent += maxByCategory[category];
+				category++;
 			}
 		}
 	}
