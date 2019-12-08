@@ -117,15 +117,23 @@ public class Species implements Runnable {
 		executePopulation();
 		evaluatePopulation();
 		downselectPopulation();
-		if(day%1 == 0 && listProgramParent!=null && !listProgramParent.isEmpty()) {
+		/*if(day%1 == 0 && listProgramParent!=null && !listProgramParent.isEmpty()) {
 			int count = 0;
 			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
 			for(Program program : listProgramParent) {
-				LOGGER.info("\tstoreBestFitness\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				LOGGER.info("\tdownselectPopulation\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
+				count++;
+			}
+		}*/
+		promoteChampion();
+		if(day%1 == 0 && listProgramChampion!=null && !listProgramChampion.isEmpty()) {
+			int count = 0;
+			long milli = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+			for(Program program : listProgramChampion) {
+				LOGGER.info("\tpromoteChampion\t" + milli + "\t" + year + "\t" + day + "\t" + count + "\t" + program.species + "\t" + program.fitness.toString() + "\t" + program.source);
 				count++;
 			}
 		}
-		promoteChampion();
 		storeBestFitness();
 	}
 
@@ -157,7 +165,7 @@ public class Species implements Runnable {
 		for(Program program : listProgram) {
 			Program program1 = program;
 			if(random.nextInt() % PARENT_FACTOR == 0) {
-				if(listProgramChampion.size() >= indexParent) {
+				if(!listProgramChampion.isEmpty() && listProgramChampion.size()>=indexParent) {
 					// use champion instead of parent, same index thus same category
 					program1 = listProgramChampion.get(indexParent);
 				}
@@ -179,7 +187,8 @@ public class Species implements Runnable {
 				}
 				source = createProgram(program1, program2, program1.source);
 				source = replacePackage(source, species, indexPackage);
-				listProgramPopulation.add(new Program(source, species, indexPackage, null, null, null));	// add child to population
+				Program programChild = new Program(source, species, indexPackage, null, null, null);
+				listProgramPopulation.add(programChild);	// add child to population
 				indexPackage++;
 			}
 			indexParent++;
@@ -231,10 +240,9 @@ public class Species implements Runnable {
 				executorService.shutdown();
 				if(!executorService.awaitTermination(Environment.MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
 					executorService.shutdownNow();
-					int milliseconds = Environment.MAX_EXECUTE_MILLISECONDS;
+					long timeStart = System.nanoTime();
 					while(!executorService.awaitTermination(Environment.MAX_EXECUTE_MILLISECONDS, TimeUnit.MILLISECONDS)) {
-						milliseconds += Environment.MAX_EXECUTE_MILLISECONDS;
-						LOGGER.warning("Runaway species #" + species + " for " + milliseconds + " milliseconds");
+						LOGGER.warning("Runaway species #" + species + " for " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeStart) + "ms");
 					}
 				}
 				
@@ -311,11 +319,16 @@ public class Species implements Runnable {
 	public void promoteChampion() {
 		if(listProgramChampion.size()<MAX_PARENT || listProgramParent.size()<MAX_PARENT) {
 			while(listProgramChampion.size()<MAX_PARENT && !listProgramParent.isEmpty()) {
-				// initial promotion of best parents to champions
-				listProgramChampion.add(listProgramParent.remove(0));
+				Program programParent = listProgramParent.remove(0);	// initial promotion of best parents to champions
+				if(programParent.miniJavaParser==null || programParent.blockContext==null) {
+					MiniJavaLexer miniJavaLexer = new MiniJavaLexer(CharStreams.fromString(programParent.source));
+					programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
+					programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR only allows one call to program() before EOF error?
+				}
+				listProgramChampion.add(programParent);
 			}
 		} else {
-			// in each category, only check best ranked parent against worst ranked champion
+			// in each category, only check best ranked parent against worst ranked champion, and swap if parent is better
 			int indexChampion = 0;
 			int indexParent = 0;
 			Program programChampion;
@@ -327,9 +340,18 @@ public class Species implements Runnable {
 				int compare = ProgramComparators.getProgramComparators().category.get(category).compare(programChampion, programParent);
 				if(compare > 0) {
 					listProgramChampion.remove(indexChampion);
-					listProgramParent.set(indexParent, programChampion);
-					while (indexChampion>=indexParent) {
-						programChampion = listProgramChampion.get(indexChampion);
+					listProgramParent.set(indexParent, programChampion);	// replace programParent with programChampion at indexParent
+					while(compare>0 && indexChampion>indexParent) {
+						programChampion = listProgramChampion.get(indexChampion-1);
+						compare = ProgramComparators.getProgramComparators().category.get(category).compare(programChampion, programParent);
+						if(compare > 0) {
+							indexChampion--;
+						}
+					}
+					if(programParent.miniJavaParser==null || programParent.blockContext==null) {
+						MiniJavaLexer miniJavaLexer = new MiniJavaLexer(CharStreams.fromString(programParent.source));
+						programParent.miniJavaParser = new MiniJavaParser(new CommonTokenStream(miniJavaLexer));	// may contain incorrect ID
+						programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR only allows one call to program() before EOF error?
 					}
 					listProgramChampion.add(indexChampion, programParent);
 				}
@@ -340,21 +362,19 @@ public class Species implements Runnable {
 	}
 	
 	public void storeBestFitness() {
-		if(listProgramParent==null || listProgramParent.isEmpty()) {
+		if(listProgramChampion==null || listProgramChampion.isEmpty()) {
 			return;
 		}
-		Collections.sort(listProgramParent, ProgramComparators.BY_COMBINED);
 		if(fitnessBest == null) {
 			stagnant = MAX_STAGNANT_YEARS;
-			fitnessBest = new Fitness(listProgramParent.get(0).fitness);
-			stringBestSource = listProgramParent.get(0).source;
-			LOGGER.info("NEWY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramParent.get(0).source);
-		} else if(FitnessComparators.BY_COMBINED.compare(fitnessBest, listProgramParent.get(0).fitness) > 0) {
+			fitnessBest = new Fitness(listProgramChampion.get(0).fitness);
+			stringBestSource = listProgramChampion.get(0).source;
+		} else if(FitnessComparators.BY_COMBINED.compare(fitnessBest, listProgramChampion.get(0).fitness) > 0) {
 			stagnant = MAX_STAGNANT_YEARS;
-			fitnessBest = new Fitness(listProgramParent.get(0).fitness);
+			fitnessBest = new Fitness(listProgramChampion.get(0).fitness);
 			try {
-				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramParent.get(0).species + "ID" + listProgramParent.get(0).ID + " " + fitnessBest.toString() + "\t" + listProgramParent.get(0).source);
-				String source = listProgramParent.get(0).source;
+				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramChampion.get(0).species + "ID" + listProgramChampion.get(0).ID + " " + listProgramChampion.toString() + "\t" + listProgramChampion.get(0).source);
+				String source = listProgramChampion.get(0).source;
 				source = replacePackage(source, species, 0);
 				if(!source.equals(stringBestSource)) {	// only save if different (reduce storage writes)
 					stringBestSource = source;

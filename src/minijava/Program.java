@@ -20,9 +20,9 @@ public class Program extends SimpleJavaFileObject {
 	public ArrayList<ArrayList<Long>> vectors;
 	public int species;
 	public int ID;
-	public ProgramClassLoader programClassLoader = null;
-	public MiniJavaParser miniJavaParser = null;
-	public BlockContext blockContext = null;
+	public ProgramClassLoader programClassLoader;
+	public MiniJavaParser miniJavaParser;
+	public BlockContext blockContext;
 	
 
 	Program(String source, int species, int ID, Fitness fitness, MiniJavaParser miniJavaParser, BlockContext blockContext) {
