@@ -356,7 +356,6 @@ public class Species implements Runnable {
 					listProgramChampion.add(indexChampion, programParent);
 				}
 				indexParent += maxByCategory[category];
-				category++;
 			}
 		}
 	}
