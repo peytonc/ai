@@ -308,6 +308,14 @@ public class Species implements Runnable {
 					}
 				}
 				if(!exists) {
+					for(Program programChampion : listProgramChampion) {
+						if(removeSpace(programChampion.source).equalsIgnoreCase(stringSource)) {
+							exists = true;
+							break;
+						}
+					}
+				}
+				if(!exists) {
 					listProgramParent.add(programPopulation);
 					sizeOfCurrentCategory++;
 				}
