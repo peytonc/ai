@@ -334,6 +334,16 @@ public class Species implements Runnable {
 					programParent.blockContext = programParent.miniJavaParser.program().block();	// ANTLR only allows one call to program() before EOF error?
 				}
 				listProgramChampion.add(programParent);
+				if(listProgramChampion.size() == MAX_PARENT) {
+					// sort champions per category
+					int indexChampionFirst = 0;
+					int indexChampionLast = 0;
+					for (int category=0; category<maxByCategory.length; category++) {
+						indexChampionLast = indexChampionFirst + maxByCategory[category] - 1;
+						Collections.sort(listProgramChampion.subList(indexChampionFirst, indexChampionLast+1), ProgramComparators.getProgramComparators().category.get(category));
+						indexChampionFirst += maxByCategory[category];
+					}
+				}
 			}
 		} else {
 			// in each category, only check best ranked parent against worst ranked champion, and swap if parent is better
