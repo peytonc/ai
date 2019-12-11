@@ -33,13 +33,12 @@ public class Fitness {
 	public BigInteger combinedFunction;		// a combined function of: correct, mean confidence interval, speed confidence interval, and size
 	// program control parameters
 	public boolean isComplete;				// successfully completed all test cases?
-	public boolean isMarginOfErrorFinal;	// is MarginOfErrorFinal less than 1, implies high confidence of sample mean converged to population mean 
 	// scaling parameters
 	public long numeratorScaled;			// for scaling when speed/size is over allocation
 	public long denominatorScaled;			// for scaling when speed/size is over allocation
 	// statistical parameters
 	private static final NormalDistribution normalDistribution = new NormalDistribution();
-	private static final double confidenceLevel = 0.985;	// confidence level of confidence interval, in [0,1)
+	private static final double confidenceLevel = 0.995;	// confidence level of confidence interval, in [0,1)
 	private static final double alpha = (1.0 - confidenceLevel) / 2.0;
 	private static final double zScore = normalDistribution.inverseCumulativeProbability(1.0 - alpha);
 	private static final BigInteger zScore10000000000 = BigDecimal.valueOf(zScore * Constants.I10000000000.doubleValue()).toBigInteger();
@@ -67,7 +66,6 @@ public class Fitness {
 		combinedFunction = Constants.I0;
 		// program control parameters
 		isComplete = false;
-		isMarginOfErrorFinal = false;
 		// scaling parameters
 		numeratorScaled = 1;
 		denominatorScaled = 1;
@@ -102,7 +100,6 @@ public class Fitness {
 		this.denominatorScaled = fitness.denominatorScaled;
 		// scaling parameters
 		this.isComplete = fitness.isComplete;
-		this.isMarginOfErrorFinal = fitness.isMarginOfErrorFinal;
 	}
 	
 	// add the sampled difference to the fitness parameters
@@ -166,9 +163,6 @@ public class Fitness {
 		}
 		// calculate maximum value of confidence interval range
 		BigInteger marginOfError = zScore10000000000.multiply(standardDeviation).divide(Util.sqrt(BigInteger.valueOf(generation))).divide(Constants.I10000000000);
-		if(marginOfError.compareTo(Constants.I0) == 0) {
-			isMarginOfErrorFinal = true;
-		}
 		meanErrorConfidenceInterval = meanError.add(marginOfError);
 		meanErrorConfidenceIntervalScaled = meanErrorConfidenceInterval.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
 		
@@ -189,6 +183,6 @@ public class Fitness {
 
 	
 	public String toString() {
-		return generation + "\t" + combinedFunction + "\t" + meanErrorConfidenceInterval + "\t" + meanCorrectConfidenceInterval + "\t" + meanError + "\t" + meanCorrect + "\t" +  meanSpeed + "\t" + size;
+		return generation + "\t" + combinedFunction + "\t" + meanErrorConfidenceIntervalScaled + "\t" + meanCorrectConfidenceIntervalScaled + "\t" + meanErrorScaled + "\t" + meanCorrectScaled + "\t" +  meanSpeed + "\t" + size;
 	}
 }

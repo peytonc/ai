@@ -165,7 +165,7 @@ public class Species implements Runnable {
 		for(Program program : listProgram) {
 			Program program1 = program;
 			if(random.nextInt() % PARENT_FACTOR == 0) {
-				if(!listProgramChampion.isEmpty() && listProgramChampion.size()>=indexParent) {
+				if(listProgramChampion.size() > indexParent) {
 					// use champion instead of parent, same index thus same category
 					program1 = listProgramChampion.get(indexParent);
 				}
@@ -197,7 +197,8 @@ public class Species implements Runnable {
 	
 	public void compilePopulation() { 
 		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-		for (Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); iteratorProgram.hasNext();) {
+		Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); 
+		while(iteratorProgram.hasNext()) {
 			Program program = iteratorProgram.next();
 			try (StandardJavaFileManager standardJavaFileManager = JAVA_COMPILER.getStandardFileManager(diagnostics, Locale.ENGLISH, null)) {
 				Iterable<Program> javaFileObject = Arrays.asList(program);
@@ -246,7 +247,8 @@ public class Species implements Runnable {
 					}
 				}
 				
-				for (Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); iteratorProgram.hasNext();) {
+				Iterator<Program> iteratorProgram = listProgramPopulation.iterator();
+				while (iteratorProgram.hasNext()) {
 					Program program = iteratorProgram.next();
 			        if(program.vectors == null) {
 			        	// remove program when vectors is null
@@ -277,7 +279,8 @@ public class Species implements Runnable {
 	}
 	
 	public void evaluatePopulation() {
-		for (Iterator<Program> iteratorProgram = listProgramPopulation.iterator(); iteratorProgram.hasNext();) {
+		Iterator<Program> iteratorProgram = listProgramPopulation.iterator();
+		while (iteratorProgram.hasNext()) {
 			Program program = iteratorProgram.next();
 			if(Tests.getTests().getDifferences(program.vectors, program.fitness) == false) {
 				iteratorProgram.remove();
@@ -390,7 +393,7 @@ public class Species implements Runnable {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = new Fitness(listProgramChampion.get(0).fitness);
 			try {
-				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramChampion.get(0).species + "ID" + listProgramChampion.get(0).ID + " " + listProgramChampion.toString() + "\t" + listProgramChampion.get(0).source);
+				LOGGER.info("BSTY" + year + "D" + day + "S" + listProgramChampion.get(0).species + "ID" + listProgramChampion.get(0).ID + "\t" + listProgramChampion.get(0).source);
 				String source = listProgramChampion.get(0).source;
 				source = replacePackage(source, species, 0);
 				if(!source.equals(stringBestSource)) {	// only save if different (reduce storage writes)
