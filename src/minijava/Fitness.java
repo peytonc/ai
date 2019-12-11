@@ -23,6 +23,9 @@ public class Fitness {
 	public BigInteger meanErrorScaled;		// scaled when speed/size is over allocation
 	public BigInteger meanErrorConfidenceInterval;			// sample mean error plus margin of error
 	public BigInteger meanErrorConfidenceIntervalScaled;	// scaled when speed/size is over allocation
+	public BigInteger meanErrorEstimator;					// special case on first sample to estimate meanError
+	private BigInteger sumOfMeansErrorEstimator;			// special case on first sample to estimate sumOfMeansError
+	public BigInteger sumErrorM2Estimator;					// special case on first sample to estimate sumErrorM2
 	// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
 	public double meanCorrect;					// number of samples that are correct (e.g. no difference between actual and expected)
 	private long sumCorrect;					// aggregates number of correct
@@ -58,6 +61,9 @@ public class Fitness {
 		sumOfMeansError = Constants.I0;
 		sumErrorM2 = Constants.I0;
 		meanErrorScaled = Constants.I0;
+		meanErrorEstimator = Constants.I0;
+		sumOfMeansErrorEstimator = Constants.I0;
+		sumErrorM2Estimator = Constants.I0;
 		// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
 		meanCorrect = 0;
 		sumCorrect = 0;
@@ -87,6 +93,9 @@ public class Fitness {
 		this.meanErrorScaled = fitness.meanErrorScaled;
 		this.meanErrorConfidenceInterval = fitness.meanErrorConfidenceInterval;
 		this.meanErrorConfidenceIntervalScaled = fitness.meanErrorConfidenceIntervalScaled;
+		this.meanErrorEstimator = fitness.meanErrorEstimator;
+		this.sumOfMeansErrorEstimator = fitness.sumOfMeansErrorEstimator;
+		this.sumErrorM2Estimator = fitness.sumErrorM2Estimator;
 		// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
 		this.meanCorrect = fitness.meanCorrect;
 		this.sumCorrect = fitness.sumCorrect;
@@ -108,6 +117,15 @@ public class Fitness {
 			sumCorrect++;
 		}
 		count = count.add(Constants.I1);
+		if(generation == 1) {
+			// special case on first sample to estimate standard deviation with sub-samples (not CLT with mean errors)
+			// update parameters of Welford's online algorithm, used to calculate statistical moments (e.g. mean, variance)
+			BigInteger deltaPrevious = difference.subtract(meanErrorEstimator);
+			sumOfMeansErrorEstimator = sumOfMeansErrorEstimator.add(difference);
+			meanErrorEstimator = sumOfMeansErrorEstimator.divide(count);
+			BigInteger deltaCurrent = difference.subtract(meanErrorEstimator);
+			sumErrorM2Estimator = sumErrorM2Estimator.add(deltaPrevious.multiply(deltaCurrent));
+		}
 	}
 	
 	// add the sampled mean to the fitness parameters
@@ -156,10 +174,11 @@ public class Fitness {
 		meanErrorScaled = meanError.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
 		// sample standard deviation
 		BigInteger standardDeviation;
-		if(generation>1) {
-			standardDeviation = Util.sqrt(sumErrorM2.divide(BigInteger.valueOf(generation-1)));
+		if(generation == 1) {
+			// special case on first sample to estimate standard deviation with sub-samples (not CLT with mean errors)
+			standardDeviation = Util.sqrt(sumErrorM2Estimator.divide(count.subtract(Constants.I0)));
 		} else {
-			standardDeviation = Util.sqrt(sumErrorM2);
+			standardDeviation = Util.sqrt(sumErrorM2.divide(BigInteger.valueOf(generation-1)));
 		}
 		// calculate maximum value of confidence interval range
 		BigInteger marginOfError = zScore10000000000.multiply(standardDeviation).divide(Util.sqrt(BigInteger.valueOf(generation))).divide(Constants.I10000000000);

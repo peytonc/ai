@@ -87,6 +87,7 @@ public class Species implements Runnable {
 		}
 		// add initial program as parent (not champion) in order to invoke and obtain fitness
 		Program program = new Program(stringBestSource, species, 0, null, null, null);
+		program.fitness.generation--;	// Program constructor increments generation, but in this case, it should not 
 		listProgramParent.add(program);
 	}
 	
