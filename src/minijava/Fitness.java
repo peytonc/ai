@@ -23,9 +23,9 @@ public class Fitness {
 	public BigInteger meanErrorScaled;		// scaled when speed/size is over allocation
 	public BigInteger meanErrorConfidenceInterval;			// sample mean error plus margin of error
 	public BigInteger meanErrorConfidenceIntervalScaled;	// scaled when speed/size is over allocation
-	public BigInteger meanErrorEstimator;					// special case on first sample to estimate meanError
-	private BigInteger sumOfMeansErrorEstimator;			// special case on first sample to estimate sumOfMeansError
-	public BigInteger sumErrorM2Estimator;					// special case on first sample to estimate sumErrorM2
+	public BigInteger meanErrorEstimator;					// special case on initial samples to estimate meanError
+	private BigInteger sumOfMeansErrorEstimator;			// special case on initial samples to estimate sumOfMeansError
+	public BigInteger sumErrorM2Estimator;					// special case on initial samples to estimate sumErrorM2
 	// BY_MEAN_CORRECT and BY_MEAN_CORRECT_CONFIDENCE_INTERVAL parameters
 	public double meanCorrect;					// number of samples that are correct (e.g. no difference between actual and expected)
 	private long sumCorrect;					// aggregates number of correct
@@ -46,6 +46,7 @@ public class Fitness {
 	private static final double zScore = normalDistribution.inverseCumulativeProbability(1.0 - alpha);
 	private static final BigInteger zScore10000000000 = BigDecimal.valueOf(zScore * Constants.I10000000000.doubleValue()).toBigInteger();
 	private static final WilsonScoreInterval wilsonScoreInterval = new WilsonScoreInterval();
+	private static final long MAX_GENERATION_ESTIMATOR = 3;
 
 	public Fitness() {
 		// sample size parameters
@@ -117,8 +118,8 @@ public class Fitness {
 			sumCorrect++;
 		}
 		count = count.add(Constants.I1);
-		if(generation == 1) {
-			// special case on first sample to estimate standard deviation with sub-samples (not CLT with mean errors)
+		if(generation <= MAX_GENERATION_ESTIMATOR) {
+			// special case on initial samples to estimate standard deviation from sub-samples standard deviation (by CLT)
 			// update parameters of Welford's online algorithm, used to calculate statistical moments (e.g. mean, variance)
 			BigInteger deltaPrevious = difference.subtract(meanErrorEstimator);
 			sumOfMeansErrorEstimator = sumOfMeansErrorEstimator.add(difference);
@@ -172,11 +173,11 @@ public class Fitness {
 		
 		// BY_MEAN_ERROR and BY_MEAN_ERROR_CONFIDENCE_INTERVAL parameters
 		meanErrorScaled = meanError.multiply(numeratorScaledBigInteger).divide(denominatorScaledBigInteger);
-		// sample standard deviation
 		BigInteger standardDeviation;
-		if(generation == 1) {
-			// special case on first sample to estimate standard deviation with sub-samples (not CLT with mean errors)
+		if(generation <= MAX_GENERATION_ESTIMATOR) {
+			// special case on initial samples to estimate standard deviation with sub-samples via CLT
 			standardDeviation = Util.sqrt(sumErrorM2Estimator.divide(count.subtract(Constants.I0)));
+			standardDeviation = standardDeviation.divide(Util.sqrt(count));
 		} else {
 			standardDeviation = Util.sqrt(sumErrorM2.divide(BigInteger.valueOf(generation-1)));
 		}
