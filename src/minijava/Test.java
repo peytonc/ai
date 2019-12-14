@@ -11,9 +11,10 @@ public class Test {
 	
 	private static final Random RANDOM = new Random(GP.RANDOM_SEED);
 	private static final int MAX_TEST_VECTOR_SIZE = 1;
-	private static final int MAX_PRIME_BITS = 50;
+	private static final int MAX_PRIME_BITS = 48;
+	private static final int MIN_PRIME_BITS = 52;
 	private static final int MIN_FACTORS = 2;
-	private static final int MAX_FACTORS = 6;
+	private static final int MAX_FACTORS = 2;
 	
 	public Test() {
 		listTest = new ArrayList<Long>(MAX_TEST_VECTOR_SIZE);
@@ -59,7 +60,8 @@ public class Test {
 		for(int index=0; index<MAX_TEST_VECTOR_SIZE; index++) {
 			BigInteger composite = Constants.I1;
 			int factors = RANDOM.nextInt(MAX_FACTORS-MIN_FACTORS+1)+MIN_FACTORS;
-			int numberPrimeBits = MAX_PRIME_BITS/factors;
+			int primeBits = RANDOM.nextInt(MAX_PRIME_BITS-MIN_PRIME_BITS+1)+MIN_PRIME_BITS;
+			int numberPrimeBits = primeBits/factors;
 			ArrayList<Long> listPrimeFactors = new ArrayList<Long>(factors);
 			for(int factor=0; factor<factors; factor++) {
 				BigInteger primeNumber = new BigInteger(numberPrimeBits, 10, RANDOM);
