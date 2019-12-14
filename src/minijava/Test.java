@@ -11,8 +11,8 @@ public class Test {
 	
 	private static final Random RANDOM = new Random(GP.RANDOM_SEED);
 	private static final int MAX_TEST_VECTOR_SIZE = 1;
-	private static final int MAX_PRIME_BITS = 48;
-	private static final int MIN_PRIME_BITS = 52;
+	private static final int MIN_PRIME_BITS = 48;
+	private static final int MAX_PRIME_BITS = 52;
 	private static final int MIN_FACTORS = 2;
 	private static final int MAX_FACTORS = 2;
 	
