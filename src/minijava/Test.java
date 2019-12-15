@@ -14,7 +14,7 @@ public class Test {
 	private static final int MIN_PRIME_BITS = 48;
 	private static final int MAX_PRIME_BITS = 52;
 	private static final int MIN_FACTORS = 2;
-	private static final int MAX_FACTORS = 2;
+	private static final int MAX_FACTORS = 4;
 	
 	public Test() {
 		listTest = new ArrayList<Long>(MAX_TEST_VECTOR_SIZE);
