@@ -255,7 +255,7 @@ public class Species implements Runnable {
 			        	// remove program when vectors is null
 			        	iteratorProgram.remove();
 			        	if(program.ID < 10) {
-			        		LOGGER.info("\null\t" + program.fitness.toString() + "\t" + program.source);
+			        		LOGGER.info("\tnull\t" + program.fitness.toString() + "\t" + program.source);
 			        	}
 			        } else if(program.fitness.meanSpeed > Environment.MAX_EXECUTE_MILLISECONDS_90PERCENT) {
 			        	// remove program when it exceeds MAX_EXECUTE_MILLISECONDS_90PERCENT
