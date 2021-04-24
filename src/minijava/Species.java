@@ -97,7 +97,11 @@ public class Species implements Runnable {
 	}
 	
 	public void extinction() {
-		LOGGER.info("EXTY" + year + "S" + species + " " + fitnessBest.toString() + "\t" + stringBestSource);
+		if(fitnessBest.toString() != null) {
+			LOGGER.info("EXTY" + year + "S" + species + " " + fitnessBest.toString() + "\t" + stringBestSource);
+		} else {
+			LOGGER.warning("EXTY" + year + "S" + species + " fitnessBest.toString()==null\t" + stringBestSource);
+		}
 		try {
 			Files.delete(Paths.get(PROGRAM_FILENAME));
 		} catch (IOException e) {
