@@ -4,6 +4,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import test.Test;
+import test.TestFactor;
+
 public final class Tests {
 	private static final Tests tests = new Tests();
 	
@@ -21,7 +24,7 @@ public final class Tests {
 	public void createTests() {
 		listTests = new ArrayList<Test>(MAX_TEST_VECTORS);
 		for(int index=0; index<MAX_TEST_VECTORS; index++) {
-			Test test = new Test();
+			Test test = new TestFactor();
 			listTests.add(test);
 		}
 	}

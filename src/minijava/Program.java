@@ -7,6 +7,7 @@ import javax.tools.SimpleJavaFileObject;
 
 import minijava.parser.MiniJavaParser;
 import minijava.parser.MiniJavaParser.BlockContext;
+import test.Test;
 
 /**
  * A file object used to represent source coming from a string.

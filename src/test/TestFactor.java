@@ -1,13 +1,14 @@
-package minijava;
+package test;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class Test {
-	public List<Long> listTest;
-	public ArrayList<ArrayList<Long>> listAnswer;
+import minijava.Constants;
+import minijava.GP;
+
+public class TestFactor extends Test {
 	
 	private static final Random RANDOM = new Random(GP.RANDOM_SEED);
 	private static final int MAX_TEST_VECTOR_SIZE = 1;
@@ -16,7 +17,7 @@ public class Test {
 	private static final int MIN_FACTORS = 2;
 	private static final int MAX_FACTORS = 4;
 	
-	public Test() {
+	public TestFactor() {
 		listTest = new ArrayList<Long>(MAX_TEST_VECTOR_SIZE);
 		listAnswer = new ArrayList<ArrayList<Long>>(MAX_TEST_VECTOR_SIZE);
 		createTest();
