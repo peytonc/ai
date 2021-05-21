@@ -31,7 +31,7 @@ storeBestFitness();
 
 1. git clone https://github.com/peytonc/gp.git
 2. cd gp/src/minijava/parser
-3. java -jar ../../../lib/antlr-4.7.2-complete.jar -package minijava.parser MiniJava.g4
+3. java -jar ../../../lib/antlr-4.9.2-complete.jar -package minijava.parser MiniJava.g4
 4. cd ../../..
 5. mkdir log
 6. mkdir data
