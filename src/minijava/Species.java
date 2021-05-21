@@ -403,7 +403,8 @@ public class Species implements Runnable {
 				source = replacePackage(source, species, 0);
 				if(!source.equals(stringBestSource)) {	// only save if different (reduce storage writes)
 					stringBestSource = source;
-					Files.write(Paths.get(PROGRAM_FILENAME),source.getBytes());
+					String sourceWithHeader = "/* " + fitnessBest.toString() + " */\n" + source;
+					Files.write(Paths.get(PROGRAM_FILENAME), sourceWithHeader.getBytes());
 					storeBestFitnessGlobal();
 				}
 			} catch (IOException e) {
@@ -419,7 +420,8 @@ public class Species implements Runnable {
 		} else if(FitnessComparators.BY_COMBINED.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
 			GP.fitnessBestGlobal = new Fitness(fitnessBest);
 			try {
-				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),stringBestSource.getBytes());
+				String sourceWithHeader = "/* " + GP.fitnessBestGlobal.toString() + " */\n" + stringBestSource;
+				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),sourceWithHeader.getBytes());
 				GP.sizeSourceLength = stringBestSource.length();
 			} catch (IOException e) {
 				e.printStackTrace();

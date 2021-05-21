@@ -7,7 +7,8 @@
 grammar MiniJava;
 
 program
-    :   'package' PACKAGENAME ';'
+    :   COMMENT*
+'package' PACKAGENAME ';'
 'import' 'java' '.' 'lang' '.' 'Exception' ';'
 'import' 'java' '.' 'util' '.' 'ArrayList' ';'
 'import' 'minijava' '.' 'Util' ';'
@@ -89,14 +90,14 @@ longDeclaration
 booleanDeclaration
     :   'Boolean' BOOLEANNAME '=' 'Boolean' '.' 'valueOf' '(' BOOLEAN ')' ';'
     ;
-    
+
 PACKAGENAME
 	:   'species' '0' '.' 'id' '0'
 	|   'species' '0' '.' 'id' DIGITNOZERO DIGIT*
 	|   'species' DIGITNOZERO DIGIT* '.' 'id' '0'
 	|   'species' DIGITNOZERO DIGIT* '.' 'id' DIGITNOZERO DIGIT*
     ;
-    
+
 LONGARRAYNAME
     :   'values' DIGIT DIGIT
     ;
@@ -125,6 +126,10 @@ fragment DIGIT
 
 fragment DIGITNOZERO
     :   [1-9]
+    ;
+
+COMMENT
+    :   '/*' .*? '*/' -> skip
     ;
 
 WS  :  [ \t\r\n\u000C]+ -> skip
