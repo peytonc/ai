@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 
 import minijava.comparator.FitnessComparators;
 import minijava.comparator.ProgramComparators;
+import minijava.logging.FileHandlerBest;
 
 public class GP {
 	public static final String PROGRAM_FILENAME = new String("GeneticProgram.java");
@@ -26,7 +27,7 @@ public class GP {
 	public static final int RANDOM_SEED = 0;
 	private static final String PROPERTIES_FILENAME = new String("config.properties");
 	private static final Logger LOGGER = Logger.getLogger(GP.class.getName());
-	
+	public static final Logger LOGGER_BEST = Logger.getLogger("minijava.logging.FileHandlerBest");
 	public static final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 	public static Fitness fitnessBestGlobal = null;
 	private static String stringBestSource = null;
@@ -35,6 +36,18 @@ public class GP {
 	
 	
 	public GP() {
+		try(InputStream inputStream = new FileInputStream(PROPERTIES_FILENAME)) {
+			LogManager.getLogManager().readConfiguration(inputStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
+		try {
+			LOGGER_BEST.addHandler(new FileHandlerBest());
+		} catch (SecurityException | IOException e) {
+			e.printStackTrace();
+			return;
+		}
 		// GP has the highest priority and is almost always sleeping (highest priority to interrupt Species and CallableMiniJava)
 		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 		try {
@@ -44,11 +57,6 @@ public class GP {
 			return;
 		}
 		
-		try(InputStream inputStream = new FileInputStream(PROPERTIES_FILENAME)) {
-			LogManager.getLogManager().readConfiguration(inputStream);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		try {
 			stringBestSource = new String(Files.readAllBytes(Paths.get(PROGRAM_FILENAME)));
 		} catch (IOException e) {

@@ -1,4 +1,4 @@
-/* DELETE THIS HEADER */
+/* 1	235105	604063	0.5144986136655744	474247	0.5660558930741191	906	3292 */
 package species0.id0;
 
 import java.lang.Exception;
@@ -39,62 +39,29 @@ public class GeneticProgram {
 		Boolean condition09 = Boolean.valueOf(false);
 		try {
 			value09 = Long.valueOf(1);
-			value00 = Long.valueOf(values00.get(Long.valueOf(0).intValue() % size));
-			value01 = Long.valueOf(2);
-			while (!Thread.currentThread().isInterrupted() && (((value00 % value01) == 0) && (value01 <= value00))) {
-				value00 = Long.valueOf((value00 / value01));
-				if((value00 == 1)) {
-					value09 = Long.valueOf(value01);
-				}
-			}
-			value01 = Long.valueOf(1);
-			value08 = Long.valueOf(Util.f(0, value00));
+			value00 = Long.valueOf(values03.get(Long.valueOf(value02).intValue() % size));
+			value01 = Long.valueOf(values03.size());
+			value01 = Long.valueOf((value07 | (value08 & (-values08.size()))));
+			values01.set(Long.valueOf(Util.f(50, ((((-value00) % value09) ^ 52) % 43), 16)).intValue() % size,
+					Long.valueOf(46));
+			value01 = Long.valueOf((-42));
+			value08 = Long.valueOf(Util.f(83, (value00 | value04)));
 			while (!Thread.currentThread().isInterrupted() && (value09 == 1)) {
-				value01 = Long.valueOf((value01 + 2));
-				while (!Thread.currentThread().isInterrupted() && (((value00 % value01) == 0) && (value01 <= value00))) {
-					value00 = Long.valueOf((value00 / value01));
-					value08 = Long.valueOf(Util.f(0, value00));
-					if((value00 == 1)) {
-						value09 = Long.valueOf(value01);
+				value01 = Long.valueOf((value01 + value09));
+				if ((value09 == 1)) {
+					value05 = Long.valueOf((1 * (value00 % (4 * (value00 % ((value00 % (2 * (value00
+							% ((value00 % ((value00 % (2 * (value00 % ((value00 % value08) * 32)))) * 2)) * 4))))
+							* 5))))));
+					value06 = Long.valueOf(90);
+					value09 = Long.valueOf(Util.f(24, (2 * (value00 % value05)), value05));
+					if (((value09 == 1) && (16000 < (value01 - 21)))) {
+						value09 = Long.valueOf(
+								Util.f(0, (65 * (value00 / Util.f(24, ((Util.f(53, value03, 5) ^ 87) % value08))))));
 					}
-				}
-				if((value09 == 1)) {
-					value05 = Long.valueOf((value08 * value08));
-					condition06 = Boolean.valueOf(false);
-					value05 = Long.valueOf((value08 * value08));
-					value06 = Long.valueOf((value05 % value00));
-					value07 = Long.valueOf(Util.f(0, value06));
-					if(((value07 * value07) == value06)) {
-						value05 = Long.valueOf((value08 + value07));
-						value09 = Long.valueOf(Util.f(0, value00, value05));
-						if((value09 != 1)) {
-							value00 = Long.valueOf((value00 / value09));
-							condition00 = Boolean.valueOf((Util.f(2, value00) == 1));
-							condition09 = Boolean.valueOf((Util.f(2, value09) == 1));
-							if((condition00 && condition09)) {
-								if((value09 < value00)) {
-									value09 = Long.valueOf(value00);
-								}
-							} else {
-								if(condition00) {
-									if((value09 < value00)) {
-										value09 = Long.valueOf(value00);
-									}
-								}
-							}
-						}
-					}
-					if (((value09 == 1) && (1000 < value01))) {
-						if ((Util.f(2, value00) == 1)) {
-							value09 = Long.valueOf(value00);
-						} else {
-							value09 = Long.valueOf(Util.f(0, value00));
-						}
-					}
-					value08 = Long.valueOf((value08 + 19));
+					value08 = Long.valueOf((value08 + 48));
 				}
 			}
-			values00.set(Long.valueOf(0).intValue() % size, Long.valueOf(value09));
+			values00.set(Long.valueOf(56).intValue() % size, Long.valueOf(value09));
 		} catch (Exception e) {
 			values00.clear();
 		}
