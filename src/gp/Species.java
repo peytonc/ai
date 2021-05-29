@@ -399,7 +399,7 @@ public class Species implements Runnable {
 			stagnant = MAX_STAGNANT_YEARS;
 			fitnessBest = new Fitness(listProgramChampion.get(0).fitness);
 			try {
-				GP.LOGGER_BEST.info(year + "\t" + day + "\t" + listProgramChampion.get(0).species + "\t" + listProgramChampion.get(0).ID + "\t" + listProgramChampion.get(0).fitness + "\t" + listProgramChampion.get(0).source);
+				GP.LOGGER_BEST.info("\t" + year + "\t" + day + "\t" + listProgramChampion.get(0).species + "\t" + listProgramChampion.get(0).ID + "\t" + listProgramChampion.get(0).fitness + "\t" + listProgramChampion.get(0).source);
 				String source = listProgramChampion.get(0).source;
 				source = replacePackage(source, species, 0);
 				if(!source.equals(stringBestSource)) {	// only save if different (reduce storage writes)
