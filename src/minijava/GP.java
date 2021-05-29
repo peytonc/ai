@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import minijava.comparator.FitnessComparators;
 import minijava.comparator.ProgramComparators;
 import minijava.logging.FileHandlerBest;
+import minijava.test.Tests;
 
 public class GP {
 	public static final String PROGRAM_FILENAME = new String("GeneticProgram.java");
@@ -76,7 +77,7 @@ public class GP {
 		int year = 0;
 		do {
 			initalizeYear(year);
-			extinction();
+			extinction(year);
 			for(int day=0; day<Environment.DAYS_PER_YEAR; day++) {
 				executeDay(day);
 			}
@@ -93,7 +94,7 @@ public class GP {
 	}
 	
 	// Species extinction when stagnant exceeds max threshold and least fit
-	public void extinction() {
+	public void extinction(int year) {
 		Fitness fitnessLeastFit = null;
 		int leastFitIndex = -1;
 		int index = 0;
@@ -111,6 +112,7 @@ public class GP {
 		}
 		if(leastFitIndex >= 0) {
 			index = listSpecies.get(leastFitIndex).species;
+			GP.LOGGER_BEST.info("\t" + year + "\t" + -1 + "\t" + index + "\t" + -1 + "\t" + fitnessLeastFit);
 			listSpecies.get(leastFitIndex).extinction();
 			listSpecies.remove(leastFitIndex);
 			Species species = new Species(index, stringBestSource);	// create a new species as replacement to old

@@ -33,6 +33,7 @@ import minijava.comparator.FitnessComparators;
 import minijava.comparator.ProgramComparators;
 import minijava.parser.MiniJavaLexer;
 import minijava.parser.MiniJavaParser;
+import minijava.test.Tests;
 
 public class Species implements Runnable {
 	public Fitness fitnessBest = null;
@@ -420,6 +421,7 @@ public class Species implements Runnable {
 		} else if(FitnessComparators.BY_COMBINED.compare(GP.fitnessBestGlobal, fitnessBest) > 0) {
 			GP.fitnessBestGlobal = new Fitness(fitnessBest);
 			try {
+				GP.LOGGER_BEST.info("\t" + year + "\t" + day + "\t" + -1 + "\t" + -1 + "\t" + GP.fitnessBestGlobal + "\t" + stringBestSource);
 				String sourceWithHeader = "/* " + GP.fitnessBestGlobal.toString() + " */\n" + stringBestSource;
 				Files.write(Paths.get(PROGRAM_FILENAME_GLOBAL),sourceWithHeader.getBytes());
 				GP.sizeSourceLength = stringBestSource.length();

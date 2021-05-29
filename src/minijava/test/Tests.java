@@ -1,11 +1,11 @@
-package minijava;
+package minijava.test;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import test.Test;
-import test.TestFactor;
+import minijava.Constants;
+import minijava.Fitness;
 
 public final class Tests {
 	private static final Tests tests = new Tests();
