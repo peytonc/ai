@@ -1,9 +1,8 @@
-/* 1	235105	604063	0.5144986136655744	474247	0.5660558930741191	906	3292 */
 package species0.id0;
 
 import java.lang.Exception;
 import java.util.ArrayList;
-import minijava.Util;
+import gp.Util;
 
 public class GeneticProgram {
 	public static void compute(ArrayList<Long> values00) {

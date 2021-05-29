@@ -30,14 +30,14 @@ storeBestFitness();
 # Installation #
 
 1. git clone https://github.com/peytonc/gp.git
-2. cd gp/src/minijava/parser
-3. java -jar ../../../lib/antlr-4.9.2-complete.jar -package minijava.parser MiniJava.g4
+2. cd gp/src/gp/parser
+3. java -jar ../../../lib/antlr-4.9.2-complete.jar -package gp.parser MiniJava.g4
 4. cd ../../..
 5. mkdir log
 6. mkdir data
 7. mkdir bin
-8. javac -Xlint -d bin -sourcepath src -cp lib/\* src/minijava/GP.java
-9. java -cp bin:lib/\* minijava.GP
+8. javac -Xlint -d bin -sourcepath src -cp lib/\* src/gp/GP.java
+9. java -cp bin:lib/\* gp.GP
 
 # Bugs/Issues #
 1. Must use latest version of OpenJDK per [https://stackoverflow.com/questions/58927052/is-java-vm-defective-or-why-does-repeated-use-of-compilationtask-and-reflections](https://stackoverflow.com/questions/58927052/is-java-vm-defective-or-why-does-repeated-use-of-compilationtask-and-reflections)
